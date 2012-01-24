@@ -16,8 +16,10 @@
         
 		<receiver android:name=".SMSReceiver" android:enabled="true"> 
             <intent-filter> 
-                <action android:name=
+                 <action android:name=
                     "android.provider.Telephony.SMS_RECEIVED" /> 
+                 <action android:name=
+                    "com.android.smsbanking.BANK_ADDRESS" /> 
             </intent-filter> 
         </receiver>
     </application>
