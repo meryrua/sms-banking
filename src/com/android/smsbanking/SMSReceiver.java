@@ -77,9 +77,10 @@ public class SMSReceiver extends BroadcastReceiver {
 	    long when = System.currentTimeMillis();
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);
+	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL; //remove notification on user click
 	            
 	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
-	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, 0);
+	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
 	    NOTIFICATION_ID ++;
