@@ -60,7 +60,9 @@ public class SMSReceiver extends BroadcastReceiver {
 			                smsMessage += msgs[i].getMessageBody().toString();
 			                smsMessage += "\n";        
 			            }
-			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1)));  
+			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1))); 
+			            
+			            abortBroadcast(); // I don't know if it's good decision
 	                }
 			        //else
 			        	//str += "SMS is not from bank";
