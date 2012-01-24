@@ -30,12 +30,12 @@ public class SMSReceiver extends BroadcastReceiver {
 	  public void onReceive(Context context, Intent intent) {
 		 	
 		 //Log.d("NATALIA!!!", bankAddress);
-		 if (BANK_ADDRESS_ACTION.equals(intent.getAction()))
+		 if (intent.getAction().equals(BANK_ADDRESS_ACTION))
 		 {
 			 bankAddress = intent.getStringExtra(TYPE); 
 			 //Log.d("NATALIA!!!",  bankAddress);
 		 }
-		 else if (SMS_RECEIVED.equals(intent.getAction()))
+		 else if (intent.getAction().equals(SMS_RECEIVED))
 		 {
 			//Log.d("NATALIA!!!",  bankAddress);
 		 	Bundle bundle = intent.getExtras();        
