@@ -26,6 +26,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	String currBankAddress = null;
 	private Notification notification;
 	
+	private SMSParcer smsParcer = new SMSParcer(); //One parcer 
+	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
 		 	
@@ -60,9 +62,15 @@ public class SMSReceiver extends BroadcastReceiver {
 			                smsMessage += msgs[i].getMessageBody().toString();
 			                smsMessage += "\n";        
 			            }
+			            abortBroadcast(); // I don't know if it's good decision
+			            
 			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1))); 
 			            
-			            abortBroadcast(); // I don't know if it's good decision
+			            //One Parcer by one SMS
+			            //SMSParcer smsParcer = new SMSParcer();
+			            boolean matchSMS = smsParcer.isMatch();
+			            
+			            //abortBroadcast(); // I don't know if it's good decision
 	                }
 			        //else
 			        	//str += "SMS is not from bank";
