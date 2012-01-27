@@ -35,7 +35,8 @@ public class SMSParcer {
 		boolean matchFound = false;
 		int i = 0;
 		
-		
+		if (matcherWithPatter.matches())
+		{
 		matchFound = matcherWithPatter.find();
 		
 		Log.d("NATALIA!!!", "number = % d " + matcherWithPatter.groupCount());
@@ -43,7 +44,9 @@ public class SMSParcer {
 		for (int j = 1; j <= matcherWithPatter.groupCount(); j++){
 			Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPatter.group(j));
 		}
-		
+		}
+		else 
+			Log.d("NATALIA!!!", "do mot match");
 		return matchFound;
 	}
 }
