@@ -49,4 +49,14 @@ public class SMSParcer {
 			Log.d("NATALIA!!!", "do mot match");
 		return matchFound;
 	}
+	
+	String[] getParcedElems(){
+		String[] parcedElements = new String[TranzactionData.numberOfField];
+		
+		for (int i = 0; i < TranzactionData.numberOfField; i++){
+			parcedElements[i] = matcherWithPatter.group(i + 1);
+		}
+		
+		return parcedElements;
+	}
 }

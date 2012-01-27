@@ -28,6 +28,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	
 	private SMSParcer smsParcer = new SMSParcer(); //One parcer 
 	
+	private TranzactionData transactionData = new TranzactionData();
+	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
 		 	
@@ -70,6 +72,8 @@ public class SMSReceiver extends BroadcastReceiver {
 			            //SMSParcer smsParcer = new SMSParcer();
 			            boolean matchSMS = smsParcer.isMatch();
 			            
+			            transactionData.setData(smsParcer.getParcedElems());
+			            transactionData.logElemnts();
 			            //abortBroadcast(); // I don't know if it's good decision
 	                }
 			        //else
