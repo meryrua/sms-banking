@@ -16,6 +16,7 @@ import android.widget.Toast;
 public class SMSReceiver extends BroadcastReceiver {
 	
 	public static final String BANK_ADDRESS_ACTION = "com.android.smsbanking.BANK_ADDRESS";
+	public static final String SEND_SMS_ACTION = "com.android.smsbanking.SEND_SMS";
 	public static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
 	public static final String TYPE = "address"; 
 	private static final String BANK_ADDRESS = "5556";
@@ -28,7 +29,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	
 	private SMSParcer smsParcer = new SMSParcer(); //One parcer 
 	
-	private TranzactionData transactionData = new TranzactionData();
+	private TranzactionData tranzactionData;
 	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
@@ -66,24 +67,34 @@ public class SMSReceiver extends BroadcastReceiver {
 			            }
 			            abortBroadcast(); // I don't know if it's good decision
 			            
-			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1))); 
-			            
-			            //One Parcer by one SMS
-			            //SMSParcer smsParcer = new SMSParcer();
 			            boolean matchSMS = smsParcer.isMatch();
+			          			            
+			            tranzactionData = new TranzactionData();
+			            smsParcer.setTranzactionData(tranzactionData);
 			            
-			            transactionData.setData(smsParcer.getParcedElems());
-			            transactionData.logElemnts();
-			            //abortBroadcast(); // I don't know if it's good decision
+			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1)), tranzactionData); 
+			            	            
 	                }
 			        //else
 			        	//str += "SMS is not from bank";
 		        }		 
 		 //Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
 		 }
+		 else if (intent.getAction().equals(SEND_SMS_ACTION)) {
+		            
+				            boolean matchSMS = smsParcer.isMatch();
+				          			            
+				            tranzactionData = new TranzactionData();
+				            smsParcer.setTranzactionData(tranzactionData);
+				            
+				            setSMSNotification(context, "New sms", tranzactionData); 
+				            	            
+		 
+		}
+
 	 }
 		 
-	private void setSMSNotification(Context context, CharSequence notiDetail) {
+	private void setSMSNotification(Context context,CharSequence notiDetail, TranzactionData tranzactionData) {
 		String ns = Context.NOTIFICATION_SERVICE;
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
 	            
@@ -93,7 +104,10 @@ public class SMSReceiver extends BroadcastReceiver {
 	    notification = new Notification(icon, smsNoti, when);
 	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL; //remove notification on user click
 	            
-	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+
+	    //Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+	    Intent notiIntent = new Intent(context, SMSDetailActivity.class);
+	    fillIntent(notiIntent, tranzactionData);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
@@ -101,4 +115,16 @@ public class SMSReceiver extends BroadcastReceiver {
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
 			 
 	}
+	
+	private void fillIntent(Intent intent, TranzactionData tranzactionData){
+		intent.putExtra(TranzactionData.TRANZACTION_VALUE, tranzactionData.getTranzactionValue());
+		intent.putExtra(TranzactionData.FUND_VALUE, tranzactionData.getFundValue());
+		intent.putExtra(TranzactionData.BANK_NAME, tranzactionData.getBankName());
+		intent.putExtra(TranzactionData.CARD_NUMBER, tranzactionData.getCardNumber());
+		intent.putExtra(TranzactionData.FUND_CURRENCY, tranzactionData.getFundCurrency());
+		intent.putExtra(TranzactionData.TRANZACTION_CURRENCY, tranzactionData.getTranzactionCurrency());
+		intent.putExtra(TranzactionData.TRANZACTION_DATE, tranzactionData.getTranzactionDate());
+		intent.putExtra(TranzactionData.TRANZACTION_PLACE, tranzactionData.getTranzactionPlace());
+	}
+
 }

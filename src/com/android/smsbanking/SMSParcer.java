@@ -11,7 +11,7 @@ import android.util.Log;
 public class SMSParcer {
 
 	private static Pattern smsPattern;
-	private static Matcher matcherWithPatter;
+	private static Matcher matcherWithPattern;
 	private static String smsMessage = null;
 	
 	private static List<String> tokenArray;
@@ -22,27 +22,27 @@ public class SMSParcer {
 	SMSParcer(String str, String pattern){
 		smsMessage = new String(str);
 		smsPattern = Pattern.compile(pattern);
-		matcherWithPatter = smsPattern.matcher(smsMessage);
+		matcherWithPattern = smsPattern.matcher(smsMessage);
 	}
 	
 	SMSParcer(){
 		smsMessage = new String(testString);
 		smsPattern = Pattern.compile(defaultPatter);
-		tokenArray = new ArrayList<String>();
-		matcherWithPatter = smsPattern.matcher(smsMessage);
+		matcherWithPattern = smsPattern.matcher(smsMessage);
 	}	
+	
 	boolean isMatch(){
 		boolean matchFound = false;
 		int i = 0;
 		
-		if (matcherWithPatter.matches())
+		if (matcherWithPattern.matches())
 		{
-		matchFound = matcherWithPatter.find();
+		matchFound = matcherWithPattern.find();
 		
-		Log.d("NATALIA!!!", "number = % d " + matcherWithPatter.groupCount());
+		Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
 		
-		for (int j = 1; j <= matcherWithPatter.groupCount(); j++){
-			Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPatter.group(j));
+		for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
+			Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPattern.group(j));
 		}
 		}
 		else 
@@ -50,13 +50,14 @@ public class SMSParcer {
 		return matchFound;
 	}
 	
-	String[] getParcedElems(){
-		String[] parcedElements = new String[TranzactionData.numberOfField];
-		
-		for (int i = 0; i < TranzactionData.numberOfField; i++){
-			parcedElements[i] = matcherWithPatter.group(i + 1);
-		}
-		
-		return parcedElements;
+	void setTranzactionData(TranzactionData tranzactionData){
+		tranzactionData.setCardNumber(matcherWithPattern.group(1));
+		tranzactionData.setTranzactionValue(Float.valueOf(matcherWithPattern.group(2).replace(",", ".")).floatValue());
+		tranzactionData.setTranzactionCurrency(matcherWithPattern.group(3));
+		tranzactionData.setTranzactionDate(matcherWithPattern.group(4));
+		tranzactionData.setTranzactionPlace(matcherWithPattern.group(5));
+		tranzactionData.setFundValue(Float.valueOf(matcherWithPattern.group(6).replace(",", ".")).floatValue());
+		tranzactionData.setFundCurrency(matcherWithPattern.group(7));
+		tranzactionData.setBankName(matcherWithPattern.group(8));
 	}
 }
