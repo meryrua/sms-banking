@@ -38,7 +38,7 @@ public class SMSDetailActivity extends Activity implements OnClickListener{
         dateText.append(tranzactionData.getTranzactionDate());
 
         TextView amountText = (TextView) findViewById(R.id.amount);
-        String tranzValue = new String(Float.toString(tranzactionData.getTranzactionValue()));
+        String tranzValue = new String(Float.toString(tranzactionData.getTranzactionValue()).replace(".", ","));
         tranzValue += tranzactionData.getTranzactionCurrency();
         amountText.append(tranzValue);
         
@@ -46,7 +46,7 @@ public class SMSDetailActivity extends Activity implements OnClickListener{
         placeText.append(tranzactionData.getTranzactionPlace());
 
         TextView balanceText = (TextView) findViewById(R.id.balance);
-        String balanceValue = new String(Float.toString(tranzactionData.getFundValue()));
+        String balanceValue = new String(Float.toString(tranzactionData.getFundValue()).replace(".", ","));
         balanceValue += tranzactionData.getFundCurrency();
         balanceText.append(balanceValue);
 	}

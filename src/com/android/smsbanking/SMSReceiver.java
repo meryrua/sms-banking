@@ -5,8 +5,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -82,12 +84,27 @@ public class SMSReceiver extends BroadcastReceiver {
 		 }
 		 else if (intent.getAction().equals(SEND_SMS_ACTION)) {
 		            
-				            boolean matchSMS = smsParcer.isMatch();
+			 boolean matchSMS = smsParcer.isMatch();
 				          			            
-				            tranzactionData = new TranzactionData();
-				            smsParcer.setTranzactionData(tranzactionData);
+			 tranzactionData = new TranzactionData();
+			 smsParcer.setTranzactionData(tranzactionData);
 				            
-				            setSMSNotification(context, "New sms", tranzactionData); 
+			 DbOpenHelper dbOpenHelper = new DbOpenHelper(context);
+			 SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
+			 ContentValues cv = new ContentValues();
+			 cv.put(TranzactionData.CARD_NUMBER, tranzactionData.getCardNumber());
+			 cv.put(TranzactionData.TRANZACTION_DATE, tranzactionData.getTranzactionDate());
+			 cv.put(TranzactionData.TRANZACTION_PLACE, tranzactionData.getTranzactionPlace());
+			 cv.put(TranzactionData.TRANZACTION_VALUE, Float.valueOf(tranzactionData.getTranzactionValue()));
+			 cv.put(TranzactionData.TRANZACTION_CURRENCY, tranzactionData.getTranzactionCurrency());
+			 cv.put(TranzactionData.FUND_VALUE, Float.valueOf(tranzactionData.getFundValue()));
+			 cv.put(TranzactionData.FUND_CURRENCY, tranzactionData.getFundCurrency());
+			 long result = db.insert(DbOpenHelper.TRANZACTION_TABLE_NAME, null, cv);
+			 if (result <= 0)
+				 Log.d("NATALIA!!!", "Error");
+			 db.close();
+			 
+			 setSMSNotification(context, "New sms", tranzactionData); 
 				            	            
 		 
 		}
