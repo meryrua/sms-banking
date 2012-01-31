@@ -5,12 +5,41 @@
   	android:layout_height="fill_parent"
   	>
   	
-<TextView android:id="@+id/sms_detail_text"
+<TextView android:id="@+id/card_number"
   	android:layout_width="fill_parent"
-  	android:layout_height="fill_parent"
+  	android:layout_height="wrap_content"
   	android:textColor="#ffffff"
+  	android:text="Card number:*"
+  	/>
+
+<TextView android:id="@+id/date"
+	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  	android:textColor="#ffffff"
+  	android:text="Date:"
   	/>
   	
+<TextView android:id="@+id/amount"
+ 	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  	android:textColor="#ffffff"
+  	android:text="Amount:"
+  	/>
+  	
+<TextView android:id="@+id/place"
+  	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
+  	android:textColor="#ffffff"
+  	android:text="Place:"
+  	/>
+
+<TextView android:id="@+id/balance"
+  	android:layout_width="wrap_content"
+  	android:layout_height="wrap_content"
+  	android:textColor="#ffffff"
+  	android:text="Balance:"
+  	/>
+  	  	  	
 <Button android:id="@+id/close_button"
   	android:layout_width="wrap_content"
   	android:layout_height="wrap_content"

@@ -4,14 +4,17 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 
-public class SMSDetailActivity extends Activity{
+public class SMSDetailActivity extends Activity implements OnClickListener{
 	
 	private static TranzactionData tranzactionData = new TranzactionData();
+	Button close_button;
 	
 	//private static String textForView = "%s po karte %s byla provedena tranzakcija na summu %s%s. Mesto provedenija operacii %s. Ostatok na karte %s.";
 	private static String textForView = "%s po karte %s byla provedena tranzakcija";
@@ -21,15 +24,31 @@ public class SMSDetailActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sms_detail);       
         Log.d("NATALIA!!!", "SMSDetail");
+        
+        close_button = (Button) findViewById(R.id.close_button);
+        close_button.setOnClickListener(this);
 
         Bundle extras = getIntent().getExtras();
         getBundleExtra(extras, tranzactionData);
         
-        TextView smsDetailText = (TextView) findViewById(R.id.sms_detail_text);
-        Log.d("NATALIA!!!", "SMSDetail %lu " + smsDetailText);
-        String strForView = textForView + tranzactionData.getCardNumber() + tranzactionData.getTranzactionDate();
-        smsDetailText.setText(strForView);
+        TextView cardNumberText = (TextView) findViewById(R.id.card_number);
+        cardNumberText.append(tranzactionData.getCardNumber());
+        
+        TextView dateText = (TextView) findViewById(R.id.date);
+        dateText.append(tranzactionData.getTranzactionDate());
 
+        TextView amountText = (TextView) findViewById(R.id.amount);
+        String tranzValue = new String(Float.toString(tranzactionData.getTranzactionValue()));
+        tranzValue += tranzactionData.getTranzactionCurrency();
+        amountText.append(tranzValue);
+        
+        TextView placeText = (TextView) findViewById(R.id.place);
+        placeText.append(tranzactionData.getTranzactionPlace());
+
+        TextView balanceText = (TextView) findViewById(R.id.balance);
+        String balanceValue = new String(Float.toString(tranzactionData.getFundValue()));
+        balanceValue += tranzactionData.getFundCurrency();
+        balanceText.append(balanceValue);
 	}
 
     private void getBundleExtra(Bundle extras, TranzactionData tranzactionData){
@@ -41,5 +60,9 @@ public class SMSDetailActivity extends Activity{
        	tranzactionData.setTranzactionCurrency(extras.getString(TranzactionData.TRANZACTION_CURRENCY));
        	tranzactionData.setTranzactionDate(extras.getString(TranzactionData.TRANZACTION_DATE));
        	tranzactionData.setTranzactionPlace(extras.getString(TranzactionData.TRANZACTION_PLACE));
+    }
+    
+    public void onClick(View v){
+    	finish();
     }
 }
