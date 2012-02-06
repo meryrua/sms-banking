@@ -121,7 +121,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 	
-	private void fillIntent(Intent intent, TransactionData tranzactionData){
+	static public void fillIntent(Intent intent, TransactionData tranzactionData){
 		intent.putExtra(TransactionData.TRANSACTION_VALUE, tranzactionData.getTransactionValue());
 		intent.putExtra(TransactionData.FUND_VALUE, tranzactionData.getFundValue());
 		intent.putExtra(TransactionData.BANK_NAME, tranzactionData.getBankName());

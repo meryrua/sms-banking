@@ -14,7 +14,7 @@
   	android:layout_height="wrap_content"
   	android:text="Send SMS" 
   	/>
-<Button android:id="@+id/view_history"
+<Button android:id="@+id/view_transaction_history"
   	android:layout_width="wrap_content"
   	android:layout_height="wrap_content"
   	android:text="View tranzaction history" 

@@ -31,7 +31,8 @@ public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 	    String date = item.getTransactionDate();
 	    String place = item.getTransactionPlace();
 	    String amount = Float.toString(item.getTransactionValue()) + item.getTransactionCurrency();
-	    String textForList = date + " byla provedena tranzaccija na summu " + amount;
+	    String textForList = new String (); //Is it correct???
+	    textForList += date + " byla provedena tranzaccija na summu " + amount;
 
 	    if (convertView == null) {
 	    	transactionView = new LinearLayout(getContext());

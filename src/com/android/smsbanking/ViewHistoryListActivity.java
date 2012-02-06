@@ -3,34 +3,45 @@ package com.android.smsbanking;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
 
-public class ViewHistoryListActivity extends Activity {
+public class ViewHistoryListActivity extends ListActivity {
 	
 	private Context context;
 	
 	private MyDBAdapter myDBAdapter;
 	private Cursor transactionCursor;
-	private ListView listTransaction;
 	private ArrayList<TransactionData> transactionDatas;
 	private TransactionAdapter transactionAdapter;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.view_history);
 		
 		context = getApplicationContext();
-		listTransaction = (ListView) findViewById(R.id.history_list);
 
 		transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
 		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
-		listTransaction.setAdapter(transactionAdapter);
+		setListAdapter(transactionAdapter);
+		
+/*		ListView list = getListView();
+		list.setOnItemClickListener(new OnItemClickListener(){
+			  @Override
+			  protected void onListItemClick(ListView l, View v, int position, long id) {
+				  TransactionData transactionData = (TransactionData) getListAdapter().getItem(position);
+				  
+			  }
+			
+		})*/
 		
 
 		myDBAdapter = new MyDBAdapter(context);
@@ -38,6 +49,15 @@ public class ViewHistoryListActivity extends Activity {
 		
 		showTransactionList();
 	}
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		  TransactionData transactionData = (TransactionData) getListAdapter().getItem(position);
+		  
+		  Intent startIntent = new Intent();
+		  startIntent.setClass(context, SMSDetailActivity.class);
+		  SMSReceiver.fillIntent(startIntent, transactionData);
+		  startActivity(startIntent);		  
+	  }
 
 	private void showTransactionList(){
 		transactionCursor = myDBAdapter.getAllTransaction();
@@ -82,5 +102,6 @@ public class ViewHistoryListActivity extends Activity {
 	    // Close the database
 	    myDBAdapter.close();
 	  }
+	  
 }
 

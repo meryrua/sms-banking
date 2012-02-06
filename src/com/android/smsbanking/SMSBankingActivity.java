@@ -34,7 +34,7 @@ public class SMSBankingActivity extends Activity{
         	}
         });
         
-        viewHistoryButton = (Button) findViewById(R.id.view_history);
+        viewHistoryButton = (Button) findViewById(R.id.view_transaction_history);
         if (viewHistoryButton != null) {
         viewHistoryButton.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
