@@ -13,11 +13,8 @@ import android.widget.TextView;
 
 public class SMSDetailActivity extends Activity implements OnClickListener{
 	
-	private static TranzactionData tranzactionData = new TranzactionData();
+	private static TransactionData transactionData = new TransactionData();
 	Button close_button;
-	
-	//private static String textForView = "%s po karte %s byla provedena tranzakcija na summu %s%s. Mesto provedenija operacii %s. Ostatok na karte %s.";
-	private static String textForView = "%s po karte %s byla provedena tranzakcija";
 	
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -29,37 +26,37 @@ public class SMSDetailActivity extends Activity implements OnClickListener{
         close_button.setOnClickListener(this);
 
         Bundle extras = getIntent().getExtras();
-        getBundleExtra(extras, tranzactionData);
+        getBundleExtra(extras, transactionData);
         
         TextView cardNumberText = (TextView) findViewById(R.id.card_number);
-        cardNumberText.append(tranzactionData.getCardNumber());
+        cardNumberText.append(transactionData.getCardNumber());
         
         TextView dateText = (TextView) findViewById(R.id.date);
-        dateText.append(tranzactionData.getTranzactionDate());
+        dateText.append(transactionData.getTransactionDate());
 
         TextView amountText = (TextView) findViewById(R.id.amount);
-        String tranzValue = new String(Float.toString(tranzactionData.getTranzactionValue()).replace(".", ","));
-        tranzValue += tranzactionData.getTranzactionCurrency();
+        String tranzValue = new String(Float.toString(transactionData.getTransactionValue()).replace(".", ","));
+        tranzValue += transactionData.getTransactionCurrency();
         amountText.append(tranzValue);
         
         TextView placeText = (TextView) findViewById(R.id.place);
-        placeText.append(tranzactionData.getTranzactionPlace());
+        placeText.append(transactionData.getTransactionPlace());
 
         TextView balanceText = (TextView) findViewById(R.id.balance);
-        String balanceValue = new String(Float.toString(tranzactionData.getFundValue()).replace(".", ","));
-        balanceValue += tranzactionData.getFundCurrency();
+        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
+        balanceValue += transactionData.getFundCurrency();
         balanceText.append(balanceValue);
 	}
 
-    private void getBundleExtra(Bundle extras, TranzactionData tranzactionData){
-    	tranzactionData.setTranzactionValue(extras.getFloat(TranzactionData.TRANZACTION_VALUE, 0));
-       	tranzactionData.setFundValue(extras.getFloat(TranzactionData.FUND_VALUE, 0));
-       	tranzactionData.setBankName(extras.getString(TranzactionData.BANK_NAME));
-       	tranzactionData.setCardNumber(extras.getString(TranzactionData.CARD_NUMBER));
-       	tranzactionData.setFundCurrency(extras.getString(TranzactionData.FUND_CURRENCY));
-       	tranzactionData.setTranzactionCurrency(extras.getString(TranzactionData.TRANZACTION_CURRENCY));
-       	tranzactionData.setTranzactionDate(extras.getString(TranzactionData.TRANZACTION_DATE));
-       	tranzactionData.setTranzactionPlace(extras.getString(TranzactionData.TRANZACTION_PLACE));
+    private void getBundleExtra(Bundle extras, TransactionData tranzactionData){
+    	tranzactionData.setTransactionValue(extras.getFloat(TransactionData.TRANSACTION_VALUE, 0));
+       	tranzactionData.setFundValue(extras.getFloat(TransactionData.FUND_VALUE, 0));
+       	tranzactionData.setBankName(extras.getString(TransactionData.BANK_NAME));
+       	tranzactionData.setCardNumber(extras.getString(TransactionData.CARD_NUMBER));
+       	tranzactionData.setFundCurrency(extras.getString(TransactionData.FUND_CURRENCY));
+       	tranzactionData.setTransactionCurrency(extras.getString(TransactionData.TRANSACTION_CURRENCY));
+       	tranzactionData.setTransactionDate(extras.getString(TransactionData.TRANSACTION_DATE));
+       	tranzactionData.setTransactionPlace(extras.getString(TransactionData.TRANSACTION_PLACE));
     }
     
     public void onClick(View v){

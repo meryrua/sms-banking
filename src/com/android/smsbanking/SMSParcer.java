@@ -50,12 +50,12 @@ public class SMSParcer {
 		return matchFound;
 	}
 	
-	void setTranzactionData(TranzactionData tranzactionData){
+	void setTranzactionData(TransactionData tranzactionData){
 		tranzactionData.setCardNumber(matcherWithPattern.group(1));
-		tranzactionData.setTranzactionValue(Float.valueOf(matcherWithPattern.group(2).replace(",", ".")).floatValue());
-		tranzactionData.setTranzactionCurrency(matcherWithPattern.group(3));
-		tranzactionData.setTranzactionDate(matcherWithPattern.group(4));
-		tranzactionData.setTranzactionPlace(matcherWithPattern.group(5));
+		tranzactionData.setTransactionValue(Float.valueOf(matcherWithPattern.group(2).replace(",", ".")).floatValue());
+		tranzactionData.setTransactionCurrency(matcherWithPattern.group(3));
+		tranzactionData.setTransactionDate(matcherWithPattern.group(4));
+		tranzactionData.setTransactionPlace(matcherWithPattern.group(5));
 		tranzactionData.setFundValue(Float.valueOf(matcherWithPattern.group(6).replace(",", ".")).floatValue());
 		tranzactionData.setFundCurrency(matcherWithPattern.group(7));
 		tranzactionData.setBankName(matcherWithPattern.group(8));

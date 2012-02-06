@@ -21,6 +21,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	public static final String SEND_SMS_ACTION = "com.android.smsbanking.SEND_SMS";
 	public static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
 	public static final String TYPE = "address"; 
+	
 	private static final String BANK_ADDRESS = "5556";
 	
 	private static int NOTIFICATION_ID = 0;
@@ -30,8 +31,9 @@ public class SMSReceiver extends BroadcastReceiver {
 	private Notification notification;
 	
 	private SMSParcer smsParcer = new SMSParcer(); //One parcer 
+	private MyDBAdapter myDBAdapter;
 	
-	private TranzactionData tranzactionData;
+	private TransactionData tranzactionData;
 	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
@@ -71,7 +73,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			            
 			            boolean matchSMS = smsParcer.isMatch();
 			          			            
-			            tranzactionData = new TranzactionData();
+			            tranzactionData = new TransactionData();
 			            smsParcer.setTranzactionData(tranzactionData);
 			            
 			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1)), tranzactionData); 
@@ -86,32 +88,19 @@ public class SMSReceiver extends BroadcastReceiver {
 		            
 			 boolean matchSMS = smsParcer.isMatch();
 				          			            
-			 tranzactionData = new TranzactionData();
+			 tranzactionData = new TransactionData();
 			 smsParcer.setTranzactionData(tranzactionData);
 				            
-			 DbOpenHelper dbOpenHelper = new DbOpenHelper(context);
-			 SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
-			 ContentValues cv = new ContentValues();
-			 cv.put(TranzactionData.CARD_NUMBER, tranzactionData.getCardNumber());
-			 cv.put(TranzactionData.TRANZACTION_DATE, tranzactionData.getTranzactionDate());
-			 cv.put(TranzactionData.TRANZACTION_PLACE, tranzactionData.getTranzactionPlace());
-			 cv.put(TranzactionData.TRANZACTION_VALUE, Float.valueOf(tranzactionData.getTranzactionValue()));
-			 cv.put(TranzactionData.TRANZACTION_CURRENCY, tranzactionData.getTranzactionCurrency());
-			 cv.put(TranzactionData.FUND_VALUE, Float.valueOf(tranzactionData.getFundValue()));
-			 cv.put(TranzactionData.FUND_CURRENCY, tranzactionData.getFundCurrency());
-			 long result = db.insert(DbOpenHelper.TRANZACTION_TABLE_NAME, null, cv);
-			 if (result <= 0)
-				 Log.d("NATALIA!!!", "Error");
-			 db.close();
+			 myDBAdapter = new MyDBAdapter(context);
+			 myDBAdapter.open();
+			 myDBAdapter.insertTransaction(tranzactionData);
+			 myDBAdapter.close();
 			 
 			 setSMSNotification(context, "New sms", tranzactionData); 
-				            	            
-		 
 		}
-
 	 }
 		 
-	private void setSMSNotification(Context context,CharSequence notiDetail, TranzactionData tranzactionData) {
+	private void setSMSNotification(Context context,CharSequence notiDetail, TransactionData tranzactionData) {
 		String ns = Context.NOTIFICATION_SERVICE;
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
 	            
@@ -130,18 +119,17 @@ public class SMSReceiver extends BroadcastReceiver {
 	            
 	    NOTIFICATION_ID ++;
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
-			 
 	}
 	
-	private void fillIntent(Intent intent, TranzactionData tranzactionData){
-		intent.putExtra(TranzactionData.TRANZACTION_VALUE, tranzactionData.getTranzactionValue());
-		intent.putExtra(TranzactionData.FUND_VALUE, tranzactionData.getFundValue());
-		intent.putExtra(TranzactionData.BANK_NAME, tranzactionData.getBankName());
-		intent.putExtra(TranzactionData.CARD_NUMBER, tranzactionData.getCardNumber());
-		intent.putExtra(TranzactionData.FUND_CURRENCY, tranzactionData.getFundCurrency());
-		intent.putExtra(TranzactionData.TRANZACTION_CURRENCY, tranzactionData.getTranzactionCurrency());
-		intent.putExtra(TranzactionData.TRANZACTION_DATE, tranzactionData.getTranzactionDate());
-		intent.putExtra(TranzactionData.TRANZACTION_PLACE, tranzactionData.getTranzactionPlace());
+	private void fillIntent(Intent intent, TransactionData tranzactionData){
+		intent.putExtra(TransactionData.TRANSACTION_VALUE, tranzactionData.getTransactionValue());
+		intent.putExtra(TransactionData.FUND_VALUE, tranzactionData.getFundValue());
+		intent.putExtra(TransactionData.BANK_NAME, tranzactionData.getBankName());
+		intent.putExtra(TransactionData.CARD_NUMBER, tranzactionData.getCardNumber());
+		intent.putExtra(TransactionData.FUND_CURRENCY, tranzactionData.getFundCurrency());
+		intent.putExtra(TransactionData.TRANSACTION_CURRENCY, tranzactionData.getTransactionCurrency());
+		intent.putExtra(TransactionData.TRANSACTION_DATE, tranzactionData.getTransactionDate());
+		intent.putExtra(TransactionData.TRANSACTION_PLACE, tranzactionData.getTransactionPlace());
 	}
 
 }

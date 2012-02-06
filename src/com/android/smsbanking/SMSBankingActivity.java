@@ -9,10 +9,11 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 
-public class SMSBankingActivity extends Activity  implements OnClickListener{
+public class SMSBankingActivity extends Activity{
 	
-	Context context;
-	Button sendSMSButton;
+	private Context context;
+	private Button sendSMSButton;
+	private Button viewHistoryButton;
 	
 	private static final String BANK_ADDRESS = "5556";
 	
@@ -23,17 +24,30 @@ public class SMSBankingActivity extends Activity  implements OnClickListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        context = getApplicationContext();
+        
         sendSMSButton = (Button) findViewById(R.id.send_sms);
-        sendSMSButton.setOnClickListener(this);
+        sendSMSButton.setOnClickListener(new OnClickListener(){
+        	public void onClick(View v){
+        		Intent intent = new Intent(SMSReceiver.SEND_SMS_ACTION); 
+        		sendBroadcast(intent);    	
+        	}
+        });
+        
+        viewHistoryButton = (Button) findViewById(R.id.view_history);
+        if (viewHistoryButton != null) {
+        viewHistoryButton.setOnClickListener(new OnClickListener(){
+        	public void onClick(View v){
+        		Intent startIntent = new Intent();
+        		startIntent.setClass(context, ViewHistoryListActivity.class);
+        		startActivity(startIntent);
+        	}
+        });
+        }
                 
         Intent intent = new Intent(SMSReceiver.BANK_ADDRESS_ACTION); 
         intent.putExtra(SMSReceiver.TYPE, BANK_ADDRESS); 
         sendBroadcast(intent); 
     }
     
-    public void onClick(View v){
-        Intent intent = new Intent(SMSReceiver.SEND_SMS_ACTION); 
-        
-        sendBroadcast(intent);    	
-    }
 }
