@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 public class SMSDetailActivity extends Activity implements OnClickListener{
 	
-	private static TransactionData transactionData = new TransactionData();
+	private TransactionData transactionData = new TransactionData();
 	Button close_button;
 	
     @Override

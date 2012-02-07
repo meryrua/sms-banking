@@ -29,8 +29,8 @@ public class MyDBAdapter {
 	private static final String[] dataForList = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_VALUE, TransactionData.TRANSACTION_CURRENCY};
 
-	private static Context context;
-	private static DbHelper dbHelper;
+	private Context context;
+	private DbHelper dbHelper;
 	private SQLiteDatabase db;
 	
 	public MyDBAdapter(Context cont) {

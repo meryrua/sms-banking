@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 		LinearLayout transactionView;
 
 		TransactionData item = getItem(position);
+		Log.d("NATALIA get view", "item " + position + " adress " + item);
 
 	    String date = item.getTransactionDate();
 	    String place = item.getTransactionPlace();

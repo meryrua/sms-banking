@@ -30,7 +30,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	String currBankAddress = null;
 	private Notification notification;
 	
-	private SMSParcer smsParcer = new SMSParcer(); //One parcer 
+	private SMSParcer smsParcer;// = new SMSParcer(); //One parcer 
 	private MyDBAdapter myDBAdapter;
 	
 	private TransactionData tranzactionData;
@@ -51,7 +51,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	        SmsMessage[] msgs = null;
 			SmsMessage msgs1 = null;
 	        String str1 = "";            
-	        String smsMessage = "";            
+	        String smsMessage = "";    
+	        String messageForParcing = "";
 	        if (bundle != null)
 	        {
 	            //---retrieve the SMS message received---
@@ -62,22 +63,25 @@ public class SMSReceiver extends BroadcastReceiver {
 	                str1 += msgs1.getOriginatingAddress();
 	                if (str1.contains(bankAddress))
 	                {
+	                	smsMessage += "SMS is from bank " + msgs1.getOriginatingAddress();
 			            for (int i=0; i<msgs.length; i++){
 				            msgs[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
-			                smsMessage += "SMS is from bank " + msgs[i].getOriginatingAddress();                     
-			                smsMessage += " :";
-			                smsMessage += msgs[i].getMessageBody().toString();
-			                smsMessage += "\n";        
+				            messageForParcing += msgs[i].getMessageBody().toString();
 			            }
 			            abortBroadcast(); // I don't know if it's good decision
 			            
+			            smsParcer = new SMSParcer(messageForParcing);
 			            boolean matchSMS = smsParcer.isMatch();
 			          			            
 			            tranzactionData = new TransactionData();
-			            smsParcer.setTranzactionData(tranzactionData);
-			            
-			            setSMSNotification(context, smsMessage.subSequence(0, (smsMessage.length() - 1)), tranzactionData); 
-			            	            
+						smsParcer.setTranzactionData(tranzactionData);
+							            
+						myDBAdapter = new MyDBAdapter(context);
+						myDBAdapter.open();
+						myDBAdapter.insertTransaction(tranzactionData);
+						myDBAdapter.close();
+						 
+						setSMSNotification(context, "New sms", tranzactionData); 			            	            
 	                }
 			        //else
 			        	//str += "SMS is not from bank";

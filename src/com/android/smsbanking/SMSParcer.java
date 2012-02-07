@@ -10,11 +10,11 @@ import android.util.Log;
 //Should we create new Parcer for each new SMS from bank???
 public class SMSParcer {
 
-	private static Pattern smsPattern;
-	private static Matcher matcherWithPattern;
-	private static String smsMessage = null;
+	private Pattern smsPattern;
+	private Matcher matcherWithPattern;
+	private String smsMessage = null;
 	
-	private static List<String> tokenArray;
+	private List<String> tokenArray;
 	private static String defaultPatter = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(RUB|EUR|USD);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([\\w+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(RUB|EUR|USD).\\s(\\w+)";
 	
 	private static String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
@@ -22,6 +22,12 @@ public class SMSParcer {
 	SMSParcer(String str, String pattern){
 		smsMessage = new String(str);
 		smsPattern = Pattern.compile(pattern);
+		matcherWithPattern = smsPattern.matcher(smsMessage);
+	}
+	
+	SMSParcer(String str){
+		smsMessage = new String(str);
+		smsPattern = Pattern.compile(defaultPatter);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 	}
 	

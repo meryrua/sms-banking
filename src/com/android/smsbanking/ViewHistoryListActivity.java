@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -66,8 +67,7 @@ public class ViewHistoryListActivity extends ListActivity {
 		updateTransactionList();
 	}
 	
-	private TransactionData getTransactionFromCursor(){
-		TransactionData transactionData = new TransactionData();
+	private void getTransactionFromCursor(TransactionData transactionData){
 		
 		transactionData.setBankName(TransactionData.DEFAULT_BANK_NAME);
 		transactionData.setCardNumber(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
@@ -78,18 +78,28 @@ public class ViewHistoryListActivity extends ListActivity {
 		transactionData.setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
 		transactionData.setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
 		
-		return transactionData;
+		Log.d("NATALIA new elem", "address " + transactionData + " cursor " + transactionCursor + " " + transactionData.getTransactionValue());
 	}
 	
 	private void updateTransactionList(){
 		transactionCursor.requery();
 		
+		int i = 0;
+		
 		transactionDatas.clear();
 		
 		if (transactionCursor.moveToFirst()){
 			do {
-				transactionDatas.add(getTransactionFromCursor());
+				TransactionData transactionData = new TransactionData();
+				getTransactionFromCursor(transactionData);
+				transactionDatas.add(0, transactionData);
+				for (i = 0; i < transactionDatas.size(); i++){
+					Log.d("NATALIA elems", "Number " + i + " " + transactionDatas.get(i).getTransactionValue() + " " + transactionDatas);
+				}
 			} while (transactionCursor.moveToNext());
+		}
+		for (i = 0; i < transactionDatas.size(); i++){
+			Log.d("NATALIA elems 1", "Number " + i + " " + transactionDatas.get(i).getTransactionValue() + " " + transactionDatas);
 		}
 		
 		transactionAdapter.notifyDataSetChanged();

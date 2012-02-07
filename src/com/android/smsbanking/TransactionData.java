@@ -23,14 +23,14 @@ public class TransactionData {
 	public static final String TRANSACTION_VALUE = "transactionValue";
 	public static final String FUND_VALUE = "fundValue";
 	public static final String DEFAULT_BANK_NAME = "Raiffeisen";
-	private static String cardNumber;
-	private static String transactionDate;
-	private static String transactionPlace;
-	private static String transactionCurrency;
-	private static String fundCurrency;
-	private static String bankName;
-	private static float transactionValue = 0;
-	private static float fundValue = 0;
+	private String cardNumber;
+	private String transactionDate;
+	private String transactionPlace;
+	private String transactionCurrency;
+	private String fundCurrency;
+	private String bankName;
+	private float transactionValue = 0;
+	private float fundValue = 0;
 	
 	public static final int numberOfField = 8;
 	public static final String PARCED_DATA = "parced_data";
