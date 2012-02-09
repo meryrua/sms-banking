@@ -33,6 +33,8 @@ public class MyDBAdapter {
 	private DbHelper dbHelper;
 	private SQLiteDatabase db;
 	
+	public static final String FILTER_VALUE = "filter_value";
+	
 	public MyDBAdapter(Context cont) {
 		context = cont;
 		dbHelper = new DbHelper(context, DB_NAME, null, DB_VERSION);
@@ -75,16 +77,16 @@ public class MyDBAdapter {
 		return db.query(TRANSACTION_TABLE_NAME, allColumnsName, null, null, null, null, null);
 	}
 
-	public Cursor getTransactionForList(){
-		return db.query(TRANSACTION_TABLE_NAME, dataForList, null, null, null, null, null);
+	public Cursor getTransactionWithFilter(String filter){
+		return db.query(TRANSACTION_TABLE_NAME, allColumnsName, filter, null, null, null, null);
 	}
 
 	public boolean removeTransaction(long transactionId){
 		return (db.delete(TRANSACTION_TABLE_NAME, ID + " = " + transactionId, null) > 0);
 	}
 	
-	public Cursor getFilteredTransaction(String sqlStr){
-		return db.rawQuery(sqlStr, null);
+	public Cursor getCardsNumber (){
+		return db.query(TRANSACTION_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, null, null, TransactionData.CARD_NUMBER, null, null);
 	}
 	
 	private class DbHelper extends SQLiteOpenHelper{

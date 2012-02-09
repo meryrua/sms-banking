@@ -4,15 +4,17 @@
   android:orientation="vertical"
   android:layout_width="match_parent"
   android:layout_height="match_parent">
-<TextView 
+  
+<Spinner
+  android:id="@+id/card_number"
   android:layout_height="wrap_content"
-  android:layout_width="fill_parent"
-  android:id="@+id/current_balance">
-</TextView>
-<ListView
-	android:layout_height="wrap_content"
-	android:id="@android:id/list"
-	android:layout_width="match_parent">
-</ListView>
+  android:layout_width="match_parent">
+</Spinner>
     
+<Button
+  android:id="@+id/set_filter"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:text="View transactions">
+</Button>
 </LinearLayout>

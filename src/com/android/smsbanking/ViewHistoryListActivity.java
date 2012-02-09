@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class ViewHistoryListActivity extends ListActivity {
@@ -22,12 +23,15 @@ public class ViewHistoryListActivity extends ListActivity {
 	private Cursor transactionCursor;
 	private ArrayList<TransactionData> transactionDatas;
 	private TransactionAdapter transactionAdapter;
+	private String filter;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-		
+        setContentView(R.layout.view_history);
+        
 		context = getApplicationContext();
+		filter = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
 
 		transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
@@ -49,7 +53,12 @@ public class ViewHistoryListActivity extends ListActivity {
 		myDBAdapter.open();
 		
 		showTransactionList();
-	}
+        TextView curBalance = (TextView) findViewById(R.id.current_balance);
+        String str = new String();
+        str += "Balance:" + TransactionData.getBalance() + TransactionData.getBalanceCurrency();
+        curBalance.setText(str);
+    }
+	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		  TransactionData transactionData = (TransactionData) getListAdapter().getItem(position);
@@ -61,9 +70,8 @@ public class ViewHistoryListActivity extends ListActivity {
 	  }
 
 	private void showTransactionList(){
-		transactionCursor = myDBAdapter.getAllTransaction();
+		transactionCursor = myDBAdapter.getTransactionWithFilter(filter);
 		startManagingCursor(transactionCursor);
-		
 		updateTransactionList();
 	}
 	
@@ -97,6 +105,8 @@ public class ViewHistoryListActivity extends ListActivity {
 					Log.d("NATALIA elems", "Number " + i + " " + transactionDatas.get(i).getTransactionValue() + " " + transactionDatas);
 				}
 			} while (transactionCursor.moveToNext());
+			TransactionData.setBalance(transactionDatas.get(0).getFundValue());
+			TransactionData.setBalanceCurrency(transactionDatas.get(0).getFundCurrency());
 		}
 		for (i = 0; i < transactionDatas.size(); i++){
 			Log.d("NATALIA elems 1", "Number " + i + " " + transactionDatas.get(i).getTransactionValue() + " " + transactionDatas);

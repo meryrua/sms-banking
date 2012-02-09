@@ -35,6 +35,9 @@ public class TransactionData {
 	public static final int numberOfField = 8;
 	public static final String PARCED_DATA = "parced_data";
 	
+	private static float currentBalance = 0; //But we should have several Balances (for each of funds number) and currency
+	private static String balanceCurrency; //But we should have several Balances (for each of funds number) and currency
+	
 	
 	TransactionData(){
 		cardNumber = null;
@@ -45,68 +48,84 @@ public class TransactionData {
 		bankName = null;
 	}
 	
-	void setCardNumber(String number){
+	public void setCardNumber(String number){
 		cardNumber = new String(number);
 	}
 	
-	String getCardNumber(){
+	public String getCardNumber(){
 		return cardNumber;
 	}
 
-	void setTransactionDate(String date){
+	public void setTransactionDate(String date){
 		transactionDate = new String(date);
 	}
 	
-	String getTransactionDate(){
+	public String getTransactionDate(){
 		return transactionDate;
 	}
 
-	void setTransactionPlace(String place){
+	public void setTransactionPlace(String place){
 		transactionPlace = new String(place);
 	}
 	
-	String getTransactionPlace(){
+	public String getTransactionPlace(){
 		return transactionPlace;
 	}
 
-	void setTransactionCurrency(String currency){
+	public void setTransactionCurrency(String currency){
 		transactionCurrency = new String(currency);
 	}
 	
-	String getTransactionCurrency(){
+	public String getTransactionCurrency(){
 		return transactionCurrency;
 	}
 
-	void setFundCurrency(String currency){
+	public void setFundCurrency(String currency){
 		fundCurrency = new String(currency);
 	}
 	
-	String getFundCurrency(){
+	public String getFundCurrency(){
 		return fundCurrency;
 	}
 
-	void setBankName(String name){
+	public void setBankName(String name){
 		bankName = new String(name);
 	}
 	
-	String getBankName(){
+	public String getBankName(){
 		return bankName;
 	}
 	
-	void setTransactionValue(float value){
+	public void setTransactionValue(float value){
 		transactionValue = value;
 	}
 	
-	float getTransactionValue(){
+	public float getTransactionValue(){
 		return transactionValue;
 	}
 
-	void setFundValue(float value){
+	public void setFundValue(float value){
 		fundValue = value;
 	}
 	
-	float getFundValue(){
+	public float getFundValue(){
 		return fundValue;
+	}
+
+	static public void setBalance(float balance){
+		currentBalance = balance;
+	}
+	
+	static public float getBalance(){
+		return currentBalance;
+	}
+	
+	static public void setBalanceCurrency(String currency){
+		balanceCurrency = new String(currency);
+	}
+	
+	static public String getBalanceCurrency(){
+		return balanceCurrency;
 	}
 
 }

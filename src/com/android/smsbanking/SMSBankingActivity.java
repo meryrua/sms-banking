@@ -39,7 +39,7 @@ public class SMSBankingActivity extends Activity{
         viewHistoryButton.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
         		Intent startIntent = new Intent();
-        		startIntent.setClass(context, ViewHistoryListActivity.class);
+        		startIntent.setClass(context, DataFilterActivity.class);
         		startActivity(startIntent);
         	}
         });

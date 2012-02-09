@@ -33,7 +33,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	private SMSParcer smsParcer;// = new SMSParcer(); //One parcer 
 	private MyDBAdapter myDBAdapter;
 	
-	private TransactionData tranzactionData;
+	private TransactionData transactionData;
 	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
@@ -73,15 +73,17 @@ public class SMSReceiver extends BroadcastReceiver {
 			            smsParcer = new SMSParcer(messageForParcing);
 			            boolean matchSMS = smsParcer.isMatch();
 			          			            
-			            tranzactionData = new TransactionData();
-						smsParcer.setTranzactionData(tranzactionData);
+			            transactionData = new TransactionData();
+						smsParcer.setTranzactionData(transactionData);
+						transactionData.setBalance(transactionData.getFundValue());
+						transactionData.setBalanceCurrency(transactionData.getFundCurrency());
 							            
 						myDBAdapter = new MyDBAdapter(context);
 						myDBAdapter.open();
-						myDBAdapter.insertTransaction(tranzactionData);
+						myDBAdapter.insertTransaction(transactionData);
 						myDBAdapter.close();
 						 
-						setSMSNotification(context, "New sms", tranzactionData); 			            	            
+						setSMSNotification(context, "New sms", transactionData); 			            	            
 	                }
 			        //else
 			        	//str += "SMS is not from bank";
@@ -92,15 +94,15 @@ public class SMSReceiver extends BroadcastReceiver {
 		            
 			 boolean matchSMS = smsParcer.isMatch();
 				          			            
-			 tranzactionData = new TransactionData();
-			 smsParcer.setTranzactionData(tranzactionData);
+			 transactionData = new TransactionData();
+			 smsParcer.setTranzactionData(transactionData);
 				            
 			 myDBAdapter = new MyDBAdapter(context);
 			 myDBAdapter.open();
-			 myDBAdapter.insertTransaction(tranzactionData);
+			 myDBAdapter.insertTransaction(transactionData);
 			 myDBAdapter.close();
 			 
-			 setSMSNotification(context, "New sms", tranzactionData); 
+			 setSMSNotification(context, "New sms", transactionData); 
 		}
 	 }
 		 
@@ -108,7 +110,7 @@ public class SMSReceiver extends BroadcastReceiver {
 		String ns = Context.NOTIFICATION_SERVICE;
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
 	            
-	    String smsNoti = "New SMS from bank";
+	    String smsNoti = "New SMS from bank. Balance: " + tranzactionData.getBalance() + tranzactionData.getBalanceCurrency();
 	    long when = System.currentTimeMillis();
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);
