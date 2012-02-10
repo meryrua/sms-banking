@@ -61,34 +61,37 @@ public class SMSReceiver extends BroadcastReceiver {
 	           
 	                msgs1 = SmsMessage.createFromPdu((byte[])pdus[0]);
 	                str1 += msgs1.getOriginatingAddress();
-	                if (str1.contains(bankAddress))
+	                
+	                //if (str1.contains(bankAddress))
 	                {
 	                	smsMessage += "SMS is from bank " + msgs1.getOriginatingAddress();
 			            for (int i=0; i<msgs.length; i++){
 				            msgs[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
 				            messageForParcing += msgs[i].getMessageBody().toString();
-			            }
-			            abortBroadcast(); // I don't know if it's good decision
+			        }
 			            
-			            smsParcer = new SMSParcer(messageForParcing);
-			            boolean matchSMS = smsParcer.isMatch();
-			          			            
-			            transactionData = new TransactionData();
+			        smsParcer = new SMSParcer(messageForParcing);
+			        boolean matchSMS = smsParcer.isMatch();
+			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
+			        		"from bank.", Toast.LENGTH_LONG).show();
+			        if (matchSMS){
+			          	//Remove abort for testing
+			            abortBroadcast(); // I don't know if it's good decision	
+			            	
+				        transactionData = new TransactionData();
 						smsParcer.setTranzactionData(transactionData);
 						transactionData.setBalance(transactionData.getFundValue());
 						transactionData.setBalanceCurrency(transactionData.getFundCurrency());
-							            
+								            
 						myDBAdapter = new MyDBAdapter(context);
 						myDBAdapter.open();
 						myDBAdapter.insertTransaction(transactionData);
 						myDBAdapter.close();
-						 
-						setSMSNotification(context, "New sms", transactionData); 			            	            
+							
+						setSMSNotification(context, "New sms", transactionData); 		
+			        }
 	                }
-			        //else
-			        	//str += "SMS is not from bank";
 		        }		 
-		 //Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
 		 }
 		 else if (intent.getAction().equals(SEND_SMS_ACTION)) {
 		            

@@ -15,7 +15,7 @@ public class SMSParcer {
 	private String smsMessage = null;
 	
 	private List<String> tokenArray;
-	private static String defaultPatter = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(RUB|EUR|USD);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([\\w+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(RUB|EUR|USD).\\s(\\w+)";
+	private static String defaultPatter = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(RUB|EUR|USD);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w-]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(RUB|EUR|USD).\\s(\\w+)";
 	
 	private static String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	

@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class DataFilterActivity extends Activity{
@@ -52,6 +53,7 @@ public class DataFilterActivity extends Activity{
         		startIntent.setClass(context, ViewHistoryListActivity.class);
         		startIntent.putExtra(MyDBAdapter.FILTER_VALUE, filterForData);
         		startActivity(startIntent);
+        		finish();
 			}
 		});
 	}
@@ -67,6 +69,10 @@ public class DataFilterActivity extends Activity{
 				cardsNumbers.add(0, cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 				adapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 			} while (cursor.moveToNext());
+		}
+		else {
+			Toast.makeText(context, "No data from bank.", Toast.LENGTH_LONG).show();
+			finish();
 		}
 	}
 	

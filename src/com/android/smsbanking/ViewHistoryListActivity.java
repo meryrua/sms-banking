@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class ViewHistoryListActivity extends ListActivity {
@@ -66,7 +67,8 @@ public class ViewHistoryListActivity extends ListActivity {
 		  Intent startIntent = new Intent();
 		  startIntent.setClass(context, SMSDetailActivity.class);
 		  SMSReceiver.fillIntent(startIntent, transactionData);
-		  startActivity(startIntent);		  
+		  startActivity(startIntent);
+		  finish();
 	  }
 
 	private void showTransactionList(){
@@ -107,7 +109,7 @@ public class ViewHistoryListActivity extends ListActivity {
 			} while (transactionCursor.moveToNext());
 			TransactionData.setBalance(transactionDatas.get(0).getFundValue());
 			TransactionData.setBalanceCurrency(transactionDatas.get(0).getFundCurrency());
-		}
+		} 
 		for (i = 0; i < transactionDatas.size(); i++){
 			Log.d("NATALIA elems 1", "Number " + i + " " + transactionDatas.get(i).getTransactionValue() + " " + transactionDatas);
 		}
