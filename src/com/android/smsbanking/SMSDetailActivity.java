@@ -40,7 +40,14 @@ public class SMSDetailActivity extends Activity implements OnClickListener{
         amountText.append(tranzValue);
         
         TextView placeText = (TextView) findViewById(R.id.place);
-        placeText.append(transactionData.getTransactionPlace());
+        String placeOrOperation = transactionData.getTransactionPlace();
+        if (placeOrOperation.equalsIgnoreCase(TransactionData.INCOMING_BANK_OPERATION)){
+        	placeText.setText("Operation: popolnenie");
+        }else if (placeOrOperation.equalsIgnoreCase(TransactionData.OUTGOING_BANK_OPERATION)){
+        	placeText.setText("Operation: umenshenie");
+        }else {
+        	placeText.append(transactionData.getTransactionPlace());
+        }
 
         TextView balanceText = (TextView) findViewById(R.id.balance);
         String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));

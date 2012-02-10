@@ -38,6 +38,8 @@ public class TransactionData {
 	private static float currentBalance = 0; //But we should have several Balances (for each of funds number) and currency
 	private static String balanceCurrency; //But we should have several Balances (for each of funds number) and currency
 	
+	public static final String INCOMING_BANK_OPERATION = "popolnilsya";
+	public static final String OUTGOING_BANK_OPERATION = "umenshilsya";
 	
 	TransactionData(){
 		cardNumber = null;

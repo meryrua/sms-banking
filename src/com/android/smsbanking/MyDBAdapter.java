@@ -23,10 +23,10 @@ public class MyDBAdapter {
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
 	
 	private static final String SELECT_ALL_TRANSACTION = "select all from " + TRANSACTION_TABLE_NAME + ";";
-	private static final String[] allColumnsName = new String[] {ID, TransactionData.CARD_NUMBER, 
+	private static final String[] ALL_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
 		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY};
-	private static final String[] dataForList = new String[] {ID, TransactionData.CARD_NUMBER, 
+	private static final String[] DATA_FOR_LIST = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_VALUE, TransactionData.TRANSACTION_CURRENCY};
 
 	private Context context;
@@ -74,11 +74,11 @@ public class MyDBAdapter {
 	}
 	
 	public Cursor getAllTransaction(){
-		return db.query(TRANSACTION_TABLE_NAME, allColumnsName, null, null, null, null, null);
+		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, null, null, null, null, null);
 	}
 
 	public Cursor getTransactionWithFilter(String filter){
-		return db.query(TRANSACTION_TABLE_NAME, allColumnsName, filter, null, null, null, null);
+		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, filter, null, null, null, null);
 	}
 
 	public boolean removeTransaction(long transactionId){
