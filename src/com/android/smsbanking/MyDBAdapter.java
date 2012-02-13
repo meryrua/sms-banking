@@ -14,7 +14,7 @@ public class MyDBAdapter {
 
 	private static final int DB_VERSION = 1;
 	private static final String DB_NAME = "smsbanking_base";
-	private static final String TRANSACTION_TABLE_NAME = "tranzaction_data";
+	private static final String TRANSACTION_TABLE_NAME = "transaction_data";
 	private static final String ID = "_id";
 	private static final String CREATE_TRANSACTION_TABLE = "create table " + TRANSACTION_TABLE_NAME + 
 		" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
@@ -80,12 +80,18 @@ public class MyDBAdapter {
 	public Cursor getTransactionWithFilter(String filter){
 		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, filter, null, null, null, null);
 	}
+	
+	public Cursor getDataByQuery(){
+		String sqlString = new String("SELECT * FROM tranzaction_data WHERE " + TransactionData.TRANSACTION_PLACE + "=" + TransactionData.INCOMING_BANK_OPERATION);
+		return db.rawQuery(sqlString, null);
+	}
 
 	public boolean removeTransaction(long transactionId){
 		return (db.delete(TRANSACTION_TABLE_NAME, ID + " = " + transactionId, null) > 0);
 	}
 	
 	public Cursor getCardsNumber (){
+		
 		return db.query(TRANSACTION_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, null, null, TransactionData.CARD_NUMBER, null, null);
 	}
 	

@@ -10,6 +10,12 @@
   android:layout_height="wrap_content"
   android:layout_width="match_parent">
 </Spinner>
+
+<Spinner
+  android:id="@+id/operation"
+  android:layout_height="wrap_content"
+  android:layout_width="match_parent">
+</Spinner>
     
 <Button
   android:id="@+id/set_filter"

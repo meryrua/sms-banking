@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -19,6 +20,8 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class DataFilterActivity extends Activity{
 
 	private Context context;
+	private static String filterForCard = null;
+	private static String filterForOperation = null;
 	private static String filterForData = null;
 	private static Button setFilter;
 	
@@ -38,20 +41,35 @@ public class DataFilterActivity extends Activity{
 		myDBAdapter.open();
 		
 		Spinner cardFilter = (Spinner) findViewById(R.id.card_number);
-		ArrayAdapter<String> adapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item);
-		getCardsNumber(adapter);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		cardFilter.setAdapter(adapter);
-		cardFilter.setOnItemSelectedListener(new MyOnItemSelectedListener());
+		ArrayAdapter<String> cardAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item);
+		getCardsNumber(cardAdapter);
+		cardAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		cardFilter.setAdapter(cardAdapter);
+		cardFilter.setOnItemSelectedListener(new MyOnCardSelectedListener());
 		
-		myDBAdapter.close();
+		myDBAdapter.close();	
+		
+		Spinner operationFilter = (Spinner) findViewById(R.id.operation);
+		ArrayAdapter<String> operationAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item);
+		setFilterOperation(operationAdapter);
+		operationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		operationFilter.setAdapter(operationAdapter);
+		operationFilter.setOnItemSelectedListener(new MyOnOperationSelectedListener());
 		
 		setFilter = (Button) findViewById(R.id.set_filter);
 		setFilter.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				Intent startIntent = new Intent();
         		startIntent.setClass(context, ViewHistoryListActivity.class);
+        		if ((filterForCard != null) && (filterForOperation != null)){
+            		filterForData = new String (filterForCard + " AND " + filterForOperation);        			
+        		}else if (filterForCard != null){
+        			filterForData = new String(filterForCard);
+        		}else if (filterForOperation != null){
+        			filterForData = new String(filterForOperation);
+        		}
         		startIntent.putExtra(MyDBAdapter.FILTER_VALUE, filterForData);
+        		Log.d("NATALIA!!!", "filterForData:" + filterForData);
         		startActivity(startIntent);
         		finish();
 			}
@@ -76,14 +94,14 @@ public class DataFilterActivity extends Activity{
 		}
 	}
 	
-	public class MyOnItemSelectedListener implements OnItemSelectedListener {
+	public class MyOnCardSelectedListener implements OnItemSelectedListener {
 
 	    public void onItemSelected(AdapterView<?> parent,
 	        View view, int pos, long id) {
 	    	if (pos == 0){
-	    		filterForData = null;
+	    		filterForCard = null;
 	    	} else {
-	    		filterForData = new String(TransactionData.CARD_NUMBER + "=" + parent.getItemAtPosition(pos).toString());
+	    		filterForCard = new String(TransactionData.CARD_NUMBER + "=" + parent.getItemAtPosition(pos).toString());
 	    	}
 	    }
 
@@ -91,4 +109,32 @@ public class DataFilterActivity extends Activity{
 	      // Do nothing.
 	    }
 	}
+	
+	private void setFilterOperation(ArrayAdapter<String> adapter){
+			adapter.add("All");
+			adapter.add("Card operations");
+			adapter.add("Incoming fund operations");
+			adapter.add("Outgoing fund operations");
+	}
+	
+	public class MyOnOperationSelectedListener implements OnItemSelectedListener {
+
+	    public void onItemSelected(AdapterView<?> parent,
+	        View view, int pos, long id) {
+	    	if (pos == 0){
+	    		filterForOperation = null;
+	    	} else if (pos == 1){
+	    		filterForOperation = new String("(" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')");
+	    	} else if (pos == 2) {
+	    		filterForOperation = new String(TransactionData.TRANSACTION_PLACE + "='" + TransactionData.INCOMING_BANK_OPERATION + "'");
+ 	    	} else {
+	    		filterForOperation = new String(TransactionData.TRANSACTION_PLACE + "='" + TransactionData.OUTGOING_BANK_OPERATION + "'");
+ 	    	}
+	    }
+
+	    public void onNothingSelected(AdapterView parent) {
+	      // Do nothing.
+	    }
+	}
+
 }

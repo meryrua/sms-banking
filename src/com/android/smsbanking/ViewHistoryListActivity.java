@@ -33,6 +33,7 @@ public class ViewHistoryListActivity extends ListActivity {
         
 		context = getApplicationContext();
 		filter = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
+		Log.d("NATALIA!!! ViewHistoryListActivity", "filterForData:" + filter);
 
 		transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
@@ -72,6 +73,7 @@ public class ViewHistoryListActivity extends ListActivity {
 	  }
 
 	private void showTransactionList(){
+		//transactionCursor = myDBAdapter.getDataByQuery();
 		transactionCursor = myDBAdapter.getTransactionWithFilter(filter);
 		startManagingCursor(transactionCursor);
 		updateTransactionList();
