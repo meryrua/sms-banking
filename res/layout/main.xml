@@ -19,4 +19,9 @@
   	android:layout_height="wrap_content"
   	android:text="View tranzaction history" 
   	/>
+<Button android:id="@+id/check_sms"
+  	android:layout_width="wrap_content"
+  	android:layout_height="wrap_content"
+  	android:text="Check existing SMS" 
+/>
 </LinearLayout>

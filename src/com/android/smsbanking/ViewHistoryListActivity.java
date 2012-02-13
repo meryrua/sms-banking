@@ -112,8 +112,9 @@ public class ViewHistoryListActivity extends ListActivity {
 			TransactionData.setBalance(transactionDatas.get(0).getFundValue());
 			TransactionData.setBalanceCurrency(transactionDatas.get(0).getFundCurrency());
 		} 
-		for (i = 0; i < transactionDatas.size(); i++){
-			Log.d("NATALIA elems 1", "Number " + i + " " + transactionDatas.get(i).getTransactionValue() + " " + transactionDatas);
+		else {
+			Toast.makeText(context, "No data from bank.", Toast.LENGTH_LONG).show();
+			finish();
 		}
 		
 		transactionAdapter.notifyDataSetChanged();

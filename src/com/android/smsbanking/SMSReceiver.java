@@ -76,7 +76,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			        		"from bank.", Toast.LENGTH_LONG).show();
 			        if (matchSMS){
 			          	//Remove abort for testing
-			            abortBroadcast(); // I don't know if it's good decision	
+			            //abortBroadcast(); // I don't know if it's good decision	
 			            	
 				        transactionData = new TransactionData();
 						smsParcer.setTranzactionData(transactionData);
