@@ -34,9 +34,9 @@ public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 	    String place = item.getTransactionPlace();
 	    String amount = Float.toString(item.getTransactionValue()) + item.getTransactionCurrency();
 	    String textForList = new String (); //Is it correct???
-	    if (place.equalsIgnoreCase(TransactionData.INCOMING_BANK_OPERATION)){
+	    if (place.equals(TransactionData.INCOMING_BANK_OPERATION)){
 	    	textForList += date + " schet popolnilsya na summu " + amount;
-	    } else if (place.equalsIgnoreCase(TransactionData.OUTGOING_BANK_OPERATION)){
+	    } else if (place.equals(TransactionData.OUTGOING_BANK_OPERATION)){
 	    	textForList += date + " schet umenshilsya na summu " + amount;	    	
 	    } else {
 	    	textForList += date + " byla provedena tranzaccija na summu " + amount;

@@ -41,9 +41,9 @@ public class SMSDetailActivity extends Activity implements OnClickListener{
         
         TextView placeText = (TextView) findViewById(R.id.place);
         String placeOrOperation = transactionData.getTransactionPlace();
-        if (placeOrOperation.equalsIgnoreCase(TransactionData.INCOMING_BANK_OPERATION)){
+        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
         	placeText.setText("Operation: popolnenie");
-        }else if (placeOrOperation.equalsIgnoreCase(TransactionData.OUTGOING_BANK_OPERATION)){
+        }else if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
         	placeText.setText("Operation: umenshenie");
         }else {
         	placeText.append(transactionData.getTransactionPlace());
