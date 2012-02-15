@@ -2,4 +2,10 @@
 <resources>
     <string name="hello">Hello World, SMSBankingActivity!</string>
     <string name="app_name">SMSBanking</string>
+    <string name="sms_string">SMSString</string>
+    <string name="sms_process">SMS Processing</string>
+    <string name="application_only">SMS process only within application</string>
+    <string name="normal_processing">Normal SMS processing</string>
+    <string name="card_filter">Card numbers</string>
+    <string name="operation_filter">Operations</string>
 </resources>

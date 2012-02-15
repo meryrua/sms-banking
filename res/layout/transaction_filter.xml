@@ -5,11 +5,23 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent">
   
+<TextView
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:text="@string/card_filter" >
+</TextView>
+
 <Spinner
   android:id="@+id/card_number"
   android:layout_height="wrap_content"
   android:layout_width="match_parent">
 </Spinner>
+
+<TextView
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:text="@string/operation_filter" >
+</TextView>
 
 <Spinner
   android:id="@+id/operation"

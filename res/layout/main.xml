@@ -9,19 +9,19 @@
     android:layout_height="wrap_content" 
     android:text="@string/hello"
     />
-<Button android:id="@+id/send_sms"
+<!-- <Button android:id="@+id/send_sms"
   	android:layout_width="wrap_content"
   	android:layout_height="wrap_content"
   	android:text="Send SMS" 
-  	/>
+  	/> -->
 <Button android:id="@+id/view_transaction_history"
   	android:layout_width="wrap_content"
   	android:layout_height="wrap_content"
   	android:text="View tranzaction history" 
   	/>
-<Button android:id="@+id/check_sms"
+<!-- <Button android:id="@+id/check_sms"
   	android:layout_width="wrap_content"
   	android:layout_height="wrap_content"
   	android:text="Check existing SMS" 
-/>
+/> -->
 </LinearLayout>

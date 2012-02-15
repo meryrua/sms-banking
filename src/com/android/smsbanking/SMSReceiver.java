@@ -8,8 +8,10 @@ import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
@@ -34,6 +36,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	private MyDBAdapter myDBAdapter;
 	
 	private TransactionData transactionData;
+	
+	private boolean allowSMSProcessing = false;
 	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
@@ -75,8 +79,11 @@ public class SMSReceiver extends BroadcastReceiver {
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
 			        if (matchSMS){
-			          	//Remove abort for testing
-			            //abortBroadcast(); // I don't know if it's good decision	
+			        	
+			        	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_process), context.getResources().getString(R.string.application_only));
+			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only)))
+			        			abortBroadcast(); // I don't know if it's good decision	
 			            	
 				        transactionData = new TransactionData();
 						smsParcer.setTranzactionData(transactionData);
@@ -117,7 +124,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	    long when = System.currentTimeMillis();
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);
-	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL; //remove notification on user click
+	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
 	            
 
 	    //Intent notiIntent = new Intent(context, SMSBankingActivity.class);

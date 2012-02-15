@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -19,6 +21,8 @@ public class SMSBankingActivity extends Activity{
 	private Button viewHistoryButton;
 	private Button checkSMSButton;
 	
+	private static final int IDM_SMS_PROCESSING = 101;
+	
 	private static final String BANK_ADDRESS = "5556";
 	
 	
@@ -30,13 +34,13 @@ public class SMSBankingActivity extends Activity{
         
         context = getApplicationContext();
         
-        sendSMSButton = (Button) findViewById(R.id.send_sms);
+        /*sendSMSButton = (Button) findViewById(R.id.send_sms);
         sendSMSButton.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
         		Intent intent = new Intent(SMSReceiver.SEND_SMS_ACTION); 
         		sendBroadcast(intent);    	
         	}
-        });
+        });*/
         
         viewHistoryButton = (Button) findViewById(R.id.view_transaction_history);
         if (viewHistoryButton != null) {
@@ -49,7 +53,7 @@ public class SMSBankingActivity extends Activity{
         });
         }
         
-        checkSMSButton = (Button) findViewById(R.id.check_sms);
+        /*checkSMSButton = (Button) findViewById(R.id.check_sms);
         checkSMSButton.setOnClickListener(new OnClickListener(){
         	public void onClick(View v){
             	Uri uriSMSURI = Uri.parse("content://sms/inbox");
@@ -60,11 +64,27 @@ public class SMSBankingActivity extends Activity{
                     Log.d("NATALIA!!! ", sms);
                 }        		
         	}
-        });
+        });*/
                 
         Intent intent = new Intent(SMSReceiver.BANK_ADDRESS_ACTION); 
         intent.putExtra(SMSReceiver.TYPE, BANK_ADDRESS); 
         sendBroadcast(intent); 
+    }
+    
+    public boolean onCreateOptionsMenu(Menu menu){
+    	menu.add(Menu.NONE, IDM_SMS_PROCESSING, Menu.NONE, "SMS processing");
+    	return true;
+    }
+    
+    public boolean onOptionsItemSelected(MenuItem item){
+    	switch(item.getItemId()){
+    	case IDM_SMS_PROCESSING:
+    		Intent startIntent = new Intent();
+    		startIntent.setClass(context, Settings.class);
+    		startActivity(startIntent);   
+    		return true;
+    	}
+    	return false;
     }
     
     
