@@ -120,7 +120,8 @@ public class SMSReceiver extends BroadcastReceiver {
 		String ns = Context.NOTIFICATION_SERVICE;
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
 	            
-	    String smsNoti = "New SMS from bank. Balance: " + tranzactionData.getBalance() + tranzactionData.getBalanceCurrency();
+	    String smsNoti = context.getResources().getString(R.string.notification_string) + " " +
+	    				tranzactionData.getBalance() + tranzactionData.getBalanceCurrency();
 	    long when = System.currentTimeMillis();
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);

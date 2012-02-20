@@ -61,7 +61,7 @@ public class ViewHistoryListActivity extends ListActivity {
 		showTransactionList();
         TextView curBalance = (TextView) findViewById(R.id.current_balance);
         String str = new String();
-        str += "Balance:" + TransactionData.getBalance() + TransactionData.getBalanceCurrency();
+        str += context.getResources().getString(R.string.operation_balance) + " " + TransactionData.getBalance() + TransactionData.getBalanceCurrency();
         curBalance.setText(str);
     }
 	

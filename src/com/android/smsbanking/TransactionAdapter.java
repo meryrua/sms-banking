@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,13 +16,15 @@ import android.widget.TextView;
 
 public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 	int viewResourceId;
-	private Context thisContext;
+	private Context myContext;
+	private Resources resources;
 
 	public TransactionAdapter(Context context, int resourceId,
 			List<TransactionData> objects) {
 		super(context, resourceId, objects);
 		viewResourceId = resourceId;
-		thisContext = context;
+		myContext = context;
+		resources = myContext.getResources();
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -37,11 +40,11 @@ public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 	    String amount = Float.toString(item.getTransactionValue()) + item.getTransactionCurrency();
 	    String textForList = new String (); //Is it correct???
 	    if (place.equals(TransactionData.INCOMING_BANK_OPERATION)){
-	    	textForList += date + thisContext.getResources().getString(R.string.string_incoming_operation) + amount;
+	    	textForList += date + " " + resources.getString(R.string.string_incoming_operation) + " " + amount;
 	    } else if (place.equals(TransactionData.OUTGOING_BANK_OPERATION)){
-	    	textForList += date + thisContext.getResources().getString(R.string.string_outgoing_operation) + amount;	    	
+	    	textForList += date + " " + resources.getString(R.string.string_outgoing_operation) + " " + amount;	    	
 	    } else {
-	    	textForList += date + thisContext.getResources().getString(R.string.string_transaction) + amount;
+	    	textForList += date + " " + resources.getString(R.string.string_transaction) + " " + amount;
 	    }
 
 	    if (convertView == null) {

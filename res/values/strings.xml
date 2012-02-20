@@ -19,7 +19,20 @@
     <string name="card_operations">Card operations</string>    
     <string name="incoming_operations">Incoming fund operations</string>    
     <string name="outgoing_operations">Outgoing fund operations</string>
-    <string name="string_transaction"> byla provedena tranzaccija na summu </string> 
-    <string name="string_incoming_operation"> schet popolnilsya na summu </string>
-    <string name="string_outgoing_operation"> schet umenshilsya na summu </string>                                 
+    <string name="string_transaction">byla provedena tranzaccija na summu</string> 
+    <string name="string_incoming_operation">schet popolnilsya na summu</string>
+    <string name="string_outgoing_operation">schet umenshilsya na summu</string> 
+    <string name="operation_card_number">Card number: *</string>
+    <string name="operation_date">Date:</string>
+    <string name="operation_amount">Amount:</string>
+    <string name="operation_place">Place:</string>
+    <string name="operation_name">Operation:</string>
+    <string name="operation_incoming">Popolnenie</string>
+    <string name="operation_outgoing">Umenshenie</string>
+    <string name="operation_balance">Balance:</string> 
+    <string name="close">Close</string>   
+    <string name="apply">Apply</string> 
+    <string name="notification_string">New SMS from Bank. Balance:</string>  
+    <string name="detail_info">Transaction detail</string> 
+	<string name="filters_screen_name">Set filters</string>                               
 </resources>

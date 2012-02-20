@@ -16,8 +16,8 @@ public class SMSParcer {
 	private boolean isTransaction;
 	
 	private List<String> tokenArray;
-	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(RUB|RUR|EUR|USD);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w-]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(RUB|RUR|EUR|USD).\\s(\\w+)";
-	private static final String DEFAULT_INCOMING_OUTGOING_PATTERN = "Balans vashey karty\\s\\*(\\d+)\\s(\\w+)\\s(\\d+/\\d+/\\d+)\\sna:(\\d+,\\d+)(RUB|RUR|EUR|USD).\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(RUB|RUR|EUR|USD).\\s(\\w+)";
+	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w-]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
+	private static final String DEFAULT_INCOMING_OUTGOING_PATTERN = "Balans vashey karty\\s\\*(\\d+)\\s(\\w+)\\s(\\d+/\\d+/\\d+)\\sna:(\\d+,\\d+)(\\w+).\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
 	
 	private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	private static final String testOutgoingString = "Balans vashey karty *1234 umenshilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
