@@ -111,7 +111,7 @@ public class DataFilterActivity extends Activity{
 	    	if (pos == 0){
 	    		filterForCard = null;
 	    	} else {
-	    		filterForCard = new String(TransactionData.CARD_NUMBER + "=" + parent.getItemAtPosition(pos).toString());
+	    		filterForCard = new String(TransactionData.CARD_NUMBER + "='" + parent.getItemAtPosition(pos).toString() + "'");
 	    	}
 	    }
 
