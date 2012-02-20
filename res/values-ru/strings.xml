@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, SMSBankingActivity!</string>
+    <string name="sms_process">Обработка SMS</string>
+    <string name="set_filters">Фильтры</string>
+    <string name="application_only">Обработка SMS только в приложении</string>
+    <string name="normal_processing">Обычная обработка SMS</string>
+    <string name="card_filter">Номер карты\счета</string>
+    <string name="operation_filter">Операция</string>
+    <string name="date_period">Период</string>
+    <string name="last_month">За месяц</string>
+    <string name="last_three_months">3 месяца</string>        
+    <string name="last_six_months">6 месяцев</string>
+    <string name="last_nine_months">9 месяцев</string>
+    <string name="last_year">За год</string>
+    <string name="all">Все</string>    
+    <string name="card_operations">Операции по карте</string>    
+    <string name="incoming_operations">Пополнение счета</string>    
+    <string name="outgoing_operations">Списание со счета</string>
+    <string name="string_transaction"> была проведена транзакция на сумму </string> 
+    <string name="string_incoming_operation"> счет пополнился на сумму </string>
+    <string name="string_outgoing_operation"> счет уменьшился на сумму </string>                                 
+</resources>

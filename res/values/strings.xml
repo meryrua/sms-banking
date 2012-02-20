@@ -3,9 +3,23 @@
     <string name="hello">Hello World, SMSBankingActivity!</string>
     <string name="app_name">SMSBanking</string>
     <string name="sms_string">SMSString</string>
+    <string name="set_filters">Filters</string>    
     <string name="sms_process">SMS Processing</string>
     <string name="application_only">SMS process only within application</string>
     <string name="normal_processing">Normal SMS processing</string>
     <string name="card_filter">Card numbers</string>
     <string name="operation_filter">Operations</string>
+    <string name="date_period">Period</string>
+    <string name="last_month">Last month</string>
+    <string name="last_three_months">Last 3 months</string>        
+    <string name="last_six_months">Last 6 months</string>
+    <string name="last_nine_months">Last 9 months</string>
+    <string name="last_year">Last year</string>
+    <string name="all">All</string>    
+    <string name="card_operations">Card operations</string>    
+    <string name="incoming_operations">Incoming fund operations</string>    
+    <string name="outgoing_operations">Outgoing fund operations</string>
+    <string name="string_transaction"> byla provedena tranzaccija na summu </string> 
+    <string name="string_incoming_operation"> schet popolnilsya na summu </string>
+    <string name="string_outgoing_operation"> schet umenshilsya na summu </string>                                 
 </resources>

@@ -4,4 +4,18 @@
     <item>@string/application_only</item>
     <item>@string/normal_processing</item>
 </string-array>   
+<string-array name="array_for_date_period">
+    <item>@string/all</item>
+    <item>@string/last_month</item>
+    <item>@string/last_three_months</item>
+    <item>@string/last_six_months</item>
+    <item>@string/last_nine_months</item>
+    <item>@string/last_year</item>    
+</string-array>  
+<string-array name="array_for_operation_filter">
+    <item>@string/all</item>
+    <item>@string/card_operations</item>
+    <item>@string/incoming_operations</item>
+    <item>@string/outgoing_operations</item>
+</string-array>  
 </resources>

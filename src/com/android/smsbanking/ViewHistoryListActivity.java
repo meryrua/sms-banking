@@ -10,6 +10,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,13 +28,19 @@ public class ViewHistoryListActivity extends ListActivity {
 	private TransactionAdapter transactionAdapter;
 	private String filter;
 	
+	private static final int ID_FILTER_ACTIVITY = 1;
+	
+	private static final int IDM_SMS_PROCESSING = 101;
+	private static final int IDM_SET_FILTERS = 102;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.view_history);
         
 		context = getApplicationContext();
-		filter = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
+		//filter = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
+		filter = null;
 		Log.d("NATALIA!!! ViewHistoryListActivity", "filterForData:" + filter);
 
 		transactionDatas = new ArrayList<TransactionData>();
@@ -49,11 +57,7 @@ public class ViewHistoryListActivity extends ListActivity {
 			  }
 			
 		})*/
-		
 
-		myDBAdapter = new MyDBAdapter(context);
-		myDBAdapter.open();
-		
 		showTransactionList();
         TextView curBalance = (TextView) findViewById(R.id.current_balance);
         String str = new String();
@@ -63,20 +67,26 @@ public class ViewHistoryListActivity extends ListActivity {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		  TransactionData transactionData = (TransactionData) getListAdapter().getItem(position);
+		TransactionData transactionData = (TransactionData) getListAdapter().getItem(position);
 		  
-		  Intent startIntent = new Intent();
-		  startIntent.setClass(context, SMSDetailActivity.class);
-		  SMSReceiver.fillIntent(startIntent, transactionData);
-		  startActivity(startIntent);
-		  finish();
-	  }
+		Intent startIntent = new Intent();
+		startIntent.setClass(context, SMSDetailActivity.class);
+		SMSReceiver.fillIntent(startIntent, transactionData);
+		startActivity(startIntent);
+	}
 
+	//We have to close connection to DB
 	private void showTransactionList(){
-		//transactionCursor = myDBAdapter.getDataByQuery();
+		myDBAdapter = new MyDBAdapter(context);
+		myDBAdapter.open();
+
 		transactionCursor = myDBAdapter.getTransactionWithFilter(filter);
 		startManagingCursor(transactionCursor);
 		updateTransactionList();
+		if((transactionCursor != null) && (!transactionCursor.isClosed())){
+			transactionCursor.close();
+		}
+		myDBAdapter.close();
 	}
 	
 	private void getTransactionFromCursor(TransactionData transactionData){
@@ -125,8 +135,60 @@ public class ViewHistoryListActivity extends ListActivity {
 	    super.onDestroy();
 	      
 	    // Close the database
+		if((transactionCursor != null) && (!transactionCursor.isClosed())){
+			transactionCursor.close();
+		}
 	    myDBAdapter.close();
 	  }
 	  
+	public boolean onCreateOptionsMenu(Menu menu){
+    	menu.add(Menu.NONE, IDM_SMS_PROCESSING, Menu.NONE, context.getResources().getString(R.string.sms_process));
+    	menu.add(Menu.NONE, IDM_SET_FILTERS, Menu.NONE, context.getResources().getString(R.string.set_filters));
+    	return true;
+    }
+    
+    public boolean onOptionsItemSelected(MenuItem item){
+    	switch(item.getItemId()){
+    	case IDM_SMS_PROCESSING:
+    		Intent startIntentProcessing = new Intent();
+    		startIntentProcessing.setClass(context, Settings.class);
+    		startActivity(startIntentProcessing);   
+    		return true;
+    	case IDM_SET_FILTERS:
+    		Intent startIntentFilters = new Intent();
+    		startIntentFilters.setClass(context, DataFilterActivity.class);
+    		startIntentFilters.putExtra(MyDBAdapter.FILTER_VALUE, filter);
+    		startActivityForResult(startIntentFilters, ID_FILTER_ACTIVITY);   
+    		return true;
+    	}
+    	return false;
+    }
+    
+    @Override
+    public void onPause(){
+    	super.onPause();
+    	Log.d("NATALIA!!! ", "onPause ");
+		if((transactionCursor != null) && (!transactionCursor.isClosed())){
+			transactionCursor.close();
+		}
+		myDBAdapter.close();
+    }
+    
+    @Override
+    public void onResume(){
+    	super.onResume();
+    	Log.d("NATALIA!!! ", "onResume ");
+    	showTransactionList();
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    	if (requestCode == ID_FILTER_ACTIVITY){
+    		if (data != null){
+    			filter = data.getStringExtra(MyDBAdapter.FILTER_VALUE);
+    			showTransactionList();
+    		}
+    	}
+    }
 }
 

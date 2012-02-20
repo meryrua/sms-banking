@@ -34,6 +34,9 @@ public class DataFilterActivity extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.transaction_filter);
 		
+		filterForData = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
+		Log.d("NATALIA!!!", "filterForData:" + filterForData);
+		
 		context = getApplicationContext();
 		cardsNumbers = new ArrayList<String>();
 		
@@ -50,17 +53,21 @@ public class DataFilterActivity extends Activity{
 		myDBAdapter.close();	
 		
 		Spinner operationFilter = (Spinner) findViewById(R.id.operation);
-		ArrayAdapter<String> operationAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item);
-		setFilterOperation(operationAdapter);
+		ArrayAdapter<String> operationAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.array_for_operation_filter));
 		operationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		operationFilter.setAdapter(operationAdapter);
 		operationFilter.setOnItemSelectedListener(new MyOnOperationSelectedListener());
+		
+		Spinner dateFilter = (Spinner) findViewById(R.id.date_filter);
+		ArrayAdapter<String> dateAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.array_for_date_period));
+		dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		dateFilter.setAdapter(dateAdapter);
+		dateFilter.setOnItemSelectedListener(new MyOnDateSelectedListener());
 		
 		setFilter = (Button) findViewById(R.id.set_filter);
 		setFilter.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				Intent startIntent = new Intent();
-        		startIntent.setClass(context, ViewHistoryListActivity.class);
         		if ((filterForCard != null) && (filterForOperation != null)){
             		filterForData = new String (filterForCard + " AND " + filterForOperation);        			
         		}else if (filterForCard != null){
@@ -68,9 +75,11 @@ public class DataFilterActivity extends Activity{
         		}else if (filterForOperation != null){
         			filterForData = new String(filterForOperation);
         		}
+        		else
+        			filterForData = null;
         		startIntent.putExtra(MyDBAdapter.FILTER_VALUE, filterForData);
         		Log.d("NATALIA!!!", "filterForData:" + filterForData);
-        		startActivity(startIntent);
+        		setResult(RESULT_OK, startIntent);
         		finish();
 			}
 		});
@@ -82,7 +91,7 @@ public class DataFilterActivity extends Activity{
 		cardsNumbers.clear();
 		
 		if (cursor.moveToFirst()){
-			adapter.add("All");
+			adapter.add(context.getResources().getString(R.string.all));
 			do{
 				cardsNumbers.add(0, cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 				adapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
@@ -92,6 +101,7 @@ public class DataFilterActivity extends Activity{
 			Toast.makeText(context, "No data from bank.", Toast.LENGTH_LONG).show();
 			finish();
 		}
+		cursor.close();
 	}
 	
 	public class MyOnCardSelectedListener implements OnItemSelectedListener {
@@ -135,6 +145,18 @@ public class DataFilterActivity extends Activity{
 	    public void onNothingSelected(AdapterView parent) {
 	      // Do nothing.
 	    }
+	}
+	
+	public class MyOnDateSelectedListener implements OnItemSelectedListener{
+		
+		public void onItemSelected(AdapterView<?> parent,
+				View view, int pos, long id) {
+			
+		}
+		
+	    public void onNothingSelected(AdapterView parent) {
+		      // Do nothing.
+		}
 	}
 
 }
