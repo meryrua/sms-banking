@@ -1,6 +1,8 @@
 package com.android.smsbanking;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Context;
@@ -29,6 +31,12 @@ public class DataFilterActivity extends Activity{
 	private MyDBAdapter myDBAdapter;
 	private static Cursor cursor;
 	
+	//private static final String SET_CARD_FILTER = TransactionData.CARD_NUMBER + "='(\\d+)'[\\.*\\s*[\\(]*[\\)]*<*>*=*]*";
+	private static final String SET_CARD_FILTER = TransactionData.CARD_NUMBER + "='(\\d+)'";
+	private static final String SET_OPERATION_FILTER = TransactionData.TRANSACTION_PLACE + "='(\\w+)'";
+	private static final String SET_TRANSACTION_FILTER = "(" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')";
+	private static String setCardFilter;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -36,6 +44,7 @@ public class DataFilterActivity extends Activity{
 		
 		filterForData = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
 		Log.d("NATALIA!!!", "filterForData:" + filterForData);
+		getSelectedFilter();
 		
 		context = getApplicationContext();
 		cardsNumbers = new ArrayList<String>();
@@ -45,9 +54,10 @@ public class DataFilterActivity extends Activity{
 		
 		Spinner cardFilter = (Spinner) findViewById(R.id.card_number);
 		ArrayAdapter<String> cardAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item);
-		getCardsNumber(cardAdapter);
+		int selectedCard = getCardsNumber(cardAdapter);
 		cardAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		cardFilter.setAdapter(cardAdapter);
+		cardFilter.setSelection(selectedCard);
 		cardFilter.setOnItemSelectedListener(new MyOnCardSelectedListener());
 		
 		myDBAdapter.close();	
@@ -85,23 +95,50 @@ public class DataFilterActivity extends Activity{
 		});
 	}
 	
-	private void getCardsNumber(ArrayAdapter<String> adapter){
+	private void getSelectedFilter(){
+		Pattern filterPattern;
+		Matcher matcherWithPattern;
+		
+		if (filterForData != null) {
+			filterPattern = Pattern.compile(SET_CARD_FILTER);
+			matcherWithPattern = filterPattern.matcher(filterForData);
+			
+			if (matcherWithPattern.find())
+				setCardFilter = matcherWithPattern.group(1);
+			else
+				setCardFilter = null;
+		}
+		else setCardFilter = null;
+		
+	}
+	
+	private int getCardsNumber(ArrayAdapter<String> adapter){
+		int i = 0;
+		int j = 0;
 		cursor = myDBAdapter.getCardsNumber();
 		
 		cardsNumbers.clear();
 		
 		if (cursor.moveToFirst()){
 			adapter.add(context.getResources().getString(R.string.all));
+			j++;
 			do{
+				if (setCardFilter != null){
+					if (setCardFilter.equals(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER))))
+						i = j;
+				}
 				cardsNumbers.add(0, cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 				adapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+				j++;
 			} while (cursor.moveToNext());
+			cursor.close();
+			return i;
 		}
 		else {
 			Toast.makeText(context, "No data from bank.", Toast.LENGTH_LONG).show();
 			finish();
+			return 0;
 		}
-		cursor.close();
 	}
 	
 	public class MyOnCardSelectedListener implements OnItemSelectedListener {
