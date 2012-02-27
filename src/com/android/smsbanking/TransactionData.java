@@ -114,20 +114,4 @@ public class TransactionData {
 		return fundValue;
 	}
 
-	static public void setBalance(float balance){
-		currentBalance = balance;
-	}
-	
-	static public float getBalance(){
-		return currentBalance;
-	}
-	
-	static public void setBalanceCurrency(String currency){
-		balanceCurrency = new String(currency);
-	}
-	
-	static public String getBalanceCurrency(){
-		return balanceCurrency;
-	}
-
 }

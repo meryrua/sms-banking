@@ -1,5 +1,7 @@
 package com.android.smsbanking;
 
+import java.util.HashMap;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -73,17 +75,28 @@ public class MyDBAdapter {
 		return rowIndex;
 	}
 	
+	public TransactionData getTransactionFromCursor(Cursor transactionCursor){
+		TransactionData transactionData = new TransactionData();
+		
+		transactionData.setBankName(TransactionData.DEFAULT_BANK_NAME);
+		transactionData.setCardNumber(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+		transactionData.setFundCurrency(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.FUND_CURRENCY)));
+		transactionData.setTransactionCurrency(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_CURRENCY)));
+		transactionData.setTransactionDate(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_DATE)));
+		transactionData.setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
+		transactionData.setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
+		transactionData.setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
+		
+		return transactionData;
+	}
+
+	
 	public Cursor getAllTransaction(){
 		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, null, null, null, null, null);
 	}
 
 	public Cursor getTransactionWithFilter(String filter){
 		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, filter, null, null, null, null);
-	}
-	
-	public Cursor getDataByQuery(){
-		String sqlString = new String("SELECT * FROM tranzaction_data WHERE " + TransactionData.TRANSACTION_PLACE + "=" + TransactionData.INCOMING_BANK_OPERATION);
-		return db.rawQuery(sqlString, null);
 	}
 
 	public boolean removeTransaction(long transactionId){
@@ -93,6 +106,16 @@ public class MyDBAdapter {
 	public Cursor getCardsNumber (){
 		
 		return db.query(TRANSACTION_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, null, null, TransactionData.CARD_NUMBER, null, null);
+	}
+	
+	public String getBalance(String cardNumber){
+		String balance = new String();
+		Cursor cursor = getTransactionWithFilter(TransactionData.CARD_NUMBER + "='" + cardNumber + "';");
+		if (cursor.moveToLast()){
+			balance += cursor.getString(cursor.getColumnIndex(TransactionData.FUND_VALUE)).toString() + " " +
+			cursor.getString(cursor.getColumnIndex(TransactionData.FUND_CURRENCY)).toString();
+		}
+		return balance;
 	}
 	
 	private class DbHelper extends SQLiteOpenHelper{

@@ -87,8 +87,6 @@ public class SMSReceiver extends BroadcastReceiver {
 			            	
 				        transactionData = new TransactionData();
 						smsParcer.setTranzactionData(transactionData);
-						transactionData.setBalance(transactionData.getFundValue());
-						transactionData.setBalanceCurrency(transactionData.getFundCurrency());
 								            
 						myDBAdapter = new MyDBAdapter(context);
 						myDBAdapter.open();
@@ -121,7 +119,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
 	            
 	    String smsNoti = context.getResources().getString(R.string.notification_string) + " " +
-	    				tranzactionData.getBalance() + tranzactionData.getBalanceCurrency();
+	    				tranzactionData.getFundValue() + tranzactionData.getFundCurrency();
 	    long when = System.currentTimeMillis();
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);

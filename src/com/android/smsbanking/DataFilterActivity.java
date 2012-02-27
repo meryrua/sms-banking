@@ -1,6 +1,7 @@
 package com.android.smsbanking;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,29 +23,21 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class DataFilterActivity extends Activity{
 
 	private Context context;
-	private static String filterForCard = null;
-	private static String filterForOperation = null;
-	private static String filterForData = null;
 	private static Button setFilter;
 	
 	private ArrayList<String> cardsNumbers;
 	private MyDBAdapter myDBAdapter;
 	private static Cursor cursor;
 	
-	//private static final String SET_CARD_FILTER = TransactionData.CARD_NUMBER + "='(\\d+)'[\\.*\\s*[\\(]*[\\)]*<*>*=*]*";
-	private static final String SET_CARD_FILTER = TransactionData.CARD_NUMBER + "='(\\d+)'";
-	private static final String SET_OPERATION_FILTER = TransactionData.TRANSACTION_PLACE + "='(\\w+)'";
-	private static final String SET_TRANSACTION_FILTER = "(" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')";
-	private static String setCardFilter;
+	private static HashMap<String, String> filterMap = new HashMap<String, String>(); 
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.transaction_filter);
 		
-		filterForData = getIntent().getStringExtra(MyDBAdapter.FILTER_VALUE);
-		Log.d("NATALIA!!!", "filterForData:" + filterForData);
-		getSelectedFilter();
+		filterMap.put(TransactionData.CARD_NUMBER, getIntent().getStringExtra(TransactionData.CARD_NUMBER));
+		filterMap.put(TransactionData.TRANSACTION_PLACE, getIntent().getStringExtra(TransactionData.TRANSACTION_PLACE));
 		
 		context = getApplicationContext();
 		cardsNumbers = new ArrayList<String>();
@@ -53,7 +46,7 @@ public class DataFilterActivity extends Activity{
 		myDBAdapter.open();
 		
 		Spinner cardFilter = (Spinner) findViewById(R.id.card_number);
-		ArrayAdapter<String> cardAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item);
+		ArrayAdapter<String> cardAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item);
 		int selectedCard = getCardsNumber(cardAdapter);
 		cardAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		cardFilter.setAdapter(cardAdapter);
@@ -63,13 +56,19 @@ public class DataFilterActivity extends Activity{
 		myDBAdapter.close();	
 		
 		Spinner operationFilter = (Spinner) findViewById(R.id.operation);
-		ArrayAdapter<String> operationAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.array_for_operation_filter));
+		ArrayAdapter<String> operationAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.array_for_operation_filter));
+		int selectedOperation = 0;
+		for (int i = 0; i < operationAdapter.getCount(); i++){
+			if (operationAdapter.getItem(i).equals(filterMap.get(TransactionData.TRANSACTION_PLACE)))
+				selectedOperation = i;
+		}
 		operationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		operationFilter.setAdapter(operationAdapter);
+		operationFilter.setSelection(selectedOperation);
 		operationFilter.setOnItemSelectedListener(new MyOnOperationSelectedListener());
 		
 		Spinner dateFilter = (Spinner) findViewById(R.id.date_filter);
-		ArrayAdapter<String> dateAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.array_for_date_period));
+		ArrayAdapter<String> dateAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.array_for_date_period));
 		dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		dateFilter.setAdapter(dateAdapter);
 		dateFilter.setOnItemSelectedListener(new MyOnDateSelectedListener());
@@ -78,38 +77,12 @@ public class DataFilterActivity extends Activity{
 		setFilter.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				Intent startIntent = new Intent();
-        		if ((filterForCard != null) && (filterForOperation != null)){
-            		filterForData = new String (filterForCard + " AND " + filterForOperation);        			
-        		}else if (filterForCard != null){
-        			filterForData = new String(filterForCard);
-        		}else if (filterForOperation != null){
-        			filterForData = new String(filterForOperation);
-        		}
-        		else
-        			filterForData = null;
-        		startIntent.putExtra(MyDBAdapter.FILTER_VALUE, filterForData);
-        		Log.d("NATALIA!!!", "filterForData:" + filterForData);
+				startIntent.putExtra(TransactionData.CARD_NUMBER, filterMap.get(TransactionData.CARD_NUMBER));
+				startIntent.putExtra(TransactionData.TRANSACTION_PLACE, filterMap.get(TransactionData.TRANSACTION_PLACE));
         		setResult(RESULT_OK, startIntent);
         		finish();
 			}
 		});
-	}
-	
-	private void getSelectedFilter(){
-		Pattern filterPattern;
-		Matcher matcherWithPattern;
-		
-		if (filterForData != null) {
-			filterPattern = Pattern.compile(SET_CARD_FILTER);
-			matcherWithPattern = filterPattern.matcher(filterForData);
-			
-			if (matcherWithPattern.find())
-				setCardFilter = matcherWithPattern.group(1);
-			else
-				setCardFilter = null;
-		}
-		else setCardFilter = null;
-		
 	}
 	
 	private int getCardsNumber(ArrayAdapter<String> adapter){
@@ -123,8 +96,8 @@ public class DataFilterActivity extends Activity{
 			adapter.add(context.getResources().getString(R.string.all));
 			j++;
 			do{
-				if (setCardFilter != null){
-					if (setCardFilter.equals(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER))))
+				if (filterMap.get(TransactionData.CARD_NUMBER) != null){
+					if (filterMap.get(TransactionData.CARD_NUMBER).equals(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER))))
 						i = j;
 				}
 				cardsNumbers.add(0, cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
@@ -145,10 +118,11 @@ public class DataFilterActivity extends Activity{
 
 	    public void onItemSelected(AdapterView<?> parent,
 	        View view, int pos, long id) {
+	    	filterMap.remove(TransactionData.CARD_NUMBER);
 	    	if (pos == 0){
-	    		filterForCard = null;
+	    		filterMap.put(TransactionData.CARD_NUMBER, context.getResources().getString(R.string.all));
 	    	} else {
-	    		filterForCard = new String(TransactionData.CARD_NUMBER + "='" + parent.getItemAtPosition(pos).toString() + "'");
+	    		filterMap.put(TransactionData.CARD_NUMBER, parent.getItemAtPosition(pos).toString());
 	    	}
 	    }
 
@@ -157,25 +131,19 @@ public class DataFilterActivity extends Activity{
 	    }
 	}
 	
-	private void setFilterOperation(ArrayAdapter<String> adapter){
-			adapter.add("All");
-			adapter.add("Card operations");
-			adapter.add("Incoming fund operations");
-			adapter.add("Outgoing fund operations");
-	}
-	
 	public class MyOnOperationSelectedListener implements OnItemSelectedListener {
 
 	    public void onItemSelected(AdapterView<?> parent,
 	        View view, int pos, long id) {
+	    	filterMap.remove(TransactionData.TRANSACTION_PLACE);
 	    	if (pos == 0){
-	    		filterForOperation = null;
+	    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.all));
 	    	} else if (pos == 1){
-	    		filterForOperation = new String("(" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')");
+	    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.card_operations));
 	    	} else if (pos == 2) {
-	    		filterForOperation = new String(TransactionData.TRANSACTION_PLACE + "='" + TransactionData.INCOMING_BANK_OPERATION + "'");
+	    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.incoming_operations));
  	    	} else {
-	    		filterForOperation = new String(TransactionData.TRANSACTION_PLACE + "='" + TransactionData.OUTGOING_BANK_OPERATION + "'");
+	    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.outgoing_operations));
  	    	}
 	    }
 
