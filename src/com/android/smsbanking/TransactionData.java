@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import android.os.Bundle;
 import android.util.Log;
 
 /*
@@ -48,6 +49,17 @@ public class TransactionData {
 		transactionCurrency = null;
 		fundCurrency = null;
 		bankName = null;
+	}
+	
+	TransactionData(Bundle extras){
+	   	setTransactionValue(extras.getFloat(TransactionData.TRANSACTION_VALUE, 0));
+       	setFundValue(extras.getFloat(TransactionData.FUND_VALUE, 0));
+       	setBankName(extras.getString(TransactionData.BANK_NAME));
+       	setCardNumber(extras.getString(TransactionData.CARD_NUMBER));
+       	setFundCurrency(extras.getString(TransactionData.FUND_CURRENCY));
+       	setTransactionCurrency(extras.getString(TransactionData.TRANSACTION_CURRENCY));
+       	setTransactionDate(extras.getString(TransactionData.TRANSACTION_DATE));
+       	setTransactionPlace(extras.getString(TransactionData.TRANSACTION_PLACE));
 	}
 	
 	public void setCardNumber(String number){

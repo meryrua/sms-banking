@@ -126,8 +126,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
 	            
 
-	    //Intent notiIntent = new Intent(context, SMSBankingActivity.class);
-	    Intent notiIntent = new Intent(context, SMSDetailActivity.class);
+	    Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT, null, context, SMSBankingActivity.class);
+	    //Intent notiIntent = new Intent(context, SMSDetailActivity.class);
 	    fillIntent(notiIntent, tranzactionData);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);

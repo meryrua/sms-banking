@@ -12,13 +12,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name=
+                    "com.android.smsbanking.VIEW_TRANSACTION_LIST" />
             </intent-filter>
         </activity>
         
-        <activity android:name=".SMSDetailActivity"
-                  android:label="@string/detail_info" >
+       <activity android:name=".SMSDetailActivity"
+                 android:label="@string/filters_screen_name" >
        </activity>
- 
+       
        <activity android:name=".DataFilterActivity"
                  android:label="@string/filters_screen_name" >
        </activity>

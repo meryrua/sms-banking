@@ -9,16 +9,22 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -42,15 +48,17 @@ public class SMSBankingActivity extends ListActivity{
 	private TransactionAdapter transactionAdapter;
 	private String filter;
 	private HashMap<String, String> filterMap;
+	private Resources resources;	
 	
 	private static final int ID_FILTER_ACTIVITY = 1;
-	
 	private static final int IDM_SMS_PROCESSING = 101;
 	private static final int IDM_SET_FILTERS = 102;
 	private static final int IDM_SET_CARD_FILTER = 103;
+	private static final int DIALOG_SMS_DETAIL = 0;	
 	
-	/*private static final String BANK_ADDRESS = "5556";*/
+	public static final String VIEW_TRANSACTION_LIST_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_LIST";
 	
+	private TransactionData transactionData;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -59,62 +67,27 @@ public class SMSBankingActivity extends ListActivity{
         setContentView(R.layout.view_history);
         
         context = getApplicationContext();
+        
+        resources = context.getResources();
+        
         filterMap = new HashMap<String, String>();
-        filterMap.put(TransactionData.CARD_NUMBER, context.getResources().getString(R.string.all));
-        filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.all));
+        filterMap.put(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
+        filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
         
         curBalance = (TextView) findViewById(R.id.current_balance);
-  
-        
-        /*sendSMSButton = (Button) findViewById(R.id.send_sms);
-        sendSMSButton.setOnClickListener(new OnClickListener(){
-        	public void onClick(View v){
-        		Intent intent = new Intent(SMSReceiver.SEND_SMS_ACTION); 
-        		sendBroadcast(intent);    	
-        	}
-        });*/
-        
-        /*viewHistoryButton = (Button) findViewById(R.id.view_transaction_history);
-        if (viewHistoryButton != null) {
-        viewHistoryButton.setOnClickListener(new OnClickListener(){
-        	public void onClick(View v){
-        		Intent startIntent = new Intent();
-        		startIntent.setClass(context, ViewHistoryListActivity.class);
-        		startActivity(startIntent);
-        	}
-        });
-        }*/
-        
-        /*checkSMSButton = (Button) findViewById(R.id.check_sms);
-        checkSMSButton.setOnClickListener(new OnClickListener(){
-        	public void onClick(View v){
-            	Uri uriSMSURI = Uri.parse("content://sms/inbox");
-                Cursor cur = getContentResolver().query(uriSMSURI, null, null, null,null);
-                String sms = "";
-                while (cur.moveToNext()) {
-                    sms += "From :" + cur.getString(2) + " : " + cur.getString(11)+"\n";   
-                    Log.d("NATALIA!!! ", sms);
-                }        		
-        	}
-        });*/
-                
-        /*Intent intent = new Intent(SMSReceiver.BANK_ADDRESS_ACTION); 
-        intent.putExtra(SMSReceiver.TYPE, BANK_ADDRESS); 
-        sendBroadcast(intent);*/
-        
-        
-		transactionDatas = new ArrayList<TransactionData>();
+
+        transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
 		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
 		setListAdapter(transactionAdapter);
 		
 		showTransactionList();
 		
-		
-        /*TextView curBalance = (TextView) findViewById(R.id.current_balance);
-        String str = new String();
-        str += context.getResources().getString(R.string.operation_balance) + " " + TransactionData.getBalance() + TransactionData.getBalanceCurrency();
-        curBalance.setText(str);*/
+		Intent viewIntent = getIntent();
+		if (viewIntent.getAction().equals(VIEW_TRANSACTION_LIST_INTENT)){
+			transactionData = new TransactionData(viewIntent.getExtras());
+			showDialog(DIALOG_SMS_DETAIL);
+		}
         
        // try{
         //backupDb();
@@ -176,8 +149,8 @@ public class SMSBankingActivity extends ListActivity{
      }
     
     public boolean onCreateOptionsMenu(Menu menu){
-    	menu.add(Menu.NONE, IDM_SMS_PROCESSING, Menu.NONE, context.getResources().getString(R.string.sms_process));
-    	menu.add(Menu.NONE, IDM_SET_FILTERS, Menu.NONE, context.getResources().getString(R.string.set_filters));
+    	menu.add(Menu.NONE, IDM_SMS_PROCESSING, Menu.NONE, resources.getString(R.string.sms_process));
+    	menu.add(Menu.NONE, IDM_SET_FILTERS, Menu.NONE, resources.getString(R.string.set_filters));
     	return true;
     }
     
@@ -218,26 +191,121 @@ public class SMSBankingActivity extends ListActivity{
     
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		TransactionData transactionData = (TransactionData) getListAdapter().getItem(position);
+		transactionData = (TransactionData) getListAdapter().getItem(position);
 		  
-		Intent startIntent = new Intent();
+		/*Intent startIntent = new Intent();
 		startIntent.setClass(context, SMSDetailActivity.class);
 		SMSReceiver.fillIntent(startIntent, transactionData);
-		startActivity(startIntent);
+		startActivity(startIntent);*/
+
+		showDialog(DIALOG_SMS_DETAIL);
+
+		Log.d("NATALIA!!! ", "After Dialog");
+ /*      
+        smsDetailDialogBuilder = new AlertDialog.Builder(context);
+		smsDetailDialogBuilder.setView(layout);
+		smsDetailDialog = smsDetailDialogBuilder.create();*/
+		
+/*
+		
+		TextView cardNumberText = (TextView) smsDetailDialogBuilder. .getWindow().findViewById(R.id.card_number);
+        cardNumberText.setText(resources.getString(R.string.operation_card_number) + transactionData.getCardNumber());
+        
+        TextView dateText = (TextView) smsDetailDialog.findViewById(R.id.date);
+        dateText.setText(resources.getString(R.string.operation_date) + " " + transactionData.getTransactionDate());
+
+        TextView amountText = (TextView) smsDetailDialog.findViewById(R.id.amount);
+        String tranzValue = new String(Float.toString(transactionData.getTransactionValue()).replace(".", ","));
+        tranzValue += transactionData.getTransactionCurrency();
+        amountText.setText(resources.getString(R.string.operation_amount) + " " + tranzValue);
+        
+        TextView placeText = (TextView) smsDetailDialog.findViewById(R.id.place);
+        String placeOrOperation = transactionData.getTransactionPlace();
+        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
+        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_incoming));
+        }else if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
+        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_outgoing));
+        }else {
+        	placeText.setText(resources.getString(R.string.operation_place) + " " + transactionData.getTransactionPlace());
+        }
+
+        TextView balanceText = (TextView) smsDetailDialog.findViewById(R.id.balance);
+        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
+        balanceValue += transactionData.getFundCurrency();
+        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);*/
+		
+	//	smsDetailDialog.show();
+	}
+	
+	@Override
+	protected Dialog onCreateDialog(int id){
+		AlertDialog alertDialog;
+		switch (id){
+		case DIALOG_SMS_DETAIL:
+			AlertDialog.Builder smsDetailDialogBuilder;
+			
+			LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.sms_detail, (ViewGroup) findViewById(R.id.sms_detail_layout));
+			
+			smsDetailDialogBuilder = new AlertDialog.Builder(this);
+			smsDetailDialogBuilder.setView(layout);
+			alertDialog = smsDetailDialogBuilder.create();
+			break;
+		default:
+			alertDialog = null;
+		}
+		return alertDialog;
 	}
 
+
+	
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog){
+		switch (id){
+			case DIALOG_SMS_DETAIL:
+			
+				TextView cardNumberText = (TextView) dialog.findViewById(R.id.card_number);
+		        cardNumberText.setText(resources.getString(R.string.operation_card_number) + transactionData.getCardNumber());
+		        
+		        TextView dateText = (TextView) dialog.findViewById(R.id.date);
+		        dateText.setText(resources.getString(R.string.operation_date) + " " + transactionData.getTransactionDate());
+
+		        TextView amountText = (TextView) dialog.findViewById(R.id.amount);
+		        String tranzValue = new String(Float.toString(transactionData.getTransactionValue()).replace(".", ","));
+		        tranzValue += transactionData.getTransactionCurrency();
+		        amountText.setText(resources.getString(R.string.operation_amount) + " " + tranzValue);
+		        
+		        TextView placeText = (TextView) dialog.findViewById(R.id.place);
+		        String placeOrOperation = transactionData.getTransactionPlace();
+		        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
+		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_incoming));
+		        }else if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
+		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_outgoing));
+		        }else {
+		        	placeText.setText(resources.getString(R.string.operation_place) + " " + transactionData.getTransactionPlace());
+		        }
+
+		        TextView balanceText = (TextView) dialog.findViewById(R.id.balance);
+		        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
+		        balanceValue += transactionData.getFundCurrency();
+		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
+				break;
+			default:
+		}
+	}
+	
 	private String getSQLWhereFromFilter(){
 		String sqlString = new String();
-		if (!filterMap.get(TransactionData.CARD_NUMBER).equals(context.getResources().getString(R.string.all))){
+		if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
 			sqlString += TransactionData.CARD_NUMBER + "='" + filterMap.get(TransactionData.CARD_NUMBER) + "'";
 		}
-		if (!filterMap.get(TransactionData.TRANSACTION_PLACE).equals(context.getResources().getString(R.string.all))){
+		if (!filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.all))){
 			if (sqlString.length() != 0)
 				sqlString += " AND ";
 			
-	    	if (filterMap.get(TransactionData.TRANSACTION_PLACE).equals(context.getResources().getString(R.string.card_operations))){
+	    	if (filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.card_operations))){
 	    		sqlString += "(" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')";
-	    	} else if (filterMap.get(TransactionData.TRANSACTION_PLACE).equals(context.getResources().getString(R.string.incoming_operations))) {
+	    	} else if (filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.incoming_operations))) {
 	    		sqlString += TransactionData.TRANSACTION_PLACE + "='" + TransactionData.INCOMING_BANK_OPERATION + "'";
  	    	} else {
 	    		sqlString += TransactionData.TRANSACTION_PLACE + "='" + TransactionData.OUTGOING_BANK_OPERATION + "'";
@@ -282,9 +350,9 @@ public class SMSBankingActivity extends ListActivity{
 				transactionDatas.add(0, transactionData);
 				i++;
 			} while (transactionCursor.moveToNext());
-			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(context.getResources().getString(R.string.all))){
+			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
 		        String str = new String();
-		        str += context.getResources().getString(R.string.operation_balance) + " " + transactionDatas.get(0).getFundValue() + transactionDatas.get(0).getFundCurrency();
+		        str += resources.getString(R.string.operation_balance) + " " + transactionDatas.get(0).getFundValue() + transactionDatas.get(0).getFundCurrency();
 		        curBalance.setVisibility(curBalance.VISIBLE);
 		        curBalance.setText(str);
 			}
@@ -329,13 +397,13 @@ public class SMSBankingActivity extends ListActivity{
 		        View view, int pos, long id) {
 		    	/*filterMap.remove(TransactionData.TRANSACTION_PLACE);
 		    	if (pos == 0){
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.all));
+		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
 		    	} else if (pos == 1){
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.card_operations));
+		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
 		    	} else if (pos == 2) {
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.incoming_operations));
+		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
 	 	    	} else {
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, context.getResources().getString(R.string.outgoing_operations));
+		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
 	 	    	}*/
 		    }
 
