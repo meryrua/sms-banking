@@ -9,26 +9,18 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.android.smsbanking.DataFilterActivity.MyOnOperationSelectedListener;
-
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -292,11 +284,13 @@ public class SMSBankingActivity extends ListActivity{
 			} while (transactionCursor.moveToNext());
 			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(context.getResources().getString(R.string.all))){
 		        String str = new String();
-		        str += context.getResources().getString(R.string.operation_balance) + " " + transactionDatas.get(i - 1).getFundValue() + transactionDatas.get(i - 1).getFundCurrency();
+		        str += context.getResources().getString(R.string.operation_balance) + " " + transactionDatas.get(0).getFundValue() + transactionDatas.get(0).getFundCurrency();
+		        curBalance.setVisibility(curBalance.VISIBLE);
 		        curBalance.setText(str);
 			}
 			else{
 				curBalance.setText(null);
+				curBalance.setVisibility(curBalance.GONE);
 			}
 		} 
 		else {
