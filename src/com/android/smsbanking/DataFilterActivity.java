@@ -89,6 +89,7 @@ public class DataFilterActivity extends Activity{
 		int i = 0;
 		int j = 0;
 		cursor = myDBAdapter.getCardsNumber();
+		startManagingCursor(cursor);
 		
 		cardsNumbers.clear();
 		

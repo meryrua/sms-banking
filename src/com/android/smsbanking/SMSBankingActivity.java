@@ -23,9 +23,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,12 +51,18 @@ public class SMSBankingActivity extends ListActivity{
 	private String filter;
 	private HashMap<String, String> filterMap;
 	private Resources resources;	
+	private static ArrayAdapter<String> cardAdapter;
 	
 	private static final int ID_FILTER_ACTIVITY = 1;
-	private static final int IDM_SMS_PROCESSING = 101;
-	private static final int IDM_SET_FILTERS = 102;
-	private static final int IDM_SET_CARD_FILTER = 103;
+	private static final int IDM_PREFERENCES = 101;
+	private static final int IDM_CARD_FILTER = 102;
+	private static final int IDM_OPERATION_FILTER = 103;
+	private static final int IDM_OPERATION_FILTER_ALL_OPERATION = 1031;
+	private static final int IDM_OPERATION_FILTER_CARD_OPERATION = 1032;
+	private static final int IDM_OPERATION_FILTER_INCOMING_OPERATION = 1033;
+	private static final int IDM_OPERATION_FILTER_OUTGOING_OPERATION = 1034;
 	private static final int DIALOG_SMS_DETAIL = 0;	
+	private static final int DIALOG_CARD_FILTER = 1;		
 	
 	public static final String VIEW_TRANSACTION_LIST_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_LIST";
 	
@@ -83,11 +91,11 @@ public class SMSBankingActivity extends ListActivity{
 		
 		showTransactionList();
 		
-		Intent viewIntent = getIntent();
+		/*Intent viewIntent = getIntent();
 		if (viewIntent.getAction().equals(VIEW_TRANSACTION_LIST_INTENT)){
 			transactionData = new TransactionData(viewIntent.getExtras());
 			showDialog(DIALOG_SMS_DETAIL);
-		}
+		}*/
         
        // try{
         //backupDb();
@@ -148,27 +156,51 @@ public class SMSBankingActivity extends ListActivity{
        catch (Exception e) {}
      }
     
+
     public boolean onCreateOptionsMenu(Menu menu){
-    	menu.add(Menu.NONE, IDM_SMS_PROCESSING, Menu.NONE, resources.getString(R.string.sms_process));
-    	menu.add(Menu.NONE, IDM_SET_FILTERS, Menu.NONE, resources.getString(R.string.set_filters));
+    	menu.add(Menu.NONE, IDM_PREFERENCES, Menu.NONE, resources.getString(R.string.sms_process));
+    	menu.add(Menu.NONE, IDM_CARD_FILTER, Menu.NONE, resources.getString(R.string.card_filter));
+    	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
+    	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
+    	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_CARD_OPERATION, Menu.NONE, resources.getString(R.string.card_operations));
+    	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_INCOMING_OPERATION, Menu.NONE, resources.getString(R.string.incoming_operations));
+    	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_OUTGOING_OPERATION, Menu.NONE, resources.getString(R.string.outgoing_operations));
+    	subMenuFilters.setIcon(android.R.drawable.ic_menu_more);
     	return true;
     }
     
     public boolean onOptionsItemSelected(MenuItem item){
     	switch(item.getItemId()){
-    	case IDM_SMS_PROCESSING:
+    	case IDM_PREFERENCES:
     		Intent startIntentProcessing = new Intent();
     		startIntentProcessing.setClass(context, Settings.class);
     		startActivity(startIntentProcessing);   
     		return true;
-    	case IDM_SET_FILTERS:
-    		Intent startIntentFilters = new Intent();
-    		startIntentFilters.setClass(context, DataFilterActivity.class);
-    		startIntentFilters.putExtra(TransactionData.CARD_NUMBER, filterMap.get(TransactionData.CARD_NUMBER));
-    		startIntentFilters.putExtra(TransactionData.TRANSACTION_PLACE, filterMap.get(TransactionData.TRANSACTION_PLACE));
-    		startActivityForResult(startIntentFilters, ID_FILTER_ACTIVITY);   
+    	case IDM_CARD_FILTER:
+    		showDialog(DIALOG_CARD_FILTER);  
     		return true;
-    	}
+    	case IDM_OPERATION_FILTER_ALL_OPERATION:
+    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
+    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+    		showTransactionList();
+    		return true;
+    	case IDM_OPERATION_FILTER_CARD_OPERATION:
+    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
+    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
+    		showTransactionList();
+    		return true;
+    	case IDM_OPERATION_FILTER_INCOMING_OPERATION:
+    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
+    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
+    		showTransactionList();
+        	return true;
+    	case IDM_OPERATION_FILTER_OUTGOING_OPERATION:
+    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
+    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
+    		showTransactionList();
+    		return true;
+        }
+
     	return false;
     }
     
@@ -193,49 +225,10 @@ public class SMSBankingActivity extends ListActivity{
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData = (TransactionData) getListAdapter().getItem(position);
 		  
-		/*Intent startIntent = new Intent();
-		startIntent.setClass(context, SMSDetailActivity.class);
-		SMSReceiver.fillIntent(startIntent, transactionData);
-		startActivity(startIntent);*/
-
 		showDialog(DIALOG_SMS_DETAIL);
 
 		Log.d("NATALIA!!! ", "After Dialog");
- /*      
-        smsDetailDialogBuilder = new AlertDialog.Builder(context);
-		smsDetailDialogBuilder.setView(layout);
-		smsDetailDialog = smsDetailDialogBuilder.create();*/
-		
-/*
-		
-		TextView cardNumberText = (TextView) smsDetailDialogBuilder. .getWindow().findViewById(R.id.card_number);
-        cardNumberText.setText(resources.getString(R.string.operation_card_number) + transactionData.getCardNumber());
-        
-        TextView dateText = (TextView) smsDetailDialog.findViewById(R.id.date);
-        dateText.setText(resources.getString(R.string.operation_date) + " " + transactionData.getTransactionDate());
-
-        TextView amountText = (TextView) smsDetailDialog.findViewById(R.id.amount);
-        String tranzValue = new String(Float.toString(transactionData.getTransactionValue()).replace(".", ","));
-        tranzValue += transactionData.getTransactionCurrency();
-        amountText.setText(resources.getString(R.string.operation_amount) + " " + tranzValue);
-        
-        TextView placeText = (TextView) smsDetailDialog.findViewById(R.id.place);
-        String placeOrOperation = transactionData.getTransactionPlace();
-        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
-        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_incoming));
-        }else if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
-        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_outgoing));
-        }else {
-        	placeText.setText(resources.getString(R.string.operation_place) + " " + transactionData.getTransactionPlace());
-        }
-
-        TextView balanceText = (TextView) smsDetailDialog.findViewById(R.id.balance);
-        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
-        balanceValue += transactionData.getFundCurrency();
-        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);*/
-		
-	//	smsDetailDialog.show();
-	}
+ 	}
 	
 	@Override
 	protected Dialog onCreateDialog(int id){
@@ -251,14 +244,73 @@ public class SMSBankingActivity extends ListActivity{
 			smsDetailDialogBuilder.setView(layout);
 			alertDialog = smsDetailDialogBuilder.create();
 			break;
+		case DIALOG_CARD_FILTER:
+			cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
+			int selectedCard = getCardsNumber(cardAdapter);
+			AlertDialog.Builder cardFilterBuilder = new AlertDialog.Builder(this);
+			//setAdapter do not allow set default value
+			cardFilterBuilder.setAdapter(cardAdapter, new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+					String newSelection = cardAdapter.getItem(which);
+			   		filterMap.remove(TransactionData.CARD_NUMBER);
+		    		filterMap.put(TransactionData.CARD_NUMBER, newSelection);
+		    		showTransactionList();
+				}
+			});
+			//for this style of Adapter should be android.R.layout.select_dialog_singlechoice
+			/*cardFilterBuilder.setSingleChoiceItems(cardAdapter, selectedCard, new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+					String newSelection = cardAdapter.getItem(which);
+			   		filterMap.remove(TransactionData.CARD_NUMBER);
+		    		filterMap.put(TransactionData.CARD_NUMBER, newSelection);
+		    		showTransactionList();
+				}
+			});*/
+			alertDialog = cardFilterBuilder.create();
+			break;
 		default:
 			alertDialog = null;
 		}
 		return alertDialog;
 	}
 
+	private int getCardsNumber(ArrayAdapter<String> adapter){
+		int i = 0;
+		int j = 0;
+		myDBAdapter = new MyDBAdapter(context);
+		myDBAdapter.open();
 
-	
+		startManagingCursor(transactionCursor);
+		transactionCursor = myDBAdapter.getCardsNumber();
+		
+		if (transactionCursor.moveToFirst()){
+			adapter.add(context.getResources().getString(R.string.all));
+			j++;
+			do{
+				if (filterMap.get(TransactionData.CARD_NUMBER) != null){
+					if (filterMap.get(TransactionData.CARD_NUMBER).equals(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER))))
+						i = j;
+				}
+				adapter.add(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+				j++;
+			} while (transactionCursor.moveToNext());
+			transactionCursor.close();
+			myDBAdapter.close();
+			return i;
+		}
+		else {
+			myDBAdapter.close();
+			return 0;
+		}
+
+	}
+
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog){
 		switch (id){
@@ -278,9 +330,9 @@ public class SMSBankingActivity extends ListActivity{
 		        TextView placeText = (TextView) dialog.findViewById(R.id.place);
 		        String placeOrOperation = transactionData.getTransactionPlace();
 		        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
-		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_incoming));
+		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_incoming_name));
 		        }else if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
-		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_outgoing));
+		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_outgoing_name));
 		        }else {
 		        	placeText.setText(resources.getString(R.string.operation_place) + " " + transactionData.getTransactionPlace());
 		        }
@@ -362,8 +414,8 @@ public class SMSBankingActivity extends ListActivity{
 			}
 		} 
 		else {
-			Toast.makeText(context, "No data from bank.", Toast.LENGTH_LONG).show();
-			finish();
+			curBalance.setVisibility(curBalance.VISIBLE);
+			curBalance.setText(resources.getString(R.string.no_data));
 		}
 		
 		transactionAdapter.notifyDataSetChanged();

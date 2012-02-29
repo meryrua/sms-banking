@@ -25,12 +25,13 @@
     <string name="operation_amount">На сумму:</string>
     <string name="operation_place">Место:</string>
     <string name="operation_name">Операция:</string>
-    <string name="operation_incoming">Пополнение счета</string>
-    <string name="operation_outgoing">Перевод со счета</string>    
+    <string name="operation_incoming_name">Пополнение счета</string>
+    <string name="operation_outgoing_name">Перевод со счета</string>    
     <string name="operation_balance">Баланс:</string>    
     <string name="close">Закрыть</string>
     <string name="apply">Применить</string>      
     <string name="notification_string">Новая SMS от Банка. Баланс:</string>        
     <string name="detail_info">Информация об операции</string>  
-    <string name="filters_screen_name">Установить фильтры для отображения</string>                                    
+    <string name="filters_screen_name">Установить фильтры для отображения</string>  
+	<string name="no_data">Нет данных</string>                                       
 </resources>
