@@ -89,13 +89,15 @@ public class SMSBankingActivity extends ListActivity{
 		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
 		setListAdapter(transactionAdapter);
 		
-		showTransactionList();
-		
 		/*Intent viewIntent = getIntent();
+		
 		if (viewIntent.getAction().equals(VIEW_TRANSACTION_LIST_INTENT)){
 			transactionData = new TransactionData(viewIntent.getExtras());
 			showDialog(DIALOG_SMS_DETAIL);
-		}*/
+		}*/		
+		showTransactionList();
+		
+
         
        // try{
         //backupDb();
@@ -217,6 +219,11 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     public void onResume(){
     	super.onResume();
+		Intent viewIntent = getIntent();
+		if (viewIntent.getAction().equals(VIEW_TRANSACTION_LIST_INTENT)){
+			transactionData = new TransactionData(viewIntent.getExtras());
+			showDialog(DIALOG_SMS_DETAIL);
+		}		
     	Log.d("NATALIA!!! ", "onResume ");
     	showTransactionList();
     }
@@ -243,6 +250,7 @@ public class SMSBankingActivity extends ListActivity{
 			smsDetailDialogBuilder = new AlertDialog.Builder(this);
 			smsDetailDialogBuilder.setView(layout);
 			alertDialog = smsDetailDialogBuilder.create();
+			Log.d("NATALIA!!! ", "Dialog create");
 			break;
 		case DIALOG_CARD_FILTER:
 			cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
@@ -383,7 +391,7 @@ public class SMSBankingActivity extends ListActivity{
             }
             catch (Exception e) {}
             finally{
-            	Log.d("NATALIA!!!", "IOException");
+            	
             }
         myDBAdapter.close();
     
@@ -405,16 +413,16 @@ public class SMSBankingActivity extends ListActivity{
 			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
 		        String str = new String();
 		        str += resources.getString(R.string.operation_balance) + " " + transactionDatas.get(0).getFundValue() + transactionDatas.get(0).getFundCurrency();
-		        curBalance.setVisibility(curBalance.VISIBLE);
+		        curBalance.setVisibility(TextView.VISIBLE);
 		        curBalance.setText(str);
 			}
 			else{
 				curBalance.setText(null);
-				curBalance.setVisibility(curBalance.GONE);
+				curBalance.setVisibility(TextView.GONE);
 			}
 		} 
 		else {
-			curBalance.setVisibility(curBalance.VISIBLE);
+			curBalance.setVisibility(TextView.VISIBLE);
 			curBalance.setText(resources.getString(R.string.no_data));
 		}
 		

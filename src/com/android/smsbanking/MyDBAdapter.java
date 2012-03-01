@@ -14,22 +14,28 @@ import android.util.Log;
 
 public class MyDBAdapter {
 
-	private static final int DB_VERSION = 1;
+	private static final int DB_VERSION = 2;
 	private static final String DB_NAME = "smsbanking_base";
 	private static final String TRANSACTION_TABLE_NAME = "transaction_data";
+	private static final String CARD_TABLE_NAME = "card_table";
+	private static final String CARD_ALIAS = "card_alias";
 	private static final String ID = "_id";
 	private static final String CREATE_TRANSACTION_TABLE = "create table " + TRANSACTION_TABLE_NAME + 
-		" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
+		" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " INTEGER, " + 
 		TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " + 
 		TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
+	
+	private static final String CREATE_CARD_TABLE = "create table " + CARD_TABLE_NAME + 
+	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
+		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " +
+		CARD_ALIAS + " TEXT);";
 	
 	private static final String SELECT_ALL_TRANSACTION = "select all from " + TRANSACTION_TABLE_NAME + ";";
 	private static final String[] ALL_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
 		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY};
-	private static final String[] DATA_FOR_LIST = new String[] {ID, TransactionData.CARD_NUMBER, 
-		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_VALUE, TransactionData.TRANSACTION_CURRENCY};
+	private static final String SELECT_ALL_CARDS_NUMBERS = "select all from " + CARD_TABLE_NAME + ";";
 
 	private Context context;
 	private DbHelper dbHelper;

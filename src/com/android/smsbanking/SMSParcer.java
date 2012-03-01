@@ -13,11 +13,15 @@ public class SMSParcer {
 	private Pattern smsPattern;
 	private Matcher matcherWithPattern;
 	private String smsMessage = null;
-	private boolean isTransaction;
+	private String operationName;
 	
 	private List<String> tokenArray;
-	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w-]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
-	private static final String DEFAULT_INCOMING_OUTGOING_PATTERN = "Balans vashey karty\\s\\*(\\d+)\\s(\\w+)\\s(\\d+/\\d+/\\d+)\\sna:(\\d+,\\d+)(\\w+).\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
+//	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w\\-\\,\\.]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
+	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
+
+	private static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
+
+	private static final String DEFAULT_OUTGOING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\sumenshilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 	
 	private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	private static final String testOutgoingString = "Balans vashey karty *1234 umenshilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
@@ -50,7 +54,7 @@ public class SMSParcer {
 		
 		if (matcherWithPattern.matches())
 		{
-			isTransaction = true;
+			operationName = TransactionData.CARD_OPERATION;
 			matchFound = matcherWithPattern.find();
 		
 			Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
@@ -64,16 +68,16 @@ public class SMSParcer {
 		return matchFound;
 	}
 	
-	public boolean isFundOperation(){
+	public boolean isIncomingFundOperation(){
 		boolean matchFound = false;
 		int i = 0;
 		
-		smsPattern = Pattern.compile(DEFAULT_INCOMING_OUTGOING_PATTERN);
+		smsPattern = Pattern.compile(DEFAULT_INCOMING_PATTERN);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
 		if (matcherWithPattern.matches())
 		{
-			isTransaction = false;
+			operationName = TransactionData.INCOMING_BANK_OPERATION;
 			matchFound = matcherWithPattern.find();
 		
 			Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
@@ -86,14 +90,37 @@ public class SMSParcer {
 			Log.d("NATALIA!!!", "do mot match");
 		return matchFound;
 	}
-	
+
+	public boolean isOutgoingFundOperation(){
+		boolean matchFound = false;
+		int i = 0;
+		
+		smsPattern = Pattern.compile(DEFAULT_OUTGOING_PATTERN);
+		matcherWithPattern = smsPattern.matcher(smsMessage);
+		
+		if (matcherWithPattern.matches())
+		{
+			operationName = TransactionData.OUTGOING_BANK_OPERATION;
+			matchFound = matcherWithPattern.find();
+		
+			Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
+		
+			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
+				Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPattern.group(j));
+			}
+		}
+		else 
+			Log.d("NATALIA!!!", "do mot match");
+		return matchFound;
+	}
+
 	
 	public boolean isMatch(){
-		return (isCardOperation() || isFundOperation());
+		return (isCardOperation() || isIncomingFundOperation() || isOutgoingFundOperation());
 	}
 	
 	void setTranzactionData(TransactionData tranzactionData){
-		if (isTransaction) {
+		if (operationName.equals(TransactionData.CARD_OPERATION)) {
 			tranzactionData.setCardNumber(matcherWithPattern.group(1));
 			tranzactionData.setTransactionValue(Float.valueOf(matcherWithPattern.group(2).replace(",", ".")).floatValue());
 			tranzactionData.setTransactionCurrency(matcherWithPattern.group(3));
@@ -104,13 +131,17 @@ public class SMSParcer {
 			tranzactionData.setBankName(matcherWithPattern.group(8));
 		} else {
 			tranzactionData.setCardNumber(matcherWithPattern.group(1));
-			tranzactionData.setTransactionPlace(matcherWithPattern.group(2));
-			tranzactionData.setTransactionDate(matcherWithPattern.group(3));
-			tranzactionData.setTransactionValue(Float.valueOf(matcherWithPattern.group(4).replace(",", ".")).floatValue());
-			tranzactionData.setTransactionCurrency(matcherWithPattern.group(5));
-			tranzactionData.setFundValue(Float.valueOf(matcherWithPattern.group(6).replace(",", ".")).floatValue());
-			tranzactionData.setFundCurrency(matcherWithPattern.group(7));
-			tranzactionData.setBankName(matcherWithPattern.group(8));
+			if (operationName.equals(TransactionData.INCOMING_BANK_OPERATION)){
+				tranzactionData.setTransactionPlace(TransactionData.INCOMING_BANK_OPERATION);				
+			}else {
+				tranzactionData.setTransactionPlace(TransactionData.OUTGOING_BANK_OPERATION);				
+			}
+			tranzactionData.setTransactionDate(matcherWithPattern.group(2));
+			tranzactionData.setTransactionValue(Float.valueOf(matcherWithPattern.group(3).replace(",", ".")).floatValue());
+			tranzactionData.setTransactionCurrency(matcherWithPattern.group(4));
+			tranzactionData.setFundValue(Float.valueOf(matcherWithPattern.group(5).replace(",", ".")).floatValue());
+			tranzactionData.setFundCurrency(matcherWithPattern.group(6));
+			tranzactionData.setBankName(matcherWithPattern.group(7));
 			
 		}
 	}

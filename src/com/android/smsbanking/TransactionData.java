@@ -41,6 +41,7 @@ public class TransactionData {
 	
 	public static final String INCOMING_BANK_OPERATION = "popolnilsya";
 	public static final String OUTGOING_BANK_OPERATION = "umenshilsya";
+	public static final String CARD_OPERATION = "card_operation";	
 	
 	TransactionData(){
 		cardNumber = null;

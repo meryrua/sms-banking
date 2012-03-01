@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -78,8 +79,11 @@ public class SMSReceiver extends BroadcastReceiver {
 			        boolean matchSMS = smsParcer.isMatch();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
-			        if (matchSMS){
+			        Log.d("NATALIA!!! ", "match " + matchSMS);
+			        
+			       if (matchSMS){
 			        	
+
 			        	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_process), context.getResources().getString(R.string.application_only));
 			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only)))
@@ -113,7 +117,24 @@ public class SMSReceiver extends BroadcastReceiver {
 			 setSMSNotification(context, "New sms", transactionData); 
 		}
 	 }
-		 
+	
+	 static Intent[] makeMessageIntentStack(Context context, CharSequence from,
+		        CharSequence msg) {
+		    Intent[] intents = new Intent[1];
+
+		    // First: root activity of ApiDemos.
+		    // This is a convenient way to make the proper Intent to launch and
+		    // reset an application's task.
+		    //intents[0] = Intent.makeRestartActivityTask(new ComponentName(context,
+		    //        com.android.smsbanking.SMSBankingActivity.class));
+
+		    // "App"
+		    //intents[1] = new Intent(context, com.android.smsbanking.SMSBankingActivity.class);
+		    //intents[1].putExtra("com.android.smsbanking.Path", "SMSBankingActivity");
+
+		    return intents;
+		} 
+	 
 	private void setSMSNotification(Context context,CharSequence notiDetail, TransactionData tranzactionData) {
 		String ns = Context.NOTIFICATION_SERVICE;
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
@@ -126,10 +147,15 @@ public class SMSReceiver extends BroadcastReceiver {
 	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
 	            
 
-	    Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT, null, context, SMSBankingActivity.class);
-	    //Intent notiIntent = new Intent(context, SMSDetailActivity.class);
-	    fillIntent(notiIntent, tranzactionData);
-	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+	    //Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT, null, context, SMSBankingActivity.class);
+	    //Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+	    //Intent notiIntent = new Intent(context, DataFilterActivity.class);
+	    //Intent notiIntent = new Intent(context, DataFilterActivity.class);
+	    Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT);
+	    notiIntent.setClass(context, SMSBankingActivity.class);
+	    //fillIntent(notiIntent, tranzactionData);
+	    notiIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
 	    NOTIFICATION_ID ++;
