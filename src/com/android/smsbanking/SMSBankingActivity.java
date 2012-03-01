@@ -89,12 +89,13 @@ public class SMSBankingActivity extends ListActivity{
 		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
 		setListAdapter(transactionAdapter);
 		
-		/*Intent viewIntent = getIntent();
-		
-		if (viewIntent.getAction().equals(VIEW_TRANSACTION_LIST_INTENT)){
+		Intent viewIntent = getIntent();
+		Log.d("NATALIA!!! ", "onNewIntent " + viewIntent.getAction());
+		if(viewIntent.getExtras() != null){
 			transactionData = new TransactionData(viewIntent.getExtras());
 			showDialog(DIALOG_SMS_DETAIL);
-		}*/		
+		}
+		
 		showTransactionList();
 		
 
@@ -108,6 +109,17 @@ public class SMSBankingActivity extends ListActivity{
         //}
     }
     
+    @Override
+    protected void onNewIntent(Intent intent){
+    	super.onNewIntent(intent);
+    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction() + intent.getExtras());
+		if(intent.getExtras() != null){
+			transactionData = new TransactionData(intent.getExtras());
+	    	Log.d("NATALIA!!! ", "showDialog " + intent.getAction() + intent.getExtras());
+			showDialog(DIALOG_SMS_DETAIL);
+		}
+   	
+    }
     
     private void backupDb() throws IOException {
         File sd = Environment.getExternalStorageDirectory();
@@ -219,12 +231,11 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     public void onResume(){
     	super.onResume();
-		Intent viewIntent = getIntent();
-		if (viewIntent.getAction().equals(VIEW_TRANSACTION_LIST_INTENT)){
+		/*Intent viewIntent = getIntent();
+		if ((viewIntent.getAction().equals(Intent.ACTION_MAIN)) && (viewIntent.getExtras() != null)){
 			transactionData = new TransactionData(viewIntent.getExtras());
 			showDialog(DIALOG_SMS_DETAIL);
-		}		
-    	Log.d("NATALIA!!! ", "onResume ");
+		}*/		
     	showTransactionList();
     }
     

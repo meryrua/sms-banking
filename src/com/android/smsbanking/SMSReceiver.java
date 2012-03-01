@@ -148,13 +148,16 @@ public class SMSReceiver extends BroadcastReceiver {
 	            
 
 	    //Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT, null, context, SMSBankingActivity.class);
-	    //Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+	    notiIntent.setAction(Intent.ACTION_MAIN);
+	    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	    //Intent notiIntent = new Intent(context, DataFilterActivity.class);
 	    //Intent notiIntent = new Intent(context, DataFilterActivity.class);
-	    Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT);
-	    notiIntent.setClass(context, SMSBankingActivity.class);
-	    //fillIntent(notiIntent, tranzactionData);
-	    notiIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+	    //Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT);
+	    //notiIntent.setClass(context, SMSBankingActivity.class);
+	    fillIntent(notiIntent, tranzactionData);
+	    //notiIntent.setAction(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT);
+	    //notiIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
