@@ -161,7 +161,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
-	    NOTIFICATION_ID ++;
+	    //NOTIFICATION_ID ++;
+	    mNotificationManager.cancel(NOTIFICATION_ID);
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 	
