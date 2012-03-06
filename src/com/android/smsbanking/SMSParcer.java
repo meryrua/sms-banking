@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.*;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.util.Log;
 
 
@@ -16,40 +18,47 @@ public class SMSParcer {
 	private String operationName;
 	
 	private List<String> tokenArray;
+	
+	private MyDBAdapter myDBAdapter;
+	private Cursor cursor;
+	private Context context;
 //	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w\\-\\,\\.]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
-	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
+	public static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
-	private static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
+	public static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
-	private static final String DEFAULT_OUTGOING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\sumenshilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
+	public static final String DEFAULT_OUTGOING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\sumenshilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 	
 	private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	private static final String testOutgoingString = "Balans vashey karty *1234 umenshilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
 	private static final String testIncomingString = "Balans vashey karty *1234 popolnilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
 	
-	SMSParcer(String str, String pattern){
+	SMSParcer(String str, String pattern, Context myContext){
 		smsMessage = new String(str);
 		smsPattern = Pattern.compile(pattern);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
+		context = myContext;
 	}
 	
-	SMSParcer(String str){
+	SMSParcer(String str, Context myContext){
 		smsMessage = new String(str);
+		context = myContext;
 		//smsPattern = Pattern.compile(DEFAULT_TRANSACTION_PATTERN);
 		//matcherWithPattern = smsPattern.matcher(smsMessage);
 	}
 	
-	SMSParcer(){
+	SMSParcer(Context myContext){
 		smsMessage = new String(testString);
 		smsPattern = Pattern.compile(DEFAULT_TRANSACTION_PATTERN);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
+		context = myContext;
 	}
 	
-	public boolean isCardOperation(){
+	public boolean isCardOperation(String patterString){
 		boolean matchFound = false;
 		int i = 0;
 		
-		smsPattern = Pattern.compile(DEFAULT_TRANSACTION_PATTERN);
+		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
 		if (matcherWithPattern.matches())
@@ -68,11 +77,11 @@ public class SMSParcer {
 		return matchFound;
 	}
 	
-	public boolean isIncomingFundOperation(){
+	public boolean isIncomingFundOperation(String patterString){
 		boolean matchFound = false;
 		int i = 0;
 		
-		smsPattern = Pattern.compile(DEFAULT_INCOMING_PATTERN);
+		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
 		if (matcherWithPattern.matches())
@@ -91,11 +100,11 @@ public class SMSParcer {
 		return matchFound;
 	}
 
-	public boolean isOutgoingFundOperation(){
+	public boolean isOutgoingFundOperation(String patterString){
 		boolean matchFound = false;
 		int i = 0;
 		
-		smsPattern = Pattern.compile(DEFAULT_OUTGOING_PATTERN);
+		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
 		if (matcherWithPattern.matches())
@@ -116,7 +125,18 @@ public class SMSParcer {
 
 	
 	public boolean isMatch(){
-		return (isCardOperation() || isIncomingFundOperation() || isOutgoingFundOperation());
+		Boolean isBankSMS = false;
+		myDBAdapter = new MyDBAdapter(context);
+		myDBAdapter.open();
+		cursor = myDBAdapter.getOperationPattern();
+		if (cursor.moveToFirst()){
+			do{
+				isBankSMS = (isCardOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.TRANSACTION_PATTERN_STRING))) || isIncomingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.INCOMING_OPERATION_PATTERN_STRING))) || isOutgoingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.OUTGOING_OPERATION_PATTERN_STRING))));
+			}while ((cursor.moveToNext()) && (!isBankSMS));
+		}
+		cursor.close();
+		myDBAdapter.close();
+		return isBankSMS;
 	}
 	
 	void setTranzactionData(TransactionData tranzactionData){

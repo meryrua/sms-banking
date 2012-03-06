@@ -64,7 +64,7 @@ public class SMSBankingActivity extends ListActivity{
 	private static final int DIALOG_SMS_DETAIL = 0;	
 	private static final int DIALOG_CARD_FILTER = 1;		
 	
-	public static final String VIEW_TRANSACTION_LIST_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_LIST";
+	public static final String UPDATE_TRANSACTION_LIST_INTENT = "com.android.smsbanking.UPDATE_TRANSACTION_LIST";
 	
 	private TransactionData transactionData;
 	
@@ -87,14 +87,17 @@ public class SMSBankingActivity extends ListActivity{
         transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
 		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
+		
 		setListAdapter(transactionAdapter);
 		
+		
 		Intent viewIntent = getIntent();
-		Log.d("NATALIA!!! ", "onNewIntent " + viewIntent.getAction());
 		if(viewIntent.getExtras() != null){
+		Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
 			transactionData = new TransactionData(viewIntent.getExtras());
 			showDialog(DIALOG_SMS_DETAIL);
 		}
+		
 		
 		showTransactionList();
 		
@@ -112,11 +115,18 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     protected void onNewIntent(Intent intent){
     	super.onNewIntent(intent);
-    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction() + intent.getExtras());
-		if(intent.getExtras() != null){
-			transactionData = new TransactionData(intent.getExtras());
-	    	Log.d("NATALIA!!! ", "showDialog " + intent.getAction() + intent.getExtras());
-			showDialog(DIALOG_SMS_DETAIL);
+    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction());
+    	if (intent.getAction().equals(UPDATE_TRANSACTION_LIST_INTENT)){
+    		Log.d("NATALIA!!! ", "onNewIntent 111" + intent.getAction() + intent.getExtras());
+    	}
+    	else
+    		if (intent.getAction().equals(Intent.ACTION_MAIN)){
+	    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction() + intent.getExtras());
+			if(intent.getExtras() != null){
+				transactionData = new TransactionData(intent.getExtras());
+		    	Log.d("NATALIA!!! ", "showDialog " + intent.getAction() + intent.getExtras());
+				showDialog(DIALOG_SMS_DETAIL);
+			}
 		}
    	
     }
@@ -231,12 +241,20 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     public void onResume(){
     	super.onResume();
-		/*Intent viewIntent = getIntent();
-		if ((viewIntent.getAction().equals(Intent.ACTION_MAIN)) && (viewIntent.getExtras() != null)){
-			transactionData = new TransactionData(viewIntent.getExtras());
-			showDialog(DIALOG_SMS_DETAIL);
-		}*/		
+    	Log.d("NATALIA!!! ", "onNewIntent " + getIntent().getAction());
+    	Log.d("NATALIA!!! ", "onResume ");
     	showTransactionList();
+    }
+    
+    @Override
+    public void onRestart(){
+       	Log.d("NATALIA!!! ", "onRestart ");
+    }
+    
+    @Override
+    public void onStop(){
+    	super.onStop();
+       	Log.d("NATALIA!!! ", "onStop ");    	
     }
     
 	@Override
@@ -305,8 +323,8 @@ public class SMSBankingActivity extends ListActivity{
 		myDBAdapter = new MyDBAdapter(context);
 		myDBAdapter.open();
 
-		startManagingCursor(transactionCursor);
-		transactionCursor = myDBAdapter.getCardsNumber();
+		transactionCursor = myDBAdapter.getCardsNumber(null);
+		startManagingCursor(transactionCursor);		
 		
 		if (transactionCursor.moveToFirst()){
 			adapter.add(context.getResources().getString(R.string.all));
@@ -360,6 +378,7 @@ public class SMSBankingActivity extends ListActivity{
 		        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
 		        balanceValue += transactionData.getFundCurrency();
 		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
+		       
 				break;
 			default:
 		}

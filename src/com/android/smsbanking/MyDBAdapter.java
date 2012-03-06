@@ -18,10 +18,15 @@ public class MyDBAdapter {
 	private static final String DB_NAME = "smsbanking_base";
 	private static final String TRANSACTION_TABLE_NAME = "transaction_data";
 	private static final String CARD_TABLE_NAME = "card_table";
+	private static final String CARD_OPERATION_PATTERN_TABLE_NAME = "card_operation_tbl";
 	private static final String CARD_ALIAS = "card_alias";
+	private static final String BANK_NAME = "bank_name";
+	public static final String TRANSACTION_PATTERN_STRING = "transaction_pattern";
+	public static final String INCOMING_OPERATION_PATTERN_STRING = "incoming_pattern";
+	public static final String OUTGOING_OPERATION_PATTERN_STRING = "outgoing_pattern";
 	private static final String ID = "_id";
 	private static final String CREATE_TRANSACTION_TABLE = "create table " + TRANSACTION_TABLE_NAME + 
-		" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " INTEGER, " + 
+		" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 		TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " + 
 		TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
@@ -29,10 +34,15 @@ public class MyDBAdapter {
 	private static final String CREATE_CARD_TABLE = "create table " + CARD_TABLE_NAME + 
 	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " +
-		CARD_ALIAS + " TEXT);";
+		CARD_ALIAS + " TEXT, " + BANK_NAME + " TEXT);";
+	
+	private static final String CREATE_PATTERN_TABLE = "create table " + CARD_OPERATION_PATTERN_TABLE_NAME + 
+	" (" + ID + " integer primary key autoincrement, " + TRANSACTION_PATTERN_STRING + " TEXT, " + 
+		INCOMING_OPERATION_PATTERN_STRING  + " TEXT, " + OUTGOING_OPERATION_PATTERN_STRING + " TEXT, " + 
+		BANK_NAME + " TEXT);";
 	
 	private static final String SELECT_ALL_TRANSACTION = "select all from " + TRANSACTION_TABLE_NAME + ";";
-	private static final String[] ALL_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
+	private static final String[] ALL_TRANSACTION_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
 		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY};
 	private static final String SELECT_ALL_CARDS_NUMBERS = "select all from " + CARD_TABLE_NAME + ";";
@@ -63,7 +73,18 @@ public class MyDBAdapter {
 		db.close();
 	}
 	
-	public long insertTransaction(TransactionData transactionData){
+	public void insertTransaction(TransactionData transactionData){
+		if (isExistCard(transactionData.getCardNumber())){
+			long i = insertTransactionData(transactionData);
+		}
+		else
+		{
+			long i = insertCardNumber(transactionData.getCardNumber(), transactionData.getFundValue(), transactionData.getFundCurrency());
+			long j = insertTransactionData(transactionData);
+		}
+	}
+	
+	public long insertTransactionData(TransactionData transactionData){
 		long rowIndex = 0;
 		
 		ContentValues cv = new ContentValues();
@@ -98,20 +119,48 @@ public class MyDBAdapter {
 
 	
 	public Cursor getAllTransaction(){
-		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, null, null, null, null, null);
+		return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, null, null, null, null, null);
 	}
 
 	public Cursor getTransactionWithFilter(String filter){
-		return db.query(TRANSACTION_TABLE_NAME, ALL_COLUMNS_NAME, filter, null, null, null, null);
+		return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, filter, null, null, null, null);
 	}
 
 	public boolean removeTransaction(long transactionId){
 		return (db.delete(TRANSACTION_TABLE_NAME, ID + " = " + transactionId, null) > 0);
 	}
 	
-	public Cursor getCardsNumber (){
+	public Cursor getCardsNumber (String cardNumberFilter){
+		return db.query(CARD_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, cardNumberFilter, null, TransactionData.CARD_NUMBER, null, null);
+		//return db.query(TRANSACTION_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, null, null, TransactionData.CARD_NUMBER, null, null);
+	}
+	
+	public long insertCardNumber(String cardNamber, float cardBalance, String cardCurrency){
+		long rowIndex = 0;
 		
-		return db.query(TRANSACTION_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, null, null, TransactionData.CARD_NUMBER, null, null);
+		ContentValues cv = new ContentValues();
+		cv.put(TransactionData.CARD_NUMBER, cardNamber);
+		cv.put(TransactionData.FUND_VALUE, Float.valueOf(cardBalance));
+		cv.put(TransactionData.FUND_CURRENCY, cardCurrency);
+		rowIndex = db.insert(CARD_TABLE_NAME, null, cv);
+		if (rowIndex <= 0)
+			 Log.d("NATALIA!!!", "Error");
+		
+		return rowIndex;
+			
+	}
+	
+	public boolean isExistCard(String cardNumber){
+		boolean existing = false;
+		Cursor cursor = db.query(CARD_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
+		if (cursor.getCount() > 0)
+			existing = true;
+		cursor.close();
+		return existing;
+	}
+	
+	public Cursor getOperationPattern(){
+		return db.query(CARD_OPERATION_PATTERN_TABLE_NAME, new String[] {ID, TRANSACTION_PATTERN_STRING, INCOMING_OPERATION_PATTERN_STRING, OUTGOING_OPERATION_PATTERN_STRING}, null, null, null, null, null);
 	}
 	
 	public String getBalance(String cardNumber){
@@ -133,6 +182,11 @@ public class MyDBAdapter {
 		@Override
 		public void onCreate(SQLiteDatabase sqLiteDatabase){
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
+			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
+			
+			sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
+			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
+
 		}
 		
 		@Override

@@ -37,12 +37,14 @@ public class SMSReceiver extends BroadcastReceiver {
 	private MyDBAdapter myDBAdapter;
 	
 	private TransactionData transactionData;
+	Context myContext;
 	
 	private boolean allowSMSProcessing = false;
 	
 	 @Override
 	  public void onReceive(Context context, Intent intent) {
 		 	
+		 myContext = context;
 		 //Log.d("NATALIA!!!", bankAddress);
 		 if (intent.getAction().equals(BANK_ADDRESS_ACTION))
 		 {
@@ -74,8 +76,8 @@ public class SMSReceiver extends BroadcastReceiver {
 				            msgs[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
 				            messageForParcing += msgs[i].getMessageBody().toString();
 			        }
-			            
-			        smsParcer = new SMSParcer(messageForParcing);
+			         
+			        smsParcer = new SMSParcer(messageForParcing, context);
 			        boolean matchSMS = smsParcer.isMatch();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
@@ -96,8 +98,17 @@ public class SMSReceiver extends BroadcastReceiver {
 						myDBAdapter.open();
 						myDBAdapter.insertTransaction(transactionData);
 						myDBAdapter.close();
-							
+						
 						setSMSNotification(context, "New sms", transactionData); 		
+						
+					   // Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+					   // notiIntent.setAction(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+					    //Intent notiIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+					   // context.startActivity(notiIntent);
+					    /*Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+					    notiIntent.setAction(Intent.ACTION_MAIN);
+					    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					    context.startActivity(notiIntent);*/
 			        }
 	                }
 		        }		 
@@ -147,21 +158,14 @@ public class SMSReceiver extends BroadcastReceiver {
 	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
 	            
 
-	    //Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT, null, context, SMSBankingActivity.class);
 	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
 	    notiIntent.setAction(Intent.ACTION_MAIN);
 	    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    //Intent notiIntent = new Intent(context, DataFilterActivity.class);
-	    //Intent notiIntent = new Intent(context, DataFilterActivity.class);
-	    //Intent notiIntent = new Intent(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT);
-	    //notiIntent.setClass(context, SMSBankingActivity.class);
+
 	    fillIntent(notiIntent, tranzactionData);
-	    //notiIntent.setAction(SMSBankingActivity.VIEW_TRANSACTION_LIST_INTENT);
-	    //notiIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
-	    //NOTIFICATION_ID ++;
 	    mNotificationManager.cancel(NOTIFICATION_ID);
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
