@@ -19,6 +19,8 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,6 +55,9 @@ public class SMSBankingActivity extends ListActivity{
 	private HashMap<String, String> filterMap;
 	private Resources resources;	
 	private static ArrayAdapter<String> cardAdapter;
+	private ListView listView;
+	private String cardAliasString;
+	public static String cardNumber;
 	
 	private static final int ID_FILTER_ACTIVITY = 1;
 	private static final int IDM_PREFERENCES = 101;
@@ -62,46 +68,67 @@ public class SMSBankingActivity extends ListActivity{
 	private static final int IDM_OPERATION_FILTER_INCOMING_OPERATION = 1033;
 	private static final int IDM_OPERATION_FILTER_OUTGOING_OPERATION = 1034;
 	private static final int DIALOG_SMS_DETAIL = 0;	
-	private static final int DIALOG_CARD_FILTER = 1;		
+	private static final int DIALOG_CARD_FILTER = 1;	
+	private static final int DIALOG_CARD_DATA = 2;
 	
 	public static final String UPDATE_TRANSACTION_LIST_INTENT = "com.android.smsbanking.UPDATE_TRANSACTION_LIST";
+	public static final String VIEW_TRANSACTION_DETAIL_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_DETAIL";
+	public static final String INTENT_ACTION = "intent_action";
 	
 	private TransactionData transactionData;
 	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.view_history);
-        
-        context = getApplicationContext();
-        
-        resources = context.getResources();
-        
-        filterMap = new HashMap<String, String>();
-        filterMap.put(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
-        filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
-        
-        curBalance = (TextView) findViewById(R.id.current_balance);
+    	//It makes screen blinking 
+		super.onCreate(savedInstanceState);
+	    Intent viewIntent = getIntent();
+		Bundle bundle = viewIntent.getExtras();
+		
+		if ((bundle != null)&& (bundle.getString(INTENT_ACTION).equals(UPDATE_TRANSACTION_LIST_INTENT)))
+				finish();
+		else
+		{
 
-        transactionDatas = new ArrayList<TransactionData>();
-		int resId = R.layout.list_item;
-		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
-		
-		setListAdapter(transactionAdapter);
-		
-		
-		Intent viewIntent = getIntent();
-		if(viewIntent.getExtras() != null){
-		Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
-			transactionData = new TransactionData(viewIntent.getExtras());
-			showDialog(DIALOG_SMS_DETAIL);
+	    setContentView(R.layout.view_history);         
+	        context = getApplicationContext();
+	        
+	        resources = context.getResources();
+	        
+	        filterMap = new HashMap<String, String>();
+	        filterMap.put(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
+	        filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+	        
+	        curBalance = (TextView) findViewById(R.id.current_balance);
+	
+	        transactionDatas = new ArrayList<TransactionData>();
+			int resId = R.layout.list_item;
+			transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
+			
+			setListAdapter(transactionAdapter);
+			
+			listView = getListView();
+			Log.d("NATALIA!!! ", "listView ");
+			listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+				 @Override
+				    public boolean onItemLongClick(AdapterView<?> av, View v, int pos, long id) {
+					 return onListItemLongClick(pos, id);
+				    }
+	
+			});
+			Log.d("NATALIA!!! ", "listView after");
+			
+			
+			if(bundle != null){
+				if (bundle.getString(INTENT_ACTION).equals(VIEW_TRANSACTION_DETAIL_INTENT)){
+					Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
+					transactionData = new TransactionData(bundle);
+					showDialog(DIALOG_SMS_DETAIL);
+				}
+			}
+			
+			showTransactionList();
 		}
-		
-		
-		showTransactionList();
-		
-
         
        // try{
         //backupDb();
@@ -116,13 +143,14 @@ public class SMSBankingActivity extends ListActivity{
     protected void onNewIntent(Intent intent){
     	super.onNewIntent(intent);
     	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction());
-    	if (intent.getAction().equals(UPDATE_TRANSACTION_LIST_INTENT)){
+    	if ((intent.getExtras() != null) && (intent.getExtras().getString(INTENT_ACTION).equals(UPDATE_TRANSACTION_LIST_INTENT))){
     		Log.d("NATALIA!!! ", "onNewIntent 111" + intent.getAction() + intent.getExtras());
+    		showTransactionList();
     	}
     	else
     		if (intent.getAction().equals(Intent.ACTION_MAIN)){
 	    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction() + intent.getExtras());
-			if(intent.getExtras() != null){
+			if((intent.getExtras() != null) && (intent.getExtras().getString(INTENT_ACTION).equals(VIEW_TRANSACTION_DETAIL_INTENT))){
 				transactionData = new TransactionData(intent.getExtras());
 		    	Log.d("NATALIA!!! ", "showDialog " + intent.getAction() + intent.getExtras());
 				showDialog(DIALOG_SMS_DETAIL);
@@ -241,22 +269,10 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     public void onResume(){
     	super.onResume();
-    	Log.d("NATALIA!!! ", "onNewIntent " + getIntent().getAction());
     	Log.d("NATALIA!!! ", "onResume ");
     	showTransactionList();
     }
-    
-    @Override
-    public void onRestart(){
-       	Log.d("NATALIA!!! ", "onRestart ");
-    }
-    
-    @Override
-    public void onStop(){
-    	super.onStop();
-       	Log.d("NATALIA!!! ", "onStop ");    	
-    }
-    
+        
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData = (TransactionData) getListAdapter().getItem(position);
@@ -266,6 +282,13 @@ public class SMSBankingActivity extends ListActivity{
 		Log.d("NATALIA!!! ", "After Dialog");
  	}
 	
+	protected boolean onListItemLongClick(int pos, long id){
+		Log.d("NATALIA!!!", "long click " + pos + " " + id);
+		transactionData = (TransactionData) getListAdapter().getItem(pos);
+		showDialog(DIALOG_CARD_DATA);
+		return true;
+	}
+	
 	@Override
 	protected Dialog onCreateDialog(int id){
 		AlertDialog alertDialog;
@@ -273,11 +296,11 @@ public class SMSBankingActivity extends ListActivity{
 		case DIALOG_SMS_DETAIL:
 			AlertDialog.Builder smsDetailDialogBuilder;
 			
-			LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.sms_detail, (ViewGroup) findViewById(R.id.sms_detail_layout));
+			LayoutInflater inflaterSMSDetail = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layoutSMSDetail = inflaterSMSDetail.inflate(R.layout.sms_detail, (ViewGroup) findViewById(R.id.sms_detail_layout));
 			
 			smsDetailDialogBuilder = new AlertDialog.Builder(this);
-			smsDetailDialogBuilder.setView(layout);
+			smsDetailDialogBuilder.setView(layoutSMSDetail);
 			alertDialog = smsDetailDialogBuilder.create();
 			Log.d("NATALIA!!! ", "Dialog create");
 			break;
@@ -311,19 +334,59 @@ public class SMSBankingActivity extends ListActivity{
 			});*/
 			alertDialog = cardFilterBuilder.create();
 			break;
+		case DIALOG_CARD_DATA:
+			AlertDialog.Builder cardDataDialogBuilder;
+			cardAliasString = null;
+			
+			LayoutInflater inflaterCardData = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layoutCardData = inflaterCardData.inflate(R.layout.card_data, (ViewGroup) findViewById(R.id.card_data_layout));
+			
+			smsDetailDialogBuilder = new AlertDialog.Builder(this);
+			smsDetailDialogBuilder.setView(layoutCardData);
+			smsDetailDialogBuilder.setPositiveButton(resources.getString(R.string.save), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+					if (cardAliasString != null){
+						addAliasCard();
+					}
+				}
+
+	
+			});
+			smsDetailDialogBuilder.setNegativeButton(resources.getString(R.string.close), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			smsDetailDialogBuilder.setTitle(R.string.card_description);
+			alertDialog = smsDetailDialogBuilder.create();
+			break;
 		default:
 			alertDialog = null;
 		}
 		return alertDialog;
 	}
 
+	public void addAliasCard() {
+		// TODO Auto-generated method stub
+		myDBAdapter = new MyDBAdapter(context);
+		myDBAdapter.open();
+		
+		boolean result = myDBAdapter.updateCardAlias(cardAliasString, transactionData.getCardNumber());
+	}
+	
 	private int getCardsNumber(ArrayAdapter<String> adapter){
 		int i = 0;
 		int j = 0;
 		myDBAdapter = new MyDBAdapter(context);
 		myDBAdapter.open();
 
-		transactionCursor = myDBAdapter.getCardsNumber(null);
+		transactionCursor = myDBAdapter.selectCardsNumber(null);
 		startManagingCursor(transactionCursor);		
 		
 		if (transactionCursor.moveToFirst()){
@@ -378,8 +441,50 @@ public class SMSBankingActivity extends ListActivity{
 		        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
 		        balanceValue += transactionData.getFundCurrency();
 		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
-		       
 				break;
+			case DIALOG_CARD_DATA:
+				String cardNumberString;
+				String aliasString;
+				myDBAdapter = new MyDBAdapter(context);
+				myDBAdapter.open();
+
+				Cursor cardNumberCursor = myDBAdapter.selectCardsNumber(transactionData.getCardNumber());
+				startManagingCursor(cardNumberCursor);		
+				
+				if (cardNumberCursor.moveToFirst()){
+					if(cardNumberCursor.getString(cardNumberCursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
+						aliasString = new String (cardNumberCursor.getString(cardNumberCursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
+					else
+						aliasString = new String("");
+				}
+				else
+					aliasString = new String("");
+				cardNumberCursor.close();
+				myDBAdapter.close();
+				final EditText cardAlias = (EditText) dialog.findViewById(R.id.card_alias);
+				cardAlias.addTextChangedListener(new TextWatcher(){
+					@Override
+					public void afterTextChanged(Editable s) {
+						cardAliasString = new String (cardAlias.getText().toString());
+					}
+
+					@Override
+					public void beforeTextChanged(CharSequence arg0, int arg1,
+							int arg2, int arg3) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void onTextChanged(CharSequence s, int start,
+							int before, int count) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+				cardAlias.setText(aliasString);
+				break;
+				
 			default:
 		}
 	}
@@ -467,7 +572,8 @@ public class SMSBankingActivity extends ListActivity{
 		if((transactionCursor != null) && (!transactionCursor.isClosed())){
 			transactionCursor.close();
 		}
-	    myDBAdapter.close();
+		
+	    //myDBAdapter.close();
 	  }
 
 	    @Override

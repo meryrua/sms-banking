@@ -35,5 +35,7 @@
     <string name="notification_string">New SMS from Bank. Balance:</string>  
     <string name="detail_info">Transaction detail</string> 
 	<string name="filters_screen_name">Set filters</string>    
-	<string name="no_data">No data</string> 	                           
+	<string name="no_data">No data</string> 	     
+	<string name="save">Save</string>        
+	<string name="card_description">Card description</string>                
 </resources>

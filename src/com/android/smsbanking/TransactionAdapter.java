@@ -62,13 +62,9 @@ public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 	    	textForList += date + " " + resources.getString(R.string.string_transaction) + " " + amount;
 	    	operationImage.setImageDrawable(resources.getDrawable(R.drawable.ic_list_red));
 	    }
-
-
 	    
 	    TextView textView = (TextView) transactionView.findViewById(R.id.transaction_item);
 	    textView.setText(textForList);
-	    
-	    
 	    
 	    return transactionView;
 		

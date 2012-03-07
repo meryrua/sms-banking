@@ -16,7 +16,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.android.smsbanking.VIEW_TRANSACTION_LIST" />
+                <action android:name="com.android.smsbanking.UPDATE_TRANSACTION_LIST" />
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
         

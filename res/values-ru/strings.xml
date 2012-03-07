@@ -33,5 +33,6 @@
     <string name="notification_string">Новая SMS от Банка. Баланс:</string>        
     <string name="detail_info">Информация об операции</string>  
     <string name="filters_screen_name">Установить фильтры для отображения</string>  
-	<string name="no_data">Нет данных</string>                                       
+	<string name="no_data">Нет данных</string>                
+	<string name="save">Сохранить</string>                                 
 </resources>
