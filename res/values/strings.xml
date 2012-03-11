@@ -37,5 +37,6 @@
 	<string name="filters_screen_name">Set filters</string>    
 	<string name="no_data">No data</string> 	     
 	<string name="save">Save</string>        
-	<string name="card_description">Card description</string>                
+	<string name="card_description">Card description</string>  
+	<string name="wrong_password">Wrong password</string>  
 </resources>

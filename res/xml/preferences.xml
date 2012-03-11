@@ -3,10 +3,10 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
   
   <PreferenceCategory 
-  	android:title="SMS processing">
+  	android:title="@string/sms_process">
   	
   	<ListPreference
-  		android:title="SMS processing"
+  		android:title="@string/sms_process"
   		android:key="@string/sms_process"
   		android:entries="@array/array_for_sms_processing"
   		android:entryValues="@array/array_for_sms_processing"
