@@ -12,9 +12,11 @@ import java.util.HashMap;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -64,6 +66,9 @@ public class SMSBankingActivity extends ListActivity{
 	private Intent viewIntent;
 	private static boolean isChecked = false;
 	
+	private IntentFilter updateIntentFilter;
+	private UpdateReceiver updateReceiver;
+	
 	
 	private static final int ID_FILTER_ACTIVITY = 1;
 	private static final int IDM_PREFERENCES = 101;
@@ -85,6 +90,16 @@ public class SMSBankingActivity extends ListActivity{
 	
 	private TransactionData transactionData;
 	
+	protected class UpdateReceiver extends BroadcastReceiver{
+
+		@Override
+		public void onReceive(Context arg0, Intent arg1) {
+			// TODO Auto-generated method stub
+			showTransactionList();
+		}
+		
+	}
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,9 +108,9 @@ public class SMSBankingActivity extends ListActivity{
 	    viewIntent = getIntent();
 		bundle = viewIntent.getExtras();
 		
-		if ((bundle != null)&& (bundle.getString(INTENT_ACTION).equals(UPDATE_TRANSACTION_LIST_INTENT)))
-				finish();
-		else
+		//if ((bundle != null)&& (bundle.getString(INTENT_ACTION).equals(UPDATE_TRANSACTION_LIST_INTENT)))
+		//		finish();
+		//else
 		{
 			isCreated = true;
 			super.onCreate(savedInstanceState);
@@ -178,7 +193,7 @@ public class SMSBankingActivity extends ListActivity{
 		
 		
 		if(bundle != null){
-			if (bundle.getString(INTENT_ACTION).equals(VIEW_TRANSACTION_DETAIL_INTENT)){
+			if (viewIntent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)){
 				Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
 				transactionData = new TransactionData(bundle);
 				showDialog(DIALOG_SMS_DETAIL);
@@ -194,19 +209,16 @@ public class SMSBankingActivity extends ListActivity{
     	super.onNewIntent(intent);
     	if (isChecked){
 	    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction());
-	    	if ((intent.getExtras() != null) && (intent.getExtras().getString(INTENT_ACTION).equals(UPDATE_TRANSACTION_LIST_INTENT))){
+	    	if (intent.getAction().equals(UPDATE_TRANSACTION_LIST_INTENT)){
 	    		Log.d("NATALIA!!! ", "onNewIntent 111" + intent.getAction() + intent.getExtras());
 	    		showTransactionList();
 	    	}
 	    	else
-	    		if (intent.getAction().equals(Intent.ACTION_MAIN)){
-		    	Log.d("NATALIA!!! ", "onNewIntent " + intent.getAction() + intent.getExtras());
-				if((intent.getExtras() != null) && (intent.getExtras().getString(INTENT_ACTION).equals(VIEW_TRANSACTION_DETAIL_INTENT))){
+				if(intent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)){
 					transactionData = new TransactionData(intent.getExtras());
 			    	Log.d("NATALIA!!! ", "showDialog " + intent.getAction() + intent.getExtras());
 					showDialog(DIALOG_SMS_DETAIL);
 				}
-			}
     	}
    	
     }
@@ -309,19 +321,34 @@ public class SMSBankingActivity extends ListActivity{
     }
     
     @Override
-    public void onPause(){
+    protected void onPause(){
     	super.onPause();
 	    Log.d("NATALIA!!! ", "onPause ");
 
     }
     
     @Override
-    public void onResume(){
+    protected void onResume(){
     	super.onResume();
 	    if (isChecked){
 	    	Log.d("NATALIA!!! ", "onResume ");
 	    	showTransactionList();
     	}
+    }
+    
+    @Override
+    protected void onStart(){
+    	super.onStart();
+    	updateIntentFilter = new IntentFilter(UPDATE_TRANSACTION_LIST_INTENT);
+    	updateIntentFilter.addCategory("android.intent.category.DEFAULT");
+    	updateReceiver = new UpdateReceiver();
+    	registerReceiver(updateReceiver, updateIntentFilter);
+    }
+    
+    @Override
+    protected void onStop(){
+    	super.onStop();
+    	unregisterReceiver(updateReceiver);
     }
         
 	@Override
@@ -419,7 +446,6 @@ public class SMSBankingActivity extends ListActivity{
 			break;
 		case DIALOG_PASSWORD_CHECKING:
 			AlertDialog.Builder passwordDialogBuilder;
-			cardAliasString = null;
 			
 			LayoutInflater inflaterPassword = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
 			View layoutPassword = inflaterPassword.inflate(R.layout.password, (ViewGroup) findViewById(R.id.password_layout));
@@ -471,6 +497,7 @@ public class SMSBankingActivity extends ListActivity{
 	
 	private void passwordCheck(){
 		if (currentPassword.equals(passwordString)){
+			isChecked = true;
 			prepareActivity();
 		}
 		else{

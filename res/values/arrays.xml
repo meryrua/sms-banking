@@ -18,4 +18,8 @@
     <item>@string/incoming_operations</item>
     <item>@string/outgoing_operations</item>
 </string-array>  
+<string-array name="array_for_using_password">
+    <item>@string/yes</item>
+    <item>@string/no</item>
+</string-array>  
 </resources>

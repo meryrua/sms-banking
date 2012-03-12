@@ -38,5 +38,10 @@
 	<string name="no_data">No data</string> 	     
 	<string name="save">Save</string>        
 	<string name="card_description">Card description</string>  
+	<string name="input_password">Input password</string>  
 	<string name="wrong_password">Wrong password</string>  
+	<string name="security">Security</string>  
+	<string name="use_password">Password access</string>
+	<string name="yes">Yes</string>  
+	<string name="no">No</string>    
 </resources>

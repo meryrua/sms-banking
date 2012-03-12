@@ -14,5 +14,18 @@
   	</ListPreference>
   	
   </PreferenceCategory>
+  
+  <PreferenceCategory 
+  	android:title="@string/security">
+  	
+  	<ListPreference
+  		android:title="@string/use_password"
+  		android:key="@string/use_password"
+  		android:entries="@array/array_for_using_password"
+  		android:entryValues="@array/array_for_using_password"
+  		android:defaultValue="@string/no">
+  	</ListPreference>
+  	
+  </PreferenceCategory>
     
 </PreferenceScreen>

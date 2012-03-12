@@ -101,11 +101,17 @@ public class SMSReceiver extends BroadcastReceiver {
 						
 						setSMSNotification(context, "New sms", transactionData); 		
 
-					    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
+					    /*Intent notiIntent = new Intent(context, SMSBankingActivity.class);
 					    notiIntent.setAction(Intent.ACTION_MAIN);
 					    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					    notiIntent.putExtra(SMSBankingActivity.INTENT_ACTION, SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-					    context.startActivity(notiIntent);
+					    context.startActivity(notiIntent);*/
+						//It starts activity if it's not active
+						Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+						/*updateIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					    context.startActivity(updateIntent);
+					    */
+						context.sendBroadcast(updateIntent);
 			        }
 	                }
 		        }		 
@@ -156,9 +162,9 @@ public class SMSReceiver extends BroadcastReceiver {
 	            
 
 	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
-	    notiIntent.setAction(Intent.ACTION_MAIN);
+	    notiIntent.setAction(SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
 	    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    notiIntent.putExtra(SMSBankingActivity.INTENT_ACTION, SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
+	    //notiIntent.putExtra(SMSBankingActivity.INTENT_ACTION, SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
 
 	    fillIntent(notiIntent, tranzactionData);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
