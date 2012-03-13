@@ -87,7 +87,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			        	
 
 			        	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_process), context.getResources().getString(R.string.application_only));
+			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_processing), context.getResources().getString(R.string.application_only));
 			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only)))
 			        			abortBroadcast(); // I don't know if it's good decision	
 			            	

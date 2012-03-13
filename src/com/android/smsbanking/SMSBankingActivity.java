@@ -1,10 +1,14 @@
 package com.android.smsbanking;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,10 +21,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -87,6 +93,7 @@ public class SMSBankingActivity extends ListActivity{
 	public static final String UPDATE_TRANSACTION_LIST_INTENT = "com.android.smsbanking.UPDATE_TRANSACTION_LIST";
 	public static final String VIEW_TRANSACTION_DETAIL_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_DETAIL";
 	public static final String INTENT_ACTION = "intent_action";
+	public static final String DEFAULT_PASSWORD = "1234";
 	
 	private TransactionData transactionData;
 	
@@ -108,56 +115,57 @@ public class SMSBankingActivity extends ListActivity{
 	    viewIntent = getIntent();
 		bundle = viewIntent.getExtras();
 		
-		//if ((bundle != null)&& (bundle.getString(INTENT_ACTION).equals(UPDATE_TRANSACTION_LIST_INTENT)))
-		//		finish();
-		//else
-		{
-			isCreated = true;
-			super.onCreate(savedInstanceState);
-			setContentView(R.layout.view_history);         
-	        context = getApplicationContext();
-	        resources = context.getResources();
+		isCreated = true;
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.view_history);         
+	    context = getApplicationContext();
+	    resources = context.getResources();
 	        
-	        currentPassword = new String("1234");
-	        isChecked = false;
-	        showDialog(DIALOG_PASSWORD_CHECKING);
-	        
-	        /*
-	        filterMap = new HashMap<String, String>();
-	        filterMap.put(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
-	        filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
-	        
-	        curBalance = (TextView) findViewById(R.id.current_balance);
-	
-	        transactionDatas = new ArrayList<TransactionData>();
-			int resId = R.layout.list_item;
-			transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
-			
-			setListAdapter(transactionAdapter);
-			
-			listView = getListView();
-			Log.d("NATALIA!!! ", "listView ");
-			listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-				 @Override
-				    public boolean onItemLongClick(AdapterView<?> av, View v, int pos, long id) {
-					 return onListItemLongClick(pos, id);
-				    }
-	
-			});
-			Log.d("NATALIA!!! ", "listView after");
-			
-			
-			if(bundle != null){
-				if (bundle.getString(INTENT_ACTION).equals(VIEW_TRANSACTION_DETAIL_INTENT)){
-					Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
-					transactionData = new TransactionData(bundle);
-					showDialog(DIALOG_SMS_DETAIL);
+	    isChecked = false;
+    	Log.d("NATALIA!!! ", "111 passw " );	    
+	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+    	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
+    	
+    	Log.d("NATALIA!!! ", "passw " + usingPassword);
+    
+    	if (usingPassword){
+				InputStream instream;
+				try {
+					instream = openFileInput(Settings.PASSWORD_FILE_NAME);
+					InputStreamReader inputreader = new InputStreamReader(instream);
+					BufferedReader buffreader = new BufferedReader(inputreader);
+					try {
+						currentPassword = buffreader.readLine();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} catch (FileNotFoundException e) {
+					FileOutputStream fos;
+					try {
+						fos = openFileOutput(Settings.PASSWORD_FILE_NAME, Context.MODE_PRIVATE);
+					    OutputStreamWriter osw = new OutputStreamWriter(fos);
+					    osw.write(DEFAULT_PASSWORD);
+					    osw.flush();
+					    osw.close();
+					    currentPassword = new String(DEFAULT_PASSWORD);
+				    } catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				}
-			}
-			
-			showTransactionList();*/
-		}
-        
+
+	    		Log.d("NATALIA!!! ", "password " + currentPassword);
+
+    		
+ 	    	showDialog(DIALOG_PASSWORD_CHECKING);
+    	}
+    	else
+    	{
+    		isChecked = true;
+    		prepareActivity();
+    	}
+	        
        // try{
         //backupDb();
         //}
@@ -199,6 +207,7 @@ public class SMSBankingActivity extends ListActivity{
 				showDialog(DIALOG_SMS_DETAIL);
 			}
 		}
+		Log.d("NATALIA!!! ", "bundle after");
 		
 		showTransactionList();
     	
@@ -274,7 +283,7 @@ public class SMSBankingActivity extends ListActivity{
     
 
     public boolean onCreateOptionsMenu(Menu menu){
-    	menu.add(Menu.NONE, IDM_PREFERENCES, Menu.NONE, resources.getString(R.string.sms_process));
+    	menu.add(Menu.NONE, IDM_PREFERENCES, Menu.NONE, resources.getString(R.string.settings));
     	menu.add(Menu.NONE, IDM_CARD_FILTER, Menu.NONE, resources.getString(R.string.card_filter));
     	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
@@ -318,13 +327,6 @@ public class SMSBankingActivity extends ListActivity{
         }
 
     	return false;
-    }
-    
-    @Override
-    protected void onPause(){
-    	super.onPause();
-	    Log.d("NATALIA!!! ", "onPause ");
-
     }
     
     @Override
@@ -467,10 +469,10 @@ public class SMSBankingActivity extends ListActivity{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-					
+					finish();
 				}
 			});
-			passwordDialogBuilder.setTitle(R.string.card_description);
+			passwordDialogBuilder.setTitle(R.string.input_password);
 			alertDialog = passwordDialogBuilder.create();
 			break;
 		case DIALOG_WRONG_PASSWORD:
@@ -611,10 +613,13 @@ public class SMSBankingActivity extends ListActivity{
 				cardAlias.setText(aliasString);
 				break;
 			case DIALOG_PASSWORD_CHECKING:
-				String passwordText;
+				TextView repeatPassword = (TextView) dialog.findViewById(R.id.repeat_password_field);
+				repeatPassword.setVisibility(TextView.GONE);
+				TextView repeatPasswordText = (TextView) dialog.findViewById(R.id.repeat_password_text);
+				repeatPasswordText.setVisibility(TextView.GONE);
 
-				passwordText = new String("");
-
+				String passwordText = new String("");
+				
 				final EditText passwordField = (EditText) dialog.findViewById(R.id.password_field);
 				passwordField.addTextChangedListener(new TextWatcher(){
 					@Override
@@ -668,8 +673,11 @@ public class SMSBankingActivity extends ListActivity{
 		myDBAdapter = new MyDBAdapter(context);
 		myDBAdapter.open();
 
+		Log.d("NATALIA!!! ", "showTransactionList");
 		String filterString = getSQLWhereFromFilter();
+		Log.d("NATALIA!!! ", "filterString " + filterString);
 		transactionCursor = myDBAdapter.getTransactionWithFilter(filterString);
+		Log.d("NATALIA!!! ", "transactionCursor " + transactionCursor);
 		startManagingCursor(transactionCursor);
 		updateTransactionList();
 		if((transactionCursor != null) && (!transactionCursor.isClosed())){
@@ -693,7 +701,9 @@ public class SMSBankingActivity extends ListActivity{
 		
 		transactionDatas.clear();
 		
+		Log.d("NATALIA!!! ", "updateTransactionList ");
 		if (transactionCursor.moveToFirst()){
+			Log.d("NATALIA!!! ", "moveToFirst ");
 			do {
 				TransactionData transactionData = myDBAdapter.getTransactionFromCursor(transactionCursor);
 				transactionDatas.add(0, transactionData);
@@ -716,6 +726,7 @@ public class SMSBankingActivity extends ListActivity{
 		}
 		
 		transactionAdapter.notifyDataSetChanged();
+		Log.d("NATALIA!!! ", "updateTransactionList end ");
 	}
 
 	  @Override

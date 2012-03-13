@@ -44,4 +44,12 @@
 	<string name="use_password">Password access</string>
 	<string name="yes">Yes</string>  
 	<string name="no">No</string>    
+	<string name="set_password">Set password</string>
+	<string name="repeat_password">Repeat password</string>
+	<string name="settings">Settings</string>
+	<string name="checking">Check</string> 
+			
+	<string name="using_password">using_password</string>
+	<string name="sms_processing">sms_processing</string>
+	<string name="change_password">change_password</string>
 </resources>

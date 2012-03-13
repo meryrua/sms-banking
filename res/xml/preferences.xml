@@ -7,7 +7,7 @@
   	
   	<ListPreference
   		android:title="@string/sms_process"
-  		android:key="@string/sms_process"
+  		android:key="@string/sms_processing"
   		android:entries="@array/array_for_sms_processing"
   		android:entryValues="@array/array_for_sms_processing"
   		android:defaultValue="@string/application_only">
@@ -18,13 +18,17 @@
   <PreferenceCategory 
   	android:title="@string/security">
   	
-  	<ListPreference
+  	<CheckBoxPreference
   		android:title="@string/use_password"
-  		android:key="@string/use_password"
-  		android:entries="@array/array_for_using_password"
-  		android:entryValues="@array/array_for_using_password"
-  		android:defaultValue="@string/no">
-  	</ListPreference>
+  		android:key="@string/using_password"
+   		android:defaultValue="false">
+  	</CheckBoxPreference>
+  	
+  	<Preference
+  		android:title="@string/set_password"
+  		android:key="@string/change_password"
+  		android:dependency="@string/using_password">
+  	</Preference>  		
   	
   </PreferenceCategory>
     

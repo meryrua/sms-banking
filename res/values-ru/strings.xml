@@ -37,9 +37,13 @@
 	<string name="save">Сохранить</string>     
 	<string name="card_description">Пояснение к карте</string>    
 	<string name="input_password">Ввведите пароль</string>  
-	<string name="wrong_password">Не правильный пароль</string>  
+	<string name="wrong_password">Неправильный пароль</string>  
 	<string name="security">Безопасность</string>  
 	<string name="use_password">Доступ по паролю</string>
 	<string name="yes">Да</string>  
-	<string name="no">Нет</string>                              
+	<string name="no">Нет</string>  
+	<string name="set_password">Задать пароль</string>      
+	<string name="repeat_password">Повторите пароль</string>   
+	<string name="settings">Настройки</string>    
+	<string name="checking">Проверка</string>                
 </resources>
