@@ -8,10 +8,14 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -49,6 +53,20 @@ public class Settings extends PreferenceActivity{
 	protected void onStart(){
 		super.onStart();
 		
+		CheckBoxPreference usePassword = (CheckBoxPreference) findPreference(context.getResources().getString(R.string.using_password));
+		usePassword.setOnPreferenceChangeListener(new OnPreferenceChangeListener(){
+
+			@Override
+			public boolean onPreferenceChange(Preference preference,
+					Object newValue) {
+				// TODO Auto-generated method stub
+				if (newValue.equals(new Boolean(true)))
+					showDialog(DIALOG_SET_PASSWORD);
+				return true;
+			}
+			
+		});
+		
 		Preference passwordPref = (Preference) findPreference(context.getResources().getString(R.string.change_password));
 		passwordPref.setOnPreferenceClickListener(new OnPreferenceClickListener(){
 
@@ -78,7 +96,7 @@ public class Settings extends PreferenceActivity{
 			setPasswordDialogBuilder.setTitle(R.string.input_password);
 			setPasswordDialogBuilder.setView(layoutPassword);
 			
-			setPasswordDialogBuilder.setPositiveButton(context.getResources().getString(R.string.checking), new  DialogInterface.OnClickListener(){
+			setPasswordDialogBuilder.setPositiveButton(context.getResources().getString(R.string.save), new  DialogInterface.OnClickListener(){
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -172,17 +190,10 @@ public class Settings extends PreferenceActivity{
 	}
 	
 	private void savePassword(){
-		FileOutputStream fos;
-		try {
-			fos = openFileOutput(PASSWORD_FILE_NAME, Context.MODE_PRIVATE);
-		    OutputStreamWriter osw = new OutputStreamWriter(fos);
-		    osw.write(passwordString);
-		    osw.flush();
-		    osw.close();
-	    } catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		SharedPreferences.Editor editor = settings.edit();
 
+		editor.putString(SMSBankingActivity.PASSWORD_TEXT, passwordString);
+		editor.commit();
 	}
 }

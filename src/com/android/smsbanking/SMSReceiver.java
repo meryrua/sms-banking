@@ -158,7 +158,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	    long when = System.currentTimeMillis();
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);
-	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
+	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL;// | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
 	            
 
 	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);

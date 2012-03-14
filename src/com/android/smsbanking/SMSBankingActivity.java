@@ -94,6 +94,7 @@ public class SMSBankingActivity extends ListActivity{
 	public static final String VIEW_TRANSACTION_DETAIL_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_DETAIL";
 	public static final String INTENT_ACTION = "intent_action";
 	public static final String DEFAULT_PASSWORD = "1234";
+	public static final String PASSWORD_TEXT = "password";
 	
 	private TransactionData transactionData;
 	
@@ -126,38 +127,21 @@ public class SMSBankingActivity extends ListActivity{
 	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
     	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
     	
+    	
     	Log.d("NATALIA!!! ", "passw " + usingPassword);
     
     	if (usingPassword){
-				InputStream instream;
-				try {
-					instream = openFileInput(Settings.PASSWORD_FILE_NAME);
-					InputStreamReader inputreader = new InputStreamReader(instream);
-					BufferedReader buffreader = new BufferedReader(inputreader);
-					try {
-						currentPassword = buffreader.readLine();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				} catch (FileNotFoundException e) {
-					FileOutputStream fos;
-					try {
-						fos = openFileOutput(Settings.PASSWORD_FILE_NAME, Context.MODE_PRIVATE);
-					    OutputStreamWriter osw = new OutputStreamWriter(fos);
-					    osw.write(DEFAULT_PASSWORD);
-					    osw.flush();
-					    osw.close();
-					    currentPassword = new String(DEFAULT_PASSWORD);
-				    } catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-
-	    		Log.d("NATALIA!!! ", "password " + currentPassword);
-
-    		
+        	if (!settings.contains(PASSWORD_TEXT))
+        	{
+        		SharedPreferences.Editor editorSettings = settings.edit();
+        		editorSettings.putString(PASSWORD_TEXT, DEFAULT_PASSWORD);
+        		editorSettings.commit();
+        		currentPassword = new String(DEFAULT_PASSWORD);
+        	}
+        	else
+        	{
+        		currentPassword = settings.getString(PASSWORD_TEXT, DEFAULT_PASSWORD);
+        	}
  	    	showDialog(DIALOG_PASSWORD_CHECKING);
     	}
     	else
@@ -389,6 +373,7 @@ public class SMSBankingActivity extends ListActivity{
 			int selectedCard = getCardsNumber(cardAdapter);
 			AlertDialog.Builder cardFilterBuilder = new AlertDialog.Builder(this);
 			//setAdapter do not allow set default value
+			cardAdapter.setNotifyOnChange(true);
 			cardFilterBuilder.setAdapter(cardAdapter, new DialogInterface.OnClickListener() {
 				
 				@Override
@@ -398,6 +383,7 @@ public class SMSBankingActivity extends ListActivity{
 			   		filterMap.remove(TransactionData.CARD_NUMBER);
 		    		filterMap.put(TransactionData.CARD_NUMBER, newSelection);
 		    		showTransactionList();
+		    		removeDialog(DIALOG_CARD_FILTER);
 				}
 			});
 			//for this style of Adapter should be android.R.layout.select_dialog_singlechoice
@@ -525,6 +511,7 @@ public class SMSBankingActivity extends ListActivity{
 					if (filterMap.get(TransactionData.CARD_NUMBER).equals(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER))))
 						i = j;
 				}
+				Log.d("NATALIA!!! ", " card " + transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 				adapter.add(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 				j++;
 			} while (transactionCursor.moveToNext());
@@ -569,6 +556,11 @@ public class SMSBankingActivity extends ListActivity{
 		        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
 		        balanceValue += transactionData.getFundCurrency();
 		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
+				break;
+			case DIALOG_CARD_FILTER:
+				cardAdapter.clear();
+				getCardsNumber(cardAdapter);
+				cardAdapter.setNotifyOnChange(true);
 				break;
 			case DIALOG_CARD_DATA:
 				String cardNumberString;

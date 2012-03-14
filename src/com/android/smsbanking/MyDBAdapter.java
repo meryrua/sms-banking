@@ -30,6 +30,12 @@ public class MyDBAdapter {
 		TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
 	
+	private static final String CREATE_TRANSACTION_TABLE_HELP = "create table " + TRANSACTION_TABLE_NAME +"_help" + 
+	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
+	TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " + 
+	TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
+	TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
+	
 	private static final String CREATE_CARD_TABLE = "create table " + CARD_TABLE_NAME + 
 	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " +
@@ -204,6 +210,43 @@ public class MyDBAdapter {
 		
 		@Override
 		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1){
-		}
+			sqLiteDatabase.execSQL("DROP TABLE " + TRANSACTION_TABLE_NAME + ";");
+			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
+			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
+			
+			sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
+			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
+
+/*			Log.d("NATALIA", "versions " + i + ", " + i1);
+			if ((i == 1) &&(i1 == 2))
+			{
+				Log.d("NATALIA", "versions " + i + ", " + i1);
+				sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
+				sqLiteDatabase.execSQL("INSERT INTO " + CARD_TABLE_NAME + "(" + TransactionData.CARD_NUMBER + ") SELECT DISTINCT " + TransactionData.CARD_NUMBER + " FROM " + TRANSACTION_TABLE_NAME + ";");
+				
+				sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE_HELP);
+				sqLiteDatabase.execSQL("INSERT INTO " + TRANSACTION_TABLE_NAME + "_help(" + TransactionData.CARD_NUMBER + ", " + 
+						TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " + 
+						TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " + 
+						TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ") SELECT (" + TransactionData.CARD_NUMBER + ", " + 
+						TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " + 
+						TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " + 
+						TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ") FROM " + TRANSACTION_TABLE_NAME + ";");
+				
+				sqLiteDatabase.execSQL("DROP TABLE " + TRANSACTION_TABLE_NAME + ";");
+				sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
+				sqLiteDatabase.execSQL("INSERT INTO " + TRANSACTION_TABLE_NAME + "(" + TransactionData.CARD_NUMBER + ", " + 
+						TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " + 
+						TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " + 
+						TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ") SELECT (" + TransactionData.CARD_NUMBER + ", " + 
+						TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " + 
+						TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " + 
+						TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ") FROM " + TRANSACTION_TABLE_NAME + "_help;");
+				
+				sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
+				sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
+				
+			}
+		*/}
 	}
 }
