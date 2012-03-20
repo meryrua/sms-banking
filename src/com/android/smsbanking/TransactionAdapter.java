@@ -6,47 +6,38 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class TransactionAdapter extends ArrayAdapter<TransactionData>{
-	int viewResourceId;
+public class TransactionAdapter extends CursorAdapter{
+	//int viewResourceId;
 	private Context myContext;
 	private Resources resources;
-
-	public TransactionAdapter(Context context, int resourceId,
-			List<TransactionData> objects) {
-		super(context, resourceId, objects);
-		viewResourceId = resourceId;
+	
+	public TransactionAdapter(Context context, Cursor cursor) {
+		super(context, cursor);
+		//viewResourceId = resourceId;
 		myContext = context;
 		resources = myContext.getResources();
 		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent){
-		LinearLayout transactionView;
+	public void bindView(View view, Context viewContext, Cursor cursor) {
+		// TODO Auto-generated method stub
 		ImageView operationImage;
 
-		TransactionData item = getItem(position);
-		Log.d("NATALIA get view", "item " + position + " adress " + item);
-
-	    if (convertView == null) {
-	    	transactionView = new LinearLayout(getContext());
-	    	String inflater = Context.LAYOUT_INFLATER_SERVICE;
-	    	LayoutInflater vi = (LayoutInflater)getContext().getSystemService(inflater);
-	    	vi.inflate(viewResourceId, transactionView, true);
-	    } else {
-	    	transactionView = (LinearLayout) convertView;
-	    }
+		TransactionData item = new TransactionData(cursor);
 	    
-	    operationImage = (ImageView) transactionView.findViewById(R.id.operation_icon);
+	    operationImage = (ImageView) view.findViewById(R.id.operation_icon);
 	    
 	    String date = item.getTransactionDate();
 	    String place = item.getTransactionPlace();
@@ -63,11 +54,19 @@ public class TransactionAdapter extends ArrayAdapter<TransactionData>{
 	    	operationImage.setImageDrawable(resources.getDrawable(R.drawable.ic_list_red));
 	    }
 	    
-	    TextView textView = (TextView) transactionView.findViewById(R.id.transaction_item);
+	    TextView textView = (TextView) view.findViewById(R.id.transaction_item);
 	    textView.setText(textForList);
-	    
-	    return transactionView;
-		
+	    	
+	}
+
+	@Override
+	public View newView(Context context, Cursor cursor, ViewGroup parent) {
+		// TODO Auto-generated method stub
+		LayoutInflater inflater = LayoutInflater.from(context);
+		View v = inflater.inflate(R.layout.list_item, parent, false);
+		bindView(v, context, cursor);
+		return v;
+
 	}
 
 

@@ -53,8 +53,6 @@ public class SMSBankingActivity extends ListActivity{
 	private Button viewHistoryButton;
 	private Button checkSMSButton;*/
 	
-	private TextView curBalance;
-
 	private MyDBAdapter myDBAdapter;
 	private Cursor transactionCursor;
 	private ArrayList<TransactionData> transactionDatas;
@@ -164,13 +162,8 @@ public class SMSBankingActivity extends ListActivity{
         filterMap.put(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
         filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
         
-        curBalance = (TextView) findViewById(R.id.current_balance);
-
         transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
-		transactionAdapter = new TransactionAdapter(context, resId, transactionDatas);
-		
-		setListAdapter(transactionAdapter);
 		
 		listView = getListView();
 		Log.d("NATALIA!!! ", "listView ");
@@ -339,7 +332,7 @@ public class SMSBankingActivity extends ListActivity{
         
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		transactionData = (TransactionData) getListAdapter().getItem(position);
+		transactionData =  new TransactionData((Cursor)getListAdapter().getItem(position));
 		  
 		showDialog(DIALOG_SMS_DETAIL);
 
@@ -348,7 +341,7 @@ public class SMSBankingActivity extends ListActivity{
 	
 	protected boolean onListItemLongClick(int pos, long id){
 		Log.d("NATALIA!!!", "long click " + pos + " " + id);
-		transactionData = (TransactionData) getListAdapter().getItem(pos);
+		transactionData = new TransactionData((Cursor)getListAdapter().getItem(pos));
 		showDialog(DIALOG_CARD_DATA);
 		return true;
 	}
@@ -664,6 +657,9 @@ public class SMSBankingActivity extends ListActivity{
 	private void showTransactionList(){
 		myDBAdapter = new MyDBAdapter(context);
 		myDBAdapter.open();
+		if((transactionCursor != null) && (!transactionCursor.isClosed())){
+			transactionCursor.close();
+		}
 
 		Log.d("NATALIA!!! ", "showTransactionList");
 		String filterString = getSQLWhereFromFilter();
@@ -671,12 +667,18 @@ public class SMSBankingActivity extends ListActivity{
 		transactionCursor = myDBAdapter.getTransactionWithFilter(filterString);
 		Log.d("NATALIA!!! ", "transactionCursor " + transactionCursor);
 		startManagingCursor(transactionCursor);
+		
+		transactionAdapter = new TransactionAdapter(context, transactionCursor);
+		
+		setListAdapter(transactionAdapter);
+
 		updateTransactionList();
-		if((transactionCursor != null) && (!transactionCursor.isClosed())){
-			transactionCursor.close();
-		}
+		
+		//if((transactionCursor != null) && (!transactionCursor.isClosed())){
+		//	transactionCursor.close();
+		//}
 		try{
-            backupDb();
+           backupDb();
             }
             catch (Exception e) {}
             finally{
@@ -687,29 +689,36 @@ public class SMSBankingActivity extends ListActivity{
 	}
 
 	private void updateTransactionList(){
+		TextView curBalance = (TextView) findViewById(R.id.current_balance);
+		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
+
 		transactionCursor.requery();
-		
-		int i = 0;
-		
-		transactionDatas.clear();
 		
 		Log.d("NATALIA!!! ", "updateTransactionList ");
 		if (transactionCursor.moveToFirst()){
 			Log.d("NATALIA!!! ", "moveToFirst ");
-			do {
-				TransactionData transactionData = myDBAdapter.getTransactionFromCursor(transactionCursor);
-				transactionDatas.add(0, transactionData);
-				i++;
-			} while (transactionCursor.moveToNext());
 			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
 		        String str = new String();
-		        str += resources.getString(R.string.operation_balance) + " " + transactionDatas.get(0).getFundValue() + transactionDatas.get(0).getFundCurrency();
+		        str += resources.getString(R.string.operation_balance) + " " + transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)) + transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.FUND_CURRENCY));
 		        curBalance.setVisibility(TextView.VISIBLE);
 		        curBalance.setText(str);
+		        String str1 = new String();
+		        str1 += resources.getString(R.string.operation_card_number) + filterMap.get(TransactionData.CARD_NUMBER);
+		        filterInfo.setVisibility(TextView.VISIBLE);
+		        filterInfo.setText(str1);
 			}
 			else{
 				curBalance.setText(null);
 				curBalance.setVisibility(TextView.GONE);
+				if (!filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.all))){
+			        String str1 = new String();
+			        str1 += filterMap.get(TransactionData.TRANSACTION_PLACE);
+			        filterInfo.setVisibility(TextView.VISIBLE);
+			        filterInfo.setText(filterMap.get(TransactionData.TRANSACTION_PLACE));
+				}else{
+					filterInfo.setText(null);
+					filterInfo.setVisibility(TextView.GONE);
+				}
 			}
 		} 
 		else {

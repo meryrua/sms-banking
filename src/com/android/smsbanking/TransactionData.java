@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -50,6 +51,16 @@ public class TransactionData {
 		transactionCurrency = null;
 		fundCurrency = null;
 		bankName = null;
+	}
+	
+	TransactionData(Cursor transactionCursor){
+		setCardNumber(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+		setFundCurrency(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.FUND_CURRENCY)));
+		setTransactionCurrency(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_CURRENCY)));
+		setTransactionDate(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_DATE)));
+		setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
+		setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
+		setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
 	}
 	
 	TransactionData(Bundle extras){
