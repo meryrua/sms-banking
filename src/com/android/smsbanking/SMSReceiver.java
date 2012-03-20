@@ -89,7 +89,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			        	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_processing), context.getResources().getString(R.string.application_only));
 			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only)))
-			        			abortBroadcast(); // I don't know if it's good decision	
+			        			abortBroadcast(); 
 			            	
 				        transactionData = new TransactionData();
 						smsParcer.setTranzactionData(transactionData);
@@ -101,16 +101,7 @@ public class SMSReceiver extends BroadcastReceiver {
 						
 						setSMSNotification(context, "New sms", transactionData); 		
 
-					    /*Intent notiIntent = new Intent(context, SMSBankingActivity.class);
-					    notiIntent.setAction(Intent.ACTION_MAIN);
-					    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					    notiIntent.putExtra(SMSBankingActivity.INTENT_ACTION, SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-					    context.startActivity(notiIntent);*/
-						//It starts activity if it's not active
 						Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-						/*updateIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					    context.startActivity(updateIntent);
-					    */
 						context.sendBroadcast(updateIntent);
 			        }
 	                }
@@ -132,23 +123,6 @@ public class SMSReceiver extends BroadcastReceiver {
 		}
 	 }
 	
-	 static Intent[] makeMessageIntentStack(Context context, CharSequence from,
-		        CharSequence msg) {
-		    Intent[] intents = new Intent[1];
-
-		    // First: root activity of ApiDemos.
-		    // This is a convenient way to make the proper Intent to launch and
-		    // reset an application's task.
-		    //intents[0] = Intent.makeRestartActivityTask(new ComponentName(context,
-		    //        com.android.smsbanking.SMSBankingActivity.class));
-
-		    // "App"
-		    //intents[1] = new Intent(context, com.android.smsbanking.SMSBankingActivity.class);
-		    //intents[1].putExtra("com.android.smsbanking.Path", "SMSBankingActivity");
-
-		    return intents;
-		} 
-	 
 	private void setSMSNotification(Context context,CharSequence notiDetail, TransactionData tranzactionData) {
 		String ns = Context.NOTIFICATION_SERVICE;
 	    NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
@@ -164,7 +138,6 @@ public class SMSReceiver extends BroadcastReceiver {
 	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
 	    notiIntent.setAction(SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
 	    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    //notiIntent.putExtra(SMSBankingActivity.INTENT_ACTION, SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
 
 	    fillIntent(notiIntent, tranzactionData);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);

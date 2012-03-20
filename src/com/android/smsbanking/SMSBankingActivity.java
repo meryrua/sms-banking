@@ -122,9 +122,25 @@ public class SMSBankingActivity extends ListActivity{
 	        
 	    isChecked = false;
     	Log.d("NATALIA!!! ", "111 passw " );	    
-	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-    	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
     	
+	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+	   	SharedPreferences.Editor editor = settings.edit();
+    	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
+        filterMap = new HashMap<String, String>();
+        if (settings.contains(TransactionData.CARD_NUMBER)){
+        	filterMap.put(TransactionData.CARD_NUMBER, settings.getString(TransactionData.CARD_NUMBER, resources.getString(R.string.all)));
+        }else {
+        	editor.putString(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
+           	editor.commit();
+        	filterMap.put(TransactionData.CARD_NUMBER, settings.getString(TransactionData.CARD_NUMBER, resources.getString(R.string.all)));
+        }
+        if (settings.contains(TransactionData.TRANSACTION_PLACE)){
+        	filterMap.put(TransactionData.TRANSACTION_PLACE, settings.getString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all)));
+        }else{
+           	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+           	editor.commit();
+        	filterMap.put(TransactionData.TRANSACTION_PLACE, settings.getString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all)));
+        }
     	
     	Log.d("NATALIA!!! ", "passw " + usingPassword);
     
@@ -158,10 +174,6 @@ public class SMSBankingActivity extends ListActivity{
     }
     
     private void prepareActivity(){
-        filterMap = new HashMap<String, String>();
-        filterMap.put(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
-        filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
-        
         transactionDatas = new ArrayList<TransactionData>();
 		int resId = R.layout.list_item;
 		
@@ -272,6 +284,8 @@ public class SMSBankingActivity extends ListActivity{
     }
     
     public boolean onOptionsItemSelected(MenuItem item){
+    	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+    	SharedPreferences.Editor editor = settings.edit();
     	switch(item.getItemId()){
     	case IDM_PREFERENCES:
     		Intent startIntentProcessing = new Intent();
@@ -284,21 +298,37 @@ public class SMSBankingActivity extends ListActivity{
     	case IDM_OPERATION_FILTER_ALL_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
     		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+
+    	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+    	   	editor.commit();
+    	   	
     		showTransactionList();
     		return true;
     	case IDM_OPERATION_FILTER_CARD_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
     		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
+    		
+    	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
+    	   	editor.commit();
+    	   	
     		showTransactionList();
     		return true;
     	case IDM_OPERATION_FILTER_INCOMING_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
     		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
+
+    		editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
+    	   	editor.commit();
+    	   	
     		showTransactionList();
         	return true;
     	case IDM_OPERATION_FILTER_OUTGOING_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
     		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
+    		
+    		editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
+    	   	editor.commit();
+    	   	
     		showTransactionList();
     		return true;
         }
@@ -333,14 +363,10 @@ public class SMSBankingActivity extends ListActivity{
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData =  new TransactionData((Cursor)getListAdapter().getItem(position));
-		  
 		showDialog(DIALOG_SMS_DETAIL);
-
-		Log.d("NATALIA!!! ", "After Dialog");
  	}
 	
 	protected boolean onListItemLongClick(int pos, long id){
-		Log.d("NATALIA!!!", "long click " + pos + " " + id);
 		transactionData = new TransactionData((Cursor)getListAdapter().getItem(pos));
 		showDialog(DIALOG_CARD_DATA);
 		return true;
@@ -375,6 +401,12 @@ public class SMSBankingActivity extends ListActivity{
 					String newSelection = cardAdapter.getItem(which);
 			   		filterMap.remove(TransactionData.CARD_NUMBER);
 		    		filterMap.put(TransactionData.CARD_NUMBER, newSelection);
+		    		
+		    	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		    	   	SharedPreferences.Editor editor = settings.edit();
+		    	   	editor.putString(TransactionData.CARD_NUMBER, newSelection);
+		    	   	editor.commit();
+		    	   	
 		    		showTransactionList();
 		    		removeDialog(DIALOG_CARD_FILTER);
 				}
@@ -474,6 +506,7 @@ public class SMSBankingActivity extends ListActivity{
 		myDBAdapter.open();
 		
 		boolean result = myDBAdapter.updateCardAlias(cardAliasString, transactionData.getCardNumber());
+		myDBAdapter.close();
 	}
 	
 	private void passwordCheck(){
