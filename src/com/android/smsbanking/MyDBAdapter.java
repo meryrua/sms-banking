@@ -80,6 +80,7 @@ public class MyDBAdapter {
 	public void insertTransaction(TransactionData transactionData){
 		if (isExistCard(transactionData.getCardNumber())){
 			long i = insertTransactionData(transactionData);
+			long j = updateCardBalance(transactionData);
 		}
 		else
 		{
@@ -126,7 +127,7 @@ public class MyDBAdapter {
 	}
 
 	public Cursor getTransactionWithFilter(String filter){
-		return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, filter, null, null, null, null);
+		return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, filter, null, null, null, new String(ID + " DESC"));
 	}
 
 	public boolean removeTransaction(long transactionId){
@@ -134,7 +135,8 @@ public class MyDBAdapter {
 	}
 	
 	public Cursor selectCardsNumber (String cardNumber){
-		if (cardNumber != null)
+		Log.d("NATALIA!!! ", "request " + cardNumber);
+		if (!cardNumber.equals(""))
 			return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
 		else
 			return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, null, null, TransactionData.CARD_NUMBER, null, null);
@@ -166,7 +168,18 @@ public class MyDBAdapter {
 			 Log.d("NATALIA!!!", "Error");
 		
 		return rowIndex;
-			
+	}
+	
+	public long updateCardBalance(TransactionData transactionData){
+		long rowIndex = 0;
+		
+		ContentValues cv = new ContentValues();
+		cv.put(TransactionData.FUND_VALUE, Float.valueOf(transactionData.getFundValue()));
+		cv.put(TransactionData.FUND_CURRENCY, transactionData.getFundCurrency());
+		rowIndex = db.update(CARD_TABLE_NAME, cv, new String(TransactionData.CARD_NUMBER + "='" + transactionData.getCardNumber() +"'"), null);
+		if (rowIndex <= 0)
+			Log.d("NATALIA!!! ", "Update Error");
+		return rowIndex;
 	}
 	
 	public boolean isExistCard(String cardNumber){
@@ -184,10 +197,18 @@ public class MyDBAdapter {
 	
 	public String getBalance(String cardNumber){
 		String balance = new String();
+		/*
 		Cursor cursor = getTransactionWithFilter(TransactionData.CARD_NUMBER + "='" + cardNumber + "';");
 		if (cursor.moveToLast()){
 			balance += cursor.getString(cursor.getColumnIndex(TransactionData.FUND_VALUE)).toString() + " " +
 			cursor.getString(cursor.getColumnIndex(TransactionData.FUND_CURRENCY)).toString();
+		}*/
+		Cursor cursor = selectCardsNumber(cardNumber);
+		if (cursor.moveToFirst()){
+			balance += cursor.getString(cursor.getColumnIndex(TransactionData.FUND_VALUE)).toString() + " " +
+			cursor.getString(cursor.getColumnIndex(TransactionData.FUND_CURRENCY)).toString();
+		}else{
+			balance += "0.00 RUB";
 		}
 		return balance;
 	}
@@ -210,14 +231,14 @@ public class MyDBAdapter {
 		
 		@Override
 		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1){
-			sqLiteDatabase.execSQL("DROP TABLE " + TRANSACTION_TABLE_NAME + ";");
+			/*sqLiteDatabase.execSQL("DROP TABLE " + TRANSACTION_TABLE_NAME + ";");
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
 			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 			
 			sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
-			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
+			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");*/
 
-/*			Log.d("NATALIA", "versions " + i + ", " + i1);
+			Log.d("NATALIA", "versions " + i + ", " + i1);
 			if ((i == 1) &&(i1 == 2))
 			{
 				Log.d("NATALIA", "versions " + i + ", " + i1);
@@ -247,6 +268,6 @@ public class MyDBAdapter {
 				sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
 				
 			}
-		*/}
+		}
 	}
 }

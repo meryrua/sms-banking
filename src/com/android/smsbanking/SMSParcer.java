@@ -64,8 +64,8 @@ public class SMSParcer {
 		if (matcherWithPattern.matches())
 		{
 			operationName = TransactionData.CARD_OPERATION;
-			matchFound = matcherWithPattern.find();
-		
+			//matchFound = matcherWithPattern.find();
+			matchFound = true;
 			Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
 		
 			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
@@ -87,7 +87,8 @@ public class SMSParcer {
 		if (matcherWithPattern.matches())
 		{
 			operationName = TransactionData.INCOMING_BANK_OPERATION;
-			matchFound = matcherWithPattern.find();
+			//matchFound = matcherWithPattern.find();
+			matchFound = true;
 		
 			Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
 		
@@ -110,8 +111,8 @@ public class SMSParcer {
 		if (matcherWithPattern.matches())
 		{
 			operationName = TransactionData.OUTGOING_BANK_OPERATION;
-			matchFound = matcherWithPattern.find();
-		
+			//matchFound = matcherWithPattern.find();
+			matchFound = true;		
 			Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
 		
 			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){

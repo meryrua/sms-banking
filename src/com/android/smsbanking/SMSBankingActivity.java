@@ -22,8 +22,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -38,6 +40,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -54,17 +57,16 @@ public class SMSBankingActivity extends ListActivity{
 	private Button checkSMSButton;*/
 	
 	private MyDBAdapter myDBAdapter;
-	private Cursor transactionCursor;
+	//private Cursor transactionCursor;
 	private ArrayList<TransactionData> transactionDatas;
 	private TransactionAdapter transactionAdapter;
 	private String filter;
 	private HashMap<String, String> filterMap;
 	private Resources resources;	
-	private static ArrayAdapter<String> cardAdapter;
+	protected static ArrayAdapter<String> cardAdapter;
 	private ListView listView;
 	private String cardAliasString;
 	private String passwordString;
-	private static boolean isCreated = false; 
 	private static String currentPassword = null;
 	private Bundle bundle;
 	private Intent viewIntent;
@@ -72,6 +74,8 @@ public class SMSBankingActivity extends ListActivity{
 	
 	private IntentFilter updateIntentFilter;
 	private UpdateReceiver updateReceiver;
+	static int numberUpdate = 0;
+	LoadTransactionData loadTask;
 	
 	
 	private static final int ID_FILTER_ACTIVITY = 1;
@@ -114,37 +118,23 @@ public class SMSBankingActivity extends ListActivity{
 	    viewIntent = getIntent();
 		bundle = viewIntent.getExtras();
 		
-		isCreated = true;
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.view_history);         
 	    context = getApplicationContext();
 	    resources = context.getResources();
-	        
+        
 	    isChecked = false;
     	Log.d("NATALIA!!! ", "111 passw " );	    
     	
 	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-	   	SharedPreferences.Editor editor = settings.edit();
     	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
         filterMap = new HashMap<String, String>();
-        if (settings.contains(TransactionData.CARD_NUMBER)){
-        	filterMap.put(TransactionData.CARD_NUMBER, settings.getString(TransactionData.CARD_NUMBER, resources.getString(R.string.all)));
-        }else {
-        	editor.putString(TransactionData.CARD_NUMBER, resources.getString(R.string.all));
-           	editor.commit();
-        	filterMap.put(TransactionData.CARD_NUMBER, settings.getString(TransactionData.CARD_NUMBER, resources.getString(R.string.all)));
-        }
-        if (settings.contains(TransactionData.TRANSACTION_PLACE)){
-        	filterMap.put(TransactionData.TRANSACTION_PLACE, settings.getString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all)));
-        }else{
-           	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
-           	editor.commit();
-        	filterMap.put(TransactionData.TRANSACTION_PLACE, settings.getString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all)));
-        }
+        filterMap.put(TransactionData.CARD_NUMBER, settings.getString(TransactionData.CARD_NUMBER, resources.getString(R.string.all)));
+        filterMap.put(TransactionData.TRANSACTION_PLACE, settings.getString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all)));
     	
     	Log.d("NATALIA!!! ", "passw " + usingPassword);
     
-    	if (usingPassword){
+    	if ((usingPassword) && (!isChecked)){
         	if (!settings.contains(PASSWORD_TEXT))
         	{
         		SharedPreferences.Editor editorSettings = settings.edit();
@@ -164,18 +154,18 @@ public class SMSBankingActivity extends ListActivity{
     		prepareActivity();
     	}
 	        
-       // try{
-        //backupDb();
-        //}
-       // /catch (Exception e) {}
-        //finally{
-       // 	Log.d("NATALIA!!!", "IOException");
-        //}
+        try{
+        backupDb();
+        }
+       catch (Exception e) {}
+        finally{
+        	Log.d("NATALIA!!!", "IOException");
+        }
     }
     
     private void prepareActivity(){
         transactionDatas = new ArrayList<TransactionData>();
-		int resId = R.layout.list_item;
+        cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
 		
 		listView = getListView();
 		Log.d("NATALIA!!! ", "listView ");
@@ -293,7 +283,8 @@ public class SMSBankingActivity extends ListActivity{
     		startActivity(startIntentProcessing);   
     		return true;
     	case IDM_CARD_FILTER:
-    		showDialog(DIALOG_CARD_FILTER);  
+    		//showDialog(DIALOG_CARD_FILTER);  
+    		new LoadCardDatas().execute("");
     		return true;
     	case IDM_OPERATION_FILTER_ALL_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
@@ -357,7 +348,19 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     protected void onStop(){
     	super.onStop();
+     	Log.d("NATALIA!!! ", "onStop");
     	unregisterReceiver(updateReceiver);
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){
+    	if (isChecked)
+    	{
+    		prepareActivity();
+    	}else{
+    		showDialog(DIALOG_PASSWORD_CHECKING);
+    	}
+    	super.onConfigurationChanged(newConfig);
     }
         
 	@Override
@@ -368,7 +371,8 @@ public class SMSBankingActivity extends ListActivity{
 	
 	protected boolean onListItemLongClick(int pos, long id){
 		transactionData = new TransactionData((Cursor)getListAdapter().getItem(pos));
-		showDialog(DIALOG_CARD_DATA);
+		new LoadCardDatas().execute(transactionData.getCardNumber());
+//		showDialog(DIALOG_CARD_DATA);
 		return true;
 	}
 	
@@ -385,14 +389,15 @@ public class SMSBankingActivity extends ListActivity{
 			smsDetailDialogBuilder = new AlertDialog.Builder(this);
 			smsDetailDialogBuilder.setView(layoutSMSDetail);
 			alertDialog = smsDetailDialogBuilder.create();
-			Log.d("NATALIA!!! ", "Dialog create");
+			Log.d("NATALIA!!! ", "Dialog DIALOG_SMS_DETAIL create");
 			break;
 		case DIALOG_CARD_FILTER:
+			/*
 			cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
-			int selectedCard = getCardsNumber(cardAdapter);
+			int selectedCard = getCardsNumber(cardAdapter);*/
 			AlertDialog.Builder cardFilterBuilder = new AlertDialog.Builder(this);
 			//setAdapter do not allow set default value
-			cardAdapter.setNotifyOnChange(true);
+			//cardAdapter.setNotifyOnChange(true);
 			cardFilterBuilder.setAdapter(cardAdapter, new DialogInterface.OnClickListener() {
 				
 				@Override
@@ -427,26 +432,26 @@ public class SMSBankingActivity extends ListActivity{
 			break;
 		case DIALOG_CARD_DATA:
 			AlertDialog.Builder cardDataDialogBuilder;
-			cardAliasString = null;
 			
 			LayoutInflater inflaterCardData = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
 			View layoutCardData = inflaterCardData.inflate(R.layout.card_data, (ViewGroup) findViewById(R.id.card_data_layout));
 			
-			smsDetailDialogBuilder = new AlertDialog.Builder(this);
-			smsDetailDialogBuilder.setView(layoutCardData);
-			smsDetailDialogBuilder.setPositiveButton(resources.getString(R.string.save), new DialogInterface.OnClickListener() {
+			cardDataDialogBuilder = new AlertDialog.Builder(this);
+			cardDataDialogBuilder.setView(layoutCardData);
+			cardDataDialogBuilder.setPositiveButton(resources.getString(R.string.save), new DialogInterface.OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
 					if (cardAliasString != null){
-						addAliasCard();
+						//addAliasCard();
+						new UpdateCardAlias().execute();
 					}
 				}
 
 	
 			});
-			smsDetailDialogBuilder.setNegativeButton(resources.getString(R.string.close), new DialogInterface.OnClickListener() {
+			cardDataDialogBuilder.setNegativeButton(resources.getString(R.string.close), new DialogInterface.OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -454,8 +459,8 @@ public class SMSBankingActivity extends ListActivity{
 					
 				}
 			});
-			smsDetailDialogBuilder.setTitle(R.string.card_description);
-			alertDialog = smsDetailDialogBuilder.create();
+			cardDataDialogBuilder.setTitle(R.string.card_description);		
+			alertDialog = cardDataDialogBuilder.create();
 			break;
 		case DIALOG_PASSWORD_CHECKING:
 			AlertDialog.Builder passwordDialogBuilder;
@@ -492,7 +497,7 @@ public class SMSBankingActivity extends ListActivity{
 			wrongPasswordDialogBuilder = new AlertDialog.Builder(this);
 			wrongPasswordDialogBuilder.setMessage(resources.getString(R.string.wrong_password));
 			alertDialog = wrongPasswordDialogBuilder.create();
-			Log.d("NATALIA!!! ", "Dialog create");
+			Log.d("NATALIA!!! ", "Dialog DIALOG_WRONG_PASSWORD create");
 			break;
 		default:
 			alertDialog = null;
@@ -520,13 +525,13 @@ public class SMSBankingActivity extends ListActivity{
 		}
 	}
 	
-	private int getCardsNumber(ArrayAdapter<String> adapter){
+	/*private int getCardsNumber(ArrayAdapter<String> adapter){
 		int i = 0;
 		int j = 0;
 		myDBAdapter = new MyDBAdapter(context);
 		myDBAdapter.open();
 
-		transactionCursor = myDBAdapter.selectCardsNumber(null);
+		Cursor transactionCursor = myDBAdapter.selectCardsNumber(null);
 		startManagingCursor(transactionCursor);		
 		
 		if (transactionCursor.moveToFirst()){
@@ -550,7 +555,7 @@ public class SMSBankingActivity extends ListActivity{
 			return 0;
 		}
 
-	}
+	}*/
 
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog){
@@ -584,11 +589,36 @@ public class SMSBankingActivity extends ListActivity{
 		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
 				break;
 			case DIALOG_CARD_FILTER:
+				/*
 				cardAdapter.clear();
 				getCardsNumber(cardAdapter);
-				cardAdapter.setNotifyOnChange(true);
+				cardAdapter.setNotifyOnChange(true);*/
 				break;
 			case DIALOG_CARD_DATA:
+				final EditText cardAlias = (EditText) dialog.findViewById(R.id.card_alias);
+				cardAlias.addTextChangedListener(new TextWatcher(){
+					@Override
+					public void afterTextChanged(Editable s) {
+						cardAliasString = new String (cardAlias.getText().toString());
+					}
+
+					@Override
+					public void beforeTextChanged(CharSequence arg0, int arg1,
+							int arg2, int arg3) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void onTextChanged(CharSequence s, int start,
+							int before, int count) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+				cardAlias.setText(cardAliasString);
+
+				/*
 				String cardNumberString;
 				String aliasString;
 				myDBAdapter = new MyDBAdapter(context);
@@ -628,7 +658,7 @@ public class SMSBankingActivity extends ListActivity{
 						
 					}
 				});
-				cardAlias.setText(aliasString);
+				cardAlias.setText(aliasString);*/
 				break;
 			case DIALOG_PASSWORD_CHECKING:
 				TextView repeatPassword = (TextView) dialog.findViewById(R.id.repeat_password_field);
@@ -686,53 +716,36 @@ public class SMSBankingActivity extends ListActivity{
 		return sqlString;
 	}
 	
-	//We have to close connection to DB
 	private void showTransactionList(){
-		myDBAdapter = new MyDBAdapter(context);
-		myDBAdapter.open();
-		if((transactionCursor != null) && (!transactionCursor.isClosed())){
-			transactionCursor.close();
+		Log.d("NATALIA!!! ", "thread " + (loadTask) + " context " + context);
+		if ((loadTask != null) && (loadTask.getStatus() == AsyncTask.Status.RUNNING))
+		{
+			Log.d("NATALIA!!!", "cancel task " + loadTask);
+			loadTask.cancel(true);
+			loadTask = new LoadTransactionData();
+			loadTask.execute();
+		}else{
+
+			loadTask = new LoadTransactionData();
+			loadTask.execute();
 		}
 
-		Log.d("NATALIA!!! ", "showTransactionList");
-		String filterString = getSQLWhereFromFilter();
-		Log.d("NATALIA!!! ", "filterString " + filterString);
-		transactionCursor = myDBAdapter.getTransactionWithFilter(filterString);
-		Log.d("NATALIA!!! ", "transactionCursor " + transactionCursor);
-		startManagingCursor(transactionCursor);
-		
-		transactionAdapter = new TransactionAdapter(context, transactionCursor);
-		
-		setListAdapter(transactionAdapter);
-
-		updateTransactionList();
-		
-		//if((transactionCursor != null) && (!transactionCursor.isClosed())){
-		//	transactionCursor.close();
-		//}
-		try{
-           backupDb();
-            }
-            catch (Exception e) {}
-            finally{
-            	
-            }
-        myDBAdapter.close();
-    
 	}
 
 	private void updateTransactionList(){
 		TextView curBalance = (TextView) findViewById(R.id.current_balance);
 		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
 
-		transactionCursor.requery();
+		transactionAdapter.getCursor().requery();
 		
-		Log.d("NATALIA!!! ", "updateTransactionList ");
-		if (transactionCursor.moveToFirst()){
+		Log.d("NATALIA!!! ", "updateTransactionList " + transactionAdapter.getCursor().getCount());
+		if (transactionAdapter.getCursor().moveToFirst()){
 			Log.d("NATALIA!!! ", "moveToFirst ");
 			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
 		        String str = new String();
-		        str += resources.getString(R.string.operation_balance) + " " + transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)) + transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.FUND_CURRENCY));
+		        str += resources.getString(R.string.operation_balance) + " " +
+		        	transactionAdapter.getCursor().getFloat(transactionAdapter.getCursor().getColumnIndex(TransactionData.FUND_VALUE)) +
+		        	transactionAdapter.getCursor().getString(transactionAdapter.getCursor().getColumnIndex(TransactionData.FUND_CURRENCY));
 		        curBalance.setVisibility(TextView.VISIBLE);
 		        curBalance.setText(str);
 		        String str1 = new String();
@@ -757,20 +770,22 @@ public class SMSBankingActivity extends ListActivity{
 		else {
 			curBalance.setVisibility(TextView.VISIBLE);
 			curBalance.setText(resources.getString(R.string.no_data));
+			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+				String str1 = new String();
+		        str1 += resources.getString(R.string.operation_card_number) + filterMap.get(TransactionData.CARD_NUMBER);
+		        filterInfo.setVisibility(TextView.VISIBLE);
+		        filterInfo.setText(str1);
+			}
+			else{
+				filterInfo.setText(null);
+				filterInfo.setVisibility(TextView.GONE);				
+			}
 		}
 		
 		transactionAdapter.notifyDataSetChanged();
 		Log.d("NATALIA!!! ", "updateTransactionList end ");
 	}
 
-	  @Override
-	  public void onDestroy() {
-		  if(isCreated){
-		    super.onDestroy();
-		    isCreated = false;  
-		    // Close the database
-		  }
-	  }
 
 	    @Override
 	    protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -783,25 +798,125 @@ public class SMSBankingActivity extends ListActivity{
 	    		}
 	    	}
 	    }
-		public class MyOnOperationSelectedListener implements OnItemSelectedListener {
 
-		    public void onItemSelected(AdapterView<?> parent,
-		        View view, int pos, long id) {
-		    	/*filterMap.remove(TransactionData.TRANSACTION_PLACE);
-		    	if (pos == 0){
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
-		    	} else if (pos == 1){
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
-		    	} else if (pos == 2) {
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
-	 	    	} else {
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
-	 	    	}*/
-		    }
+		class LoadTransactionData extends AsyncTask<Void, Void, Cursor>{
+			private MyDBAdapter myAdapter;
+			boolean openBD = false;
+			@Override
+			protected Cursor doInBackground(Void... params) {
+				// TODO Auto-generated method stub
+				String filterString = getSQLWhereFromFilter();
+				myAdapter = new MyDBAdapter(context);
+				myAdapter.open();
+				openBD = true;
+				Log.d("NATALIA!!! ", "doInBackground begin " + context);
+				
+				Cursor cursor = myAdapter.getTransactionWithFilter(filterString);
+				Log.d("NATALIA", "filter " + filterString + " cursor " + cursor.getCount());
+				startManagingCursor(cursor);
+				for (int i = 0; i <= 10000; i++);
 
-		    public void onNothingSelected(AdapterView parent) {
-		      // Do nothing.
-		    }
+				Log.d("NATALIA!!! ", "doInBackground end ");
+				
+				return cursor;
+			}
+			
+			@Override
+			protected void onCancelled(){
+				Log.d("NATALIA!!!", "onCancelled");
+				if (openBD)
+					myAdapter.close();				
+			}
+
+			@Override
+			protected void onPostExecute(Cursor cursor){
+				transactionAdapter = new TransactionAdapter(context, cursor);
+
+				setListAdapter(transactionAdapter);
+				updateTransactionList();
+				myAdapter.close();
+				Log.d("NATALIA!!! ", "Load data cursor " + transactionAdapter.getCursor().getCount());
+				//loadTask = null;
+			}
+
 		}
+		
+		class LoadCardDatas extends AsyncTask<String, Void, Cursor>{
+			private MyDBAdapter myDBAdapter;
+			private boolean selectAllCards;
 
+			@Override
+			protected void onPreExecute(){
+				cardAdapter.clear();
+			}
+			
+			@Override
+			protected Cursor doInBackground(String... params) {
+				// TODO Auto-generated method stub
+				myDBAdapter = new MyDBAdapter(context);
+				myDBAdapter.open();
+				
+				if (params[0].equals(""))
+					selectAllCards = true;
+				else
+					selectAllCards = false;
+				
+				Cursor cursor = myDBAdapter.selectCardsNumber(params[0]);
+				startManagingCursor(cursor);
+				
+				return cursor;
+			}
+			
+			@Override
+			protected void onPostExecute(Cursor cursor){
+				if (selectAllCards){
+					if (cursor.moveToFirst()){
+						cardAdapter.add(context.getResources().getString(R.string.all));
+						do{
+							cardAdapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+						} while (cursor.moveToNext());
+						cursor.close();
+					}
+					myDBAdapter.close();
+					cardAdapter.setNotifyOnChange(true);
+					showDialog(DIALOG_CARD_FILTER);
+				}else{
+					if (cursor.moveToFirst()){
+						if(cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
+							cardAliasString = new String (cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
+						else
+							cardAliasString = new String("");
+					}
+					else
+						cardAliasString = new String("");
+					myDBAdapter.close();
+					showDialog(DIALOG_CARD_DATA);
+					
+				}
+
+			}
+			
+		}
+		
+		class UpdateCardAlias extends AsyncTask<Void, Void, Boolean>{
+
+			@Override
+			protected Boolean doInBackground(Void... params) {
+				// TODO Auto-generated method stub
+				myDBAdapter = new MyDBAdapter(context);
+				myDBAdapter.open();
+				
+				Boolean result = myDBAdapter.updateCardAlias(cardAliasString, transactionData.getCardNumber());
+				myDBAdapter.close();
+
+				return result;
+			}
+			
+			@Override
+			protected void onPostExecute(Boolean result){
+				if (result.booleanValue() != true)
+					Toast.makeText(context, "Alias wasn't apdated!", 500).show();
+			}
+			
+		}
 }
