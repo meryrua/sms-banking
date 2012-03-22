@@ -6,6 +6,7 @@ import java.util.regex.*;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.util.Log;
 
 
@@ -19,10 +20,8 @@ public class SMSParcer {
 	
 	private List<String> tokenArray;
 	
-	private MyDBAdapter myDBAdapter;
 	private Cursor cursor;
 	private Context context;
-//	private static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s\\*(\\d+);\\sProvedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\sData:(\\d+/\\d+/\\d+);\\sMesto:\\s([[\\w\\-\\,\\.]+\\s*]+);\\sDostupny\\sOstatok:\\s(\\d+,\\d+)(\\w+).\\s(\\w+)";
 	public static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
 	public static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
@@ -127,7 +126,7 @@ public class SMSParcer {
 	
 	public boolean isMatch(){
 		Boolean isBankSMS = false;
-		myDBAdapter = new MyDBAdapter(context);
+		MyDBAdapter myDBAdapter = new MyDBAdapter(context);
 		myDBAdapter.open();
 		cursor = myDBAdapter.getOperationPattern();
 		if (cursor.moveToFirst()){
@@ -140,7 +139,8 @@ public class SMSParcer {
 		return isBankSMS;
 	}
 	
-	void setTranzactionData(TransactionData tranzactionData){
+	TransactionData getTransactionData(){
+		TransactionData tranzactionData =  new TransactionData();
 		if (operationName.equals(TransactionData.CARD_OPERATION)) {
 			tranzactionData.setCardNumber(matcherWithPattern.group(1));
 			tranzactionData.setTransactionValue(Float.valueOf(matcherWithPattern.group(2).replace(",", ".")).floatValue());
@@ -165,5 +165,30 @@ public class SMSParcer {
 			tranzactionData.setBankName(matcherWithPattern.group(7));
 			
 		}
+		return tranzactionData;
+
 	}
+
+	/**
+	 * I think it's wrong... cause I have to return result 
+	class CompareSMSWithPattern extends AsyncTask<String, Void, Boolean>{
+
+		@Override
+		protected Boolean doInBackground(String... params) {
+			Boolean isBankSMS = false;
+			MyDBAdapter myDBAdapter = new MyDBAdapter(context);
+			myDBAdapter.open();
+			cursor = myDBAdapter.getOperationPattern();
+			if (cursor.moveToFirst()){
+				do{
+					isBankSMS = (isCardOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.TRANSACTION_PATTERN_STRING))) || isIncomingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.INCOMING_OPERATION_PATTERN_STRING))) || isOutgoingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.OUTGOING_OPERATION_PATTERN_STRING))));
+				}while ((cursor.moveToNext()) && (!isBankSMS));
+			}
+			cursor.close();
+			myDBAdapter.close();
+			return isBankSMS;
+		}
+
+		
+	}*/
 }

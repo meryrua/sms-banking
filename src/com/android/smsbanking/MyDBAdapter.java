@@ -49,7 +49,8 @@ public class MyDBAdapter {
 	private static final String[] ALL_TRANSACTION_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
 		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY};
-	private static final String[] ALL_CARDS_NUMBER_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, CARD_ALIAS, TransactionData.BANK_NAME};
+	private static final String[] ALL_CARDS_NUMBER_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
+		TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY, CARD_ALIAS, TransactionData.BANK_NAME};
 
 	private Context context;
 	private DbHelper dbHelper;
@@ -210,6 +211,7 @@ public class MyDBAdapter {
 		}else{
 			balance += "0.00 RUB";
 		}
+		cursor.close();
 		return balance;
 	}
 	

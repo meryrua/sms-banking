@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
@@ -34,7 +35,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	private Notification notification;
 	
 	private SMSParcer smsParcer;// = new SMSParcer(); //One parcer 
-	private MyDBAdapter myDBAdapter;
+//	private MyDBAdapter myDBAdapter;
 	
 	private TransactionData transactionData;
 	Context myContext;
@@ -91,13 +92,17 @@ public class SMSReceiver extends BroadcastReceiver {
 			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only)))
 			        			abortBroadcast(); 
 			            	
-				        transactionData = new TransactionData();
-						smsParcer.setTranzactionData(transactionData);
-								            
-						myDBAdapter = new MyDBAdapter(context);
+				        //transactionData = new TransactionData();
+			        	//smsParcer.setTranzactionData(transactionData);
+			        	
+						transactionData = smsParcer.getTransactionData();	
+			        	new SaveTransaction().execute(transactionData);
+						
+						/*myDBAdapter = new MyDBAdapter(context);
 						myDBAdapter.open();
 						myDBAdapter.insertTransaction(transactionData);
 						myDBAdapter.close();
+						*/
 						
 						setSMSNotification(context, "New sms", transactionData); 		
 
@@ -111,13 +116,16 @@ public class SMSReceiver extends BroadcastReceiver {
 		            
 			 boolean matchSMS = smsParcer.isMatch();
 				          			            
-			 transactionData = new TransactionData();
-			 smsParcer.setTranzactionData(transactionData);
+			 //transactionData = new TransactionData();
+			 //smsParcer.setTranzactionData(transactionData);
+			 transactionData = smsParcer.getTransactionData();
+			 
+	         new SaveTransaction().execute(transactionData);
 				            
-			 myDBAdapter = new MyDBAdapter(context);
+			 /*myDBAdapter = new MyDBAdapter(context);
 			 myDBAdapter.open();
 			 myDBAdapter.insertTransaction(transactionData);
-			 myDBAdapter.close();
+			 myDBAdapter.close();*/
 			 
 			 setSMSNotification(context, "New sms", transactionData); 
 		}
@@ -158,4 +166,15 @@ public class SMSReceiver extends BroadcastReceiver {
 		intent.putExtra(TransactionData.TRANSACTION_PLACE, tranzactionData.getTransactionPlace());
 	}
 
+	class SaveTransaction extends AsyncTask<TransactionData, Void, Void>{
+		@Override
+		protected Void doInBackground(TransactionData... params) {
+			// TODO Auto-generated method stub
+			MyDBAdapter myDBAdapter = new MyDBAdapter(myContext);
+			myDBAdapter.open();
+			myDBAdapter.insertTransaction(params[0]);
+			myDBAdapter.close();
+			return null;
+		}
+	}
 }

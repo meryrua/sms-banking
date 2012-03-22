@@ -1,21 +1,17 @@
 package com.android.smsbanking;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,13 +36,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemSelectedListener;
-
 
 public class SMSBankingActivity extends ListActivity{
 	
@@ -56,11 +49,9 @@ public class SMSBankingActivity extends ListActivity{
 	private Button viewHistoryButton;
 	private Button checkSMSButton;*/
 	
-	private MyDBAdapter myDBAdapter;
+	//private MyDBAdapter myDBAdapter;
 	//private Cursor transactionCursor;
-	private ArrayList<TransactionData> transactionDatas;
 	private TransactionAdapter transactionAdapter;
-	private String filter;
 	private HashMap<String, String> filterMap;
 	private Resources resources;	
 	protected static ArrayAdapter<String> cardAdapter;
@@ -71,6 +62,7 @@ public class SMSBankingActivity extends ListActivity{
 	private Bundle bundle;
 	private Intent viewIntent;
 	private static boolean isChecked = false;
+	private String balanceValue;
 	
 	private IntentFilter updateIntentFilter;
 	private UpdateReceiver updateReceiver;
@@ -113,8 +105,6 @@ public class SMSBankingActivity extends ListActivity{
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	//It makes screen blinking 
-    	//isCreated = false;
 	    viewIntent = getIntent();
 		bundle = viewIntent.getExtras();
 		
@@ -164,7 +154,7 @@ public class SMSBankingActivity extends ListActivity{
     }
     
     private void prepareActivity(){
-        transactionDatas = new ArrayList<TransactionData>();
+        //transactionDatas = new ArrayList<TransactionData>();
         cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
 		
 		listView = getListView();
@@ -349,6 +339,11 @@ public class SMSBankingActivity extends ListActivity{
     protected void onStop(){
     	super.onStop();
      	Log.d("NATALIA!!! ", "onStop");
+		if ((loadTask != null) && (loadTask.getStatus() == AsyncTask.Status.RUNNING))
+		{
+			Log.d("NATALIA!!!", "cancel task onStop" + loadTask);
+			loadTask.cancel(true);
+		}
     	unregisterReceiver(updateReceiver);
     }
     
@@ -372,7 +367,6 @@ public class SMSBankingActivity extends ListActivity{
 	protected boolean onListItemLongClick(int pos, long id){
 		transactionData = new TransactionData((Cursor)getListAdapter().getItem(pos));
 		new LoadCardDatas().execute(transactionData.getCardNumber());
-//		showDialog(DIALOG_CARD_DATA);
 		return true;
 	}
 	
@@ -392,12 +386,7 @@ public class SMSBankingActivity extends ListActivity{
 			Log.d("NATALIA!!! ", "Dialog DIALOG_SMS_DETAIL create");
 			break;
 		case DIALOG_CARD_FILTER:
-			/*
-			cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
-			int selectedCard = getCardsNumber(cardAdapter);*/
 			AlertDialog.Builder cardFilterBuilder = new AlertDialog.Builder(this);
-			//setAdapter do not allow set default value
-			//cardAdapter.setNotifyOnChange(true);
 			cardFilterBuilder.setAdapter(cardAdapter, new DialogInterface.OnClickListener() {
 				
 				@Override
@@ -444,7 +433,6 @@ public class SMSBankingActivity extends ListActivity{
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
 					if (cardAliasString != null){
-						//addAliasCard();
 						new UpdateCardAlias().execute();
 					}
 				}
@@ -488,6 +476,7 @@ public class SMSBankingActivity extends ListActivity{
 					finish();
 				}
 			});
+			passwordDialogBuilder.setCancelable(false);
 			passwordDialogBuilder.setTitle(R.string.input_password);
 			alertDialog = passwordDialogBuilder.create();
 			break;
@@ -505,15 +494,6 @@ public class SMSBankingActivity extends ListActivity{
 		return alertDialog;
 	}
 
-	public void addAliasCard() {
-		// TODO Auto-generated method stub
-		myDBAdapter = new MyDBAdapter(context);
-		myDBAdapter.open();
-		
-		boolean result = myDBAdapter.updateCardAlias(cardAliasString, transactionData.getCardNumber());
-		myDBAdapter.close();
-	}
-	
 	private void passwordCheck(){
 		if (currentPassword.equals(passwordString)){
 			isChecked = true;
@@ -524,38 +504,6 @@ public class SMSBankingActivity extends ListActivity{
 			finish();
 		}
 	}
-	
-	/*private int getCardsNumber(ArrayAdapter<String> adapter){
-		int i = 0;
-		int j = 0;
-		myDBAdapter = new MyDBAdapter(context);
-		myDBAdapter.open();
-
-		Cursor transactionCursor = myDBAdapter.selectCardsNumber(null);
-		startManagingCursor(transactionCursor);		
-		
-		if (transactionCursor.moveToFirst()){
-			adapter.add(context.getResources().getString(R.string.all));
-			j++;
-			do{
-				if (filterMap.get(TransactionData.CARD_NUMBER) != null){
-					if (filterMap.get(TransactionData.CARD_NUMBER).equals(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER))))
-						i = j;
-				}
-				Log.d("NATALIA!!! ", " card " + transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
-				adapter.add(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
-				j++;
-			} while (transactionCursor.moveToNext());
-			transactionCursor.close();
-			myDBAdapter.close();
-			return i;
-		}
-		else {
-			myDBAdapter.close();
-			return 0;
-		}
-
-	}*/
 
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog){
@@ -582,10 +530,13 @@ public class SMSBankingActivity extends ListActivity{
 		        }else {
 		        	placeText.setText(resources.getString(R.string.operation_place) + " " + transactionData.getTransactionPlace());
 		        }
+		        int height = placeText.getMeasuredHeight();
+		        Log.d("NATALIA!!! ", "height " + height);
 
 		        TextView balanceText = (TextView) dialog.findViewById(R.id.balance);
 		        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
 		        balanceValue += transactionData.getFundCurrency();
+		        Log.d("NATALIA!!!", "balance " + balanceValue);
 		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
 				break;
 			case DIALOG_CARD_FILTER:
@@ -617,48 +568,6 @@ public class SMSBankingActivity extends ListActivity{
 					}
 				});
 				cardAlias.setText(cardAliasString);
-
-				/*
-				String cardNumberString;
-				String aliasString;
-				myDBAdapter = new MyDBAdapter(context);
-				myDBAdapter.open();
-
-				Cursor cardNumberCursor = myDBAdapter.selectCardsNumber(transactionData.getCardNumber());
-				startManagingCursor(cardNumberCursor);		
-				
-				if (cardNumberCursor.moveToFirst()){
-					if(cardNumberCursor.getString(cardNumberCursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
-						aliasString = new String (cardNumberCursor.getString(cardNumberCursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
-					else
-						aliasString = new String("");
-				}
-				else
-					aliasString = new String("");
-				cardNumberCursor.close();
-				myDBAdapter.close();
-				final EditText cardAlias = (EditText) dialog.findViewById(R.id.card_alias);
-				cardAlias.addTextChangedListener(new TextWatcher(){
-					@Override
-					public void afterTextChanged(Editable s) {
-						cardAliasString = new String (cardAlias.getText().toString());
-					}
-
-					@Override
-					public void beforeTextChanged(CharSequence arg0, int arg1,
-							int arg2, int arg3) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void onTextChanged(CharSequence s, int start,
-							int before, int count) {
-						// TODO Auto-generated method stub
-						
-					}
-				});
-				cardAlias.setText(aliasString);*/
 				break;
 			case DIALOG_PASSWORD_CHECKING:
 				TextView repeatPassword = (TextView) dialog.findViewById(R.id.repeat_password_field);
@@ -725,7 +634,7 @@ public class SMSBankingActivity extends ListActivity{
 			loadTask = new LoadTransactionData();
 			loadTask.execute();
 		}else{
-
+			Log.d("NATALIA!!!", "load new task");
 			loadTask = new LoadTransactionData();
 			loadTask.execute();
 		}
@@ -743,9 +652,10 @@ public class SMSBankingActivity extends ListActivity{
 			Log.d("NATALIA!!! ", "moveToFirst ");
 			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
 		        String str = new String();
-		        str += resources.getString(R.string.operation_balance) + " " +
+		        /*str += resources.getString(R.string.operation_balance) + " " +
 		        	transactionAdapter.getCursor().getFloat(transactionAdapter.getCursor().getColumnIndex(TransactionData.FUND_VALUE)) +
-		        	transactionAdapter.getCursor().getString(transactionAdapter.getCursor().getColumnIndex(TransactionData.FUND_CURRENCY));
+		        	transactionAdapter.getCursor().getString(transactionAdapter.getCursor().getColumnIndex(TransactionData.FUND_CURRENCY));*/
+		        str += resources.getString(R.string.operation_balance) + " " + balanceValue;
 		        curBalance.setVisibility(TextView.VISIBLE);
 		        curBalance.setText(str);
 		        String str1 = new String();
@@ -787,136 +697,161 @@ public class SMSBankingActivity extends ListActivity{
 	}
 
 
-	    @Override
-	    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-	    	if (requestCode == ID_FILTER_ACTIVITY){
-	    		if (data != null){
-	    			filterMap.clear();
-	    			filterMap.put(TransactionData.CARD_NUMBER, data.getStringExtra(TransactionData.CARD_NUMBER));
-	    			filterMap.put(TransactionData.TRANSACTION_PLACE, data.getStringExtra(TransactionData.TRANSACTION_PLACE));
-	    			showTransactionList();
-	    		}
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		if (requestCode == ID_FILTER_ACTIVITY){
+	    	if (data != null){
+	    		filterMap.clear();
+	    		filterMap.put(TransactionData.CARD_NUMBER, data.getStringExtra(TransactionData.CARD_NUMBER));
+	    		filterMap.put(TransactionData.TRANSACTION_PLACE, data.getStringExtra(TransactionData.TRANSACTION_PLACE));
+	    		showTransactionList();
 	    	}
 	    }
+	}
 
-		class LoadTransactionData extends AsyncTask<Void, Void, Cursor>{
-			private MyDBAdapter myAdapter;
-			boolean openBD = false;
-			@Override
-			protected Cursor doInBackground(Void... params) {
-				// TODO Auto-generated method stub
-				String filterString = getSQLWhereFromFilter();
-				myAdapter = new MyDBAdapter(context);
-				myAdapter.open();
-				openBD = true;
-				Log.d("NATALIA!!! ", "doInBackground begin " + context);
-				
-				Cursor cursor = myAdapter.getTransactionWithFilter(filterString);
-				Log.d("NATALIA", "filter " + filterString + " cursor " + cursor.getCount());
-				startManagingCursor(cursor);
-				for (int i = 0; i <= 10000; i++);
-
-				Log.d("NATALIA!!! ", "doInBackground end ");
-				
-				return cursor;
-			}
-			
-			@Override
-			protected void onCancelled(){
-				Log.d("NATALIA!!!", "onCancelled");
-				if (openBD)
-					myAdapter.close();				
-			}
-
-			@Override
-			protected void onPostExecute(Cursor cursor){
-				transactionAdapter = new TransactionAdapter(context, cursor);
-
-				setListAdapter(transactionAdapter);
-				updateTransactionList();
-				myAdapter.close();
-				Log.d("NATALIA!!! ", "Load data cursor " + transactionAdapter.getCursor().getCount());
-				//loadTask = null;
-			}
-
+	class LoadTransactionData extends AsyncTask<Void, Integer, Cursor>{
+		private MyDBAdapter myAdapter;
+        private ProgressDialog progressDialog  = new ProgressDialog(SMSBankingActivity.this);
+		boolean openBD = false;
+		
+		@Override
+		protected void onPreExecute(){
+			this.progressDialog.setCancelable(false);
+	        this.progressDialog.show();
 		}
 		
-		class LoadCardDatas extends AsyncTask<String, Void, Cursor>{
-			private MyDBAdapter myDBAdapter;
-			private boolean selectAllCards;
+		@Override
+		protected Cursor doInBackground(Void... params) {
+			// TODO Auto-generated method stub
+			String filterString = getSQLWhereFromFilter();
+			myAdapter = new MyDBAdapter(context);
+			myAdapter.open();
+			openBD = true;
+			
+			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+				balanceValue = myAdapter.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				
+			}
+			Log.d("NATALIA!!! ", "doInBackground begin " + context);
+				
+			Cursor cursor = myAdapter.getTransactionWithFilter(filterString);
+			Log.d("NATALIA", "filter " + filterString + " cursor " + cursor.getCount());
+			startManagingCursor(cursor);
+			for (int i = 0; i <= 10000000; i++);
 
-			@Override
-			protected void onPreExecute(){
-				cardAdapter.clear();
-			}
+			Log.d("NATALIA!!! ", "doInBackground end ");
+				
+			return cursor;
+		}
 			
-			@Override
-			protected Cursor doInBackground(String... params) {
-				// TODO Auto-generated method stub
-				myDBAdapter = new MyDBAdapter(context);
-				myDBAdapter.open();
-				
-				if (params[0].equals(""))
-					selectAllCards = true;
-				else
-					selectAllCards = false;
-				
-				Cursor cursor = myDBAdapter.selectCardsNumber(params[0]);
-				startManagingCursor(cursor);
-				
-				return cursor;
+		@Override
+		protected void onCancelled(){
+			Log.d("NATALIA!!!", "onCancelled");
+	        if (this.progressDialog.isShowing()) {
+	             this.progressDialog.dismiss();
+	        }
+			if (openBD){
+				myAdapter.close();
+				openBD = false;
 			}
+		}
+
+		@Override
+		protected void onPostExecute(Cursor cursor){
+			Log.d("NATALIA!!!", "onPostExecute openBD " + openBD);
+	        if (this.progressDialog.isShowing()) {
+	             this.progressDialog.dismiss();
+	        }
+			//if (openBD)
+			{
+			transactionAdapter = new TransactionAdapter(context, cursor);
+
+			setListAdapter(transactionAdapter);
+			updateTransactionList();
+			myAdapter.close();
+			Log.d("NATALIA!!! ", "Load data cursor " + transactionAdapter.getCursor().getCount());
+			//loadTask = null;
+			}
+		}
+
+	}
+		
+	class LoadCardDatas extends AsyncTask<String, Void, Cursor>{
+		private MyDBAdapter myDBAdapter;
+		private boolean selectAllCards;
+
+		@Override
+		protected void onPreExecute(){
+			cardAdapter.clear();
+		}
 			
-			@Override
-			protected void onPostExecute(Cursor cursor){
-				if (selectAllCards){
-					if (cursor.moveToFirst()){
-						cardAdapter.add(context.getResources().getString(R.string.all));
-						do{
-							cardAdapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
-						} while (cursor.moveToNext());
-						cursor.close();
-					}
-					myDBAdapter.close();
-					cardAdapter.setNotifyOnChange(true);
-					showDialog(DIALOG_CARD_FILTER);
-				}else{
-					if (cursor.moveToFirst()){
-						if(cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
-							cardAliasString = new String (cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
-						else
-							cardAliasString = new String("");
-					}
+		@Override
+		protected Cursor doInBackground(String... params) {
+			// TODO Auto-generated method stub
+			myDBAdapter = new MyDBAdapter(context);
+			myDBAdapter.open();
+				
+			if (params[0].equals(""))
+				selectAllCards = true;
+			else
+				selectAllCards = false;
+				
+			Cursor cursor = myDBAdapter.selectCardsNumber(params[0]);
+			startManagingCursor(cursor);
+				
+			return cursor;
+		}
+			
+		@Override
+		protected void onPostExecute(Cursor cursor){
+			if (selectAllCards){
+				if (cursor.moveToFirst()){
+					cardAdapter.add(context.getResources().getString(R.string.all));
+					do{
+						cardAdapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+					} while (cursor.moveToNext());
+					cursor.close();
+				}
+				myDBAdapter.close();
+				cardAdapter.setNotifyOnChange(true);
+				showDialog(DIALOG_CARD_FILTER);
+			}else{
+				if (cursor.moveToFirst()){
+					if(cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
+						cardAliasString = new String (cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
 					else
 						cardAliasString = new String("");
-					myDBAdapter.close();
-					showDialog(DIALOG_CARD_DATA);
-					
 				}
-
-			}
-			
-		}
-		
-		class UpdateCardAlias extends AsyncTask<Void, Void, Boolean>{
-
-			@Override
-			protected Boolean doInBackground(Void... params) {
-				// TODO Auto-generated method stub
-				myDBAdapter = new MyDBAdapter(context);
-				myDBAdapter.open();
-				
-				Boolean result = myDBAdapter.updateCardAlias(cardAliasString, transactionData.getCardNumber());
+				else
+					cardAliasString = new String("");
 				myDBAdapter.close();
+				showDialog(DIALOG_CARD_DATA);
+					
+			}
 
-				return result;
-			}
-			
-			@Override
-			protected void onPostExecute(Boolean result){
-				if (result.booleanValue() != true)
-					Toast.makeText(context, "Alias wasn't apdated!", 500).show();
-			}
-			
 		}
+			
+	}
+		
+	class UpdateCardAlias extends AsyncTask<Void, Void, Boolean>{
+		private MyDBAdapter myDBAdapter;
+		@Override
+		protected Boolean doInBackground(Void... params) {
+			// TODO Auto-generated method stub
+			myDBAdapter = new MyDBAdapter(context);
+			myDBAdapter.open();
+				
+			Boolean result = myDBAdapter.updateCardAlias(cardAliasString, transactionData.getCardNumber());
+			myDBAdapter.close();
+
+			return result;
+		}
+			
+		@Override
+		protected void onPostExecute(Boolean result){
+			if (result.booleanValue() != true)
+				Toast.makeText(context, "Alias wasn't apdated!", 500).show();
+		}
+			
+	}
 }
