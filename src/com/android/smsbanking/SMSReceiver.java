@@ -78,7 +78,7 @@ public class SMSReceiver extends BroadcastReceiver {
 				            messageForParcing += msgs[i].getMessageBody().toString();
 			        }
 			         
-			        smsParcer = new SMSParcer(messageForParcing, context);
+			        smsParcer = new SMSParcer(messageForParcing, myContext);
 			        boolean matchSMS = smsParcer.isMatch();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
@@ -104,10 +104,10 @@ public class SMSReceiver extends BroadcastReceiver {
 						myDBAdapter.close();
 						*/
 						
-						setSMSNotification(context, "New sms", transactionData); 		
+						setSMSNotification(myContext, "New sms", transactionData); 		
 
-						Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-						context.sendBroadcast(updateIntent);
+						//Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+						//context.sendBroadcast(updateIntent);
 			        }
 	                }
 		        }		 
@@ -166,15 +166,21 @@ public class SMSReceiver extends BroadcastReceiver {
 		intent.putExtra(TransactionData.TRANSACTION_PLACE, tranzactionData.getTransactionPlace());
 	}
 
-	class SaveTransaction extends AsyncTask<TransactionData, Void, Void>{
+	class SaveTransaction extends AsyncTask<TransactionData, Void, Boolean>{
 		@Override
-		protected Void doInBackground(TransactionData... params) {
+		protected Boolean doInBackground(TransactionData... params) {
 			// TODO Auto-generated method stub
 			MyDBAdapter myDBAdapter = new MyDBAdapter(myContext);
 			myDBAdapter.open();
 			myDBAdapter.insertTransaction(params[0]);
 			myDBAdapter.close();
-			return null;
+			return true;
+		}
+		
+		@Override
+		protected void onPostExecute(Boolean result){
+			Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+			myContext.sendBroadcast(updateIntent);
 		}
 	}
 }

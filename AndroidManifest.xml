@@ -18,8 +18,9 @@
             </intent-filter>
         </activity>
         
-       <activity android:name=".SMSDetailActivity"
-                 android:label="@string/filters_screen_name" >
+       <activity android:name=".SMSDetail"
+       			 android:theme="@android:style/Theme.Dialog"
+                 android:label="@string/detail_info" >
        </activity>
        
        <activity android:name=".DataFilterActivity"

@@ -118,6 +118,7 @@ public class MyDBAdapter {
 		transactionData.setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
 		transactionData.setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
 		transactionData.setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
+		transactionData.setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
 		
 		return transactionData;
 	}

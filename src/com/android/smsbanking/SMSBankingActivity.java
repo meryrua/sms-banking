@@ -173,7 +173,11 @@ public class SMSBankingActivity extends ListActivity{
 			if (viewIntent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)){
 				Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
 				transactionData = new TransactionData(bundle);
-				showDialog(DIALOG_SMS_DETAIL);
+				//showDialog(DIALOG_SMS_DETAIL);
+				Intent detailIntent = new Intent();
+				detailIntent.setClass(context, SMSDetail.class);
+				transactionData.fillIntent(detailIntent);
+				startActivity(detailIntent);
 			}
 		}
 		Log.d("NATALIA!!! ", "bundle after");
@@ -361,7 +365,11 @@ public class SMSBankingActivity extends ListActivity{
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData =  new TransactionData((Cursor)getListAdapter().getItem(position));
-		showDialog(DIALOG_SMS_DETAIL);
+		//showDialog(DIALOG_SMS_DETAIL);
+		Intent detailIntent = new Intent();
+		detailIntent.setClass(context, SMSDetail.class);
+		transactionData.fillIntent(detailIntent);
+		startActivity(detailIntent);
  	}
 	
 	protected boolean onListItemLongClick(int pos, long id){
@@ -737,7 +745,7 @@ public class SMSBankingActivity extends ListActivity{
 			Cursor cursor = myAdapter.getTransactionWithFilter(filterString);
 			Log.d("NATALIA", "filter " + filterString + " cursor " + cursor.getCount());
 			startManagingCursor(cursor);
-			for (int i = 0; i <= 10000000; i++);
+			//for (int i = 0; i <= 10000000; i++);
 
 			Log.d("NATALIA!!! ", "doInBackground end ");
 				

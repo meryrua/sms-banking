@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
@@ -61,12 +62,13 @@ public class TransactionData {
 		setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
 		setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
 		setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
+		//setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
 	}
 	
 	TransactionData(Bundle extras){
 	   	setTransactionValue(extras.getFloat(TransactionData.TRANSACTION_VALUE, 0));
        	setFundValue(extras.getFloat(TransactionData.FUND_VALUE, 0));
-       	setBankName(extras.getString(TransactionData.BANK_NAME));
+       	//setBankName(extras.getString(TransactionData.BANK_NAME));
        	setCardNumber(extras.getString(TransactionData.CARD_NUMBER));
        	setFundCurrency(extras.getString(TransactionData.FUND_CURRENCY));
        	setTransactionCurrency(extras.getString(TransactionData.TRANSACTION_CURRENCY));
@@ -136,6 +138,17 @@ public class TransactionData {
 	
 	public float getFundValue(){
 		return fundValue;
+	}
+	
+	public void fillIntent(Intent intent){
+		intent.putExtra(TransactionData.TRANSACTION_VALUE, getTransactionValue());
+		intent.putExtra(TransactionData.FUND_VALUE, getFundValue());
+		//intent.putExtra(TransactionData.BANK_NAME, getBankName());
+		intent.putExtra(TransactionData.CARD_NUMBER, getCardNumber());
+		intent.putExtra(TransactionData.FUND_CURRENCY, getFundCurrency());
+		intent.putExtra(TransactionData.TRANSACTION_CURRENCY, getTransactionCurrency());
+		intent.putExtra(TransactionData.TRANSACTION_DATE, getTransactionDate());
+		intent.putExtra(TransactionData.TRANSACTION_PLACE, getTransactionPlace());
 	}
 
 }

@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   	android:orientation="vertical"
   	android:layout_width="fill_parent"
-  	android:layout_height="fill_parent"
+  	android:layout_height="wrap_content"
     android:background="#eeeeee"
     android:colorBackground="#eeeeee"
     android:id="@+id/sms_detail_layout"
@@ -11,38 +11,30 @@
 <TextView android:id="@+id/card_number"
   	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
-  	android:text="Card number:*"
   	android:textSize="20sp" 
   	android:textColor="#000000"  	/>
 
 <TextView android:id="@+id/date"
 	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
-  	android:text="Date:"
   	android:textSize="20sp" 
   	android:textColor="#000000"  	/>
   	
 <TextView android:id="@+id/amount"
  	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
-  	android:text="Amount:"
+  	android:textSize="20sp" 
+ 	android:textColor="#000000"  	/>
+
+<TextView android:id="@+id/balance"
+  	android:layout_width="fill_parent"
+  	android:layout_height="wrap_content"
   	android:textSize="20sp" 
   	android:textColor="#000000"  	/>
   	
 <TextView android:id="@+id/place"
   	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
-  	android:text="Place:"
   	android:textSize="20sp" 
   	android:textColor="#000000"  	/>
-
-<TextView android:id="@+id/balance"
-  	android:layout_width="wrap_content"
-  	android:layout_height="wrap_content"
-   	android:text="Balance:"
-  	android:textSize="20sp" 
-  	android:textColor="#000000"  	/>
-  	  	  	
-
-    
 </LinearLayout>
