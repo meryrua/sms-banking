@@ -267,7 +267,7 @@ public class SMSBankingActivity extends ListActivity{
     public boolean onCreateOptionsMenu(Menu menu){
     	menu.add(Menu.NONE, IDM_PREFERENCES, Menu.NONE, resources.getString(R.string.settings));
     	menu.add(Menu.NONE, IDM_CARD_FILTER, Menu.NONE, resources.getString(R.string.card_filter));
-    	menu.add(Menu.NONE, IDM_TEST, Menu.NONE, "Test");
+    	//menu.add(Menu.NONE, IDM_TEST, Menu.NONE, "Test");
     	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_CARD_OPERATION, Menu.NONE, resources.getString(R.string.card_operations));
@@ -290,12 +290,12 @@ public class SMSBankingActivity extends ListActivity{
     		//showDialog(DIALOG_CARD_FILTER);  
     		new LoadCardDatas().execute("");
     		return true;
-       	case IDM_TEST:
+       	/*case IDM_TEST:
        		Intent intent = new Intent();
        		intent.setClass(context, TestActivity.class);
        		startActivity(intent);
     		//showDialog(DIALOG_CARD_FILTER);  
-    		return true;
+    		return true;*/
     	case IDM_OPERATION_FILTER_ALL_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
     		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
@@ -845,8 +845,10 @@ public class SMSBankingActivity extends ListActivity{
 			
 		@Override
 		protected void onPostExecute(Cursor cursor){
+			boolean cardsExist = false;
 			if (selectAllCards){
 				if (cursor.moveToFirst()){
+					cardsExist = true;
 					cardAdapter.add(context.getResources().getString(R.string.all));
 					do{
 						cardAdapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
@@ -855,7 +857,10 @@ public class SMSBankingActivity extends ListActivity{
 				}
 				myDBAdapter.close();
 				cardAdapter.setNotifyOnChange(true);
-				showDialog(DIALOG_CARD_FILTER);
+				if (cardsExist)
+					showDialog(DIALOG_CARD_FILTER);
+				else
+					Toast.makeText(context, resources.getText(R.string.no_data), 500).show();
 			}else{
 				if (cursor.moveToFirst()){
 					if(cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
