@@ -45,5 +45,6 @@
 	<string name="set_password">Задать пароль</string>      
 	<string name="repeat_password">Повторите пароль</string>   
 	<string name="settings">Настройки</string>    
-	<string name="checking">Проверка</string>                
+	<string name="checking">Проверка</string>            
+	<string name="loading">Загрузка данных...</string>     
 </resources>

@@ -48,6 +48,7 @@
 	<string name="repeat_password">Repeat password</string>
 	<string name="settings">Settings</string>
 	<string name="checking">Check</string> 
+	<string name="loading">Loading data...</string> 
 			
 	<string name="using_password">using_password</string>
 	<string name="sms_processing">sms_processing</string>

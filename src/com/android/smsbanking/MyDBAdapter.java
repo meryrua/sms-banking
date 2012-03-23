@@ -28,13 +28,13 @@ public class MyDBAdapter {
 		" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 		TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " + 
 		TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
-		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
+		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
 	
 	private static final String CREATE_TRANSACTION_TABLE_HELP = "create table " + TRANSACTION_TABLE_NAME +"_help" + 
 	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 	TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " + 
 	TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
-	TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT);";
+	TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
 	
 	private static final String CREATE_CARD_TABLE = "create table " + CARD_TABLE_NAME + 
 	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
@@ -48,7 +48,7 @@ public class MyDBAdapter {
 	
 	private static final String[] ALL_TRANSACTION_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
-		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY};
+		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY, TransactionData.BANK_NAME};
 	private static final String[] ALL_CARDS_NUMBER_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY, CARD_ALIAS, TransactionData.BANK_NAME};
 
@@ -101,6 +101,7 @@ public class MyDBAdapter {
 		cv.put(TransactionData.TRANSACTION_CURRENCY, transactionData.getTransactionCurrency());
 		cv.put(TransactionData.FUND_VALUE, Float.valueOf(transactionData.getFundValue()));
 		cv.put(TransactionData.FUND_CURRENCY, transactionData.getFundCurrency());
+		cv.put(TransactionData.BANK_NAME, transactionData.getBankName());
 		rowIndex = db.insert(TRANSACTION_TABLE_NAME, null, cv);
 		if (rowIndex <= 0)
 			 Log.d("NATALIA!!!", "Error");

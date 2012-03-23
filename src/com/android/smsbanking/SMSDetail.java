@@ -25,10 +25,8 @@ public class SMSDetail extends Activity{
         resources = context.getResources();
         
         Bundle extras = getIntent().getExtras();
-        TransactionData transactionData = getBundleExtra(extras);
+        TransactionData transactionData =  new TransactionData(extras);
         
-		//LayoutInflater inflaterSMSDetail = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-		//View layoutSMSDetail = inflaterSMSDetail.inflate(R.layout.sms_detail, (ViewGroup) findViewById(R.id.sms_detail_layout));
         View layoutSMSDetail = (View) findViewById(R.id.sms_detail_layout);
 		layoutSMSDetail.setOnClickListener(new OnClickListener(){
 
@@ -70,19 +68,4 @@ public class SMSDetail extends Activity{
         balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
         //balanceText.append(balanceValue);
 	}
-
-    private TransactionData getBundleExtra(Bundle extras){
-    	TransactionData transactionData = new TransactionData();
-    	transactionData.setTransactionValue(extras.getFloat(TransactionData.TRANSACTION_VALUE, 0));
-    	transactionData.setFundValue(extras.getFloat(TransactionData.FUND_VALUE, 0));
-    	//transactionData.setBankName(extras.getString(TransactionData.BANK_NAME));
-    	transactionData.setCardNumber(extras.getString(TransactionData.CARD_NUMBER));
-    	transactionData.setFundCurrency(extras.getString(TransactionData.FUND_CURRENCY));
-    	transactionData.setTransactionCurrency(extras.getString(TransactionData.TRANSACTION_CURRENCY));
-    	transactionData.setTransactionDate(extras.getString(TransactionData.TRANSACTION_DATE));
-    	transactionData.setTransactionPlace(extras.getString(TransactionData.TRANSACTION_PLACE));
-       	return transactionData;
-    }
-    
-
 }

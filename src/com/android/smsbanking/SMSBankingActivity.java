@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -21,6 +22,8 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -78,11 +81,13 @@ public class SMSBankingActivity extends ListActivity{
 	private static final int IDM_OPERATION_FILTER_CARD_OPERATION = 1032;
 	private static final int IDM_OPERATION_FILTER_INCOMING_OPERATION = 1033;
 	private static final int IDM_OPERATION_FILTER_OUTGOING_OPERATION = 1034;
+	private static final int IDM_TEST = 104;
 	private static final int DIALOG_SMS_DETAIL = 0;	
 	private static final int DIALOG_CARD_FILTER = 1;	
 	private static final int DIALOG_CARD_DATA = 2;
 	private static final int DIALOG_PASSWORD_CHECKING = 3;
 	private static final int DIALOG_WRONG_PASSWORD = 4;
+	private static final int DIALOG_LOADING = 5;
 	
 	public static final String UPDATE_TRANSACTION_LIST_INTENT = "com.android.smsbanking.UPDATE_TRANSACTION_LIST";
 	public static final String VIEW_TRANSACTION_DETAIL_INTENT = "com.android.smsbanking.VIEW_TRANSACTION_DETAIL";
@@ -199,7 +204,11 @@ public class SMSBankingActivity extends ListActivity{
 				if(intent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)){
 					transactionData = new TransactionData(intent.getExtras());
 			    	Log.d("NATALIA!!! ", "showDialog " + intent.getAction() + intent.getExtras());
-					showDialog(DIALOG_SMS_DETAIL);
+					//showDialog(DIALOG_SMS_DETAIL);
+					Intent detailIntent = new Intent();
+					detailIntent.setClass(context, SMSDetail.class);
+					transactionData.fillIntent(detailIntent);
+					startActivity(detailIntent);
 				}
     	}
    	
@@ -258,6 +267,7 @@ public class SMSBankingActivity extends ListActivity{
     public boolean onCreateOptionsMenu(Menu menu){
     	menu.add(Menu.NONE, IDM_PREFERENCES, Menu.NONE, resources.getString(R.string.settings));
     	menu.add(Menu.NONE, IDM_CARD_FILTER, Menu.NONE, resources.getString(R.string.card_filter));
+    	menu.add(Menu.NONE, IDM_TEST, Menu.NONE, "Test");
     	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_CARD_OPERATION, Menu.NONE, resources.getString(R.string.card_operations));
@@ -279,6 +289,12 @@ public class SMSBankingActivity extends ListActivity{
     	case IDM_CARD_FILTER:
     		//showDialog(DIALOG_CARD_FILTER);  
     		new LoadCardDatas().execute("");
+    		return true;
+       	case IDM_TEST:
+       		Intent intent = new Intent();
+       		intent.setClass(context, TestActivity.class);
+       		startActivity(intent);
+    		//showDialog(DIALOG_CARD_FILTER);  
     		return true;
     	case IDM_OPERATION_FILTER_ALL_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
@@ -392,6 +408,16 @@ public class SMSBankingActivity extends ListActivity{
 			smsDetailDialogBuilder.setView(layoutSMSDetail);
 			alertDialog = smsDetailDialogBuilder.create();
 			Log.d("NATALIA!!! ", "Dialog DIALOG_SMS_DETAIL create");
+			break;
+		case DIALOG_LOADING:
+			AlertDialog.Builder loadingDialogBuilder;
+			
+			LayoutInflater inflaterLoading = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layoutLoading = inflaterLoading.inflate(R.layout.my_progress, (ViewGroup) findViewById(R.id.my_progress_layout));
+			
+			loadingDialogBuilder = new AlertDialog.Builder(this);
+			loadingDialogBuilder.setView(layoutLoading);
+			alertDialog = loadingDialogBuilder.create();
 			break;
 		case DIALOG_CARD_FILTER:
 			AlertDialog.Builder cardFilterBuilder = new AlertDialog.Builder(this);
@@ -547,6 +573,9 @@ public class SMSBankingActivity extends ListActivity{
 		        Log.d("NATALIA!!!", "balance " + balanceValue);
 		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
 				break;
+			/*case DIALOG_LOADING:
+
+				break;*/
 			case DIALOG_CARD_FILTER:
 				/*
 				cardAdapter.clear();
@@ -725,7 +754,9 @@ public class SMSBankingActivity extends ListActivity{
 		@Override
 		protected void onPreExecute(){
 			this.progressDialog.setCancelable(false);
+			this.progressDialog.setMessage(resources.getText(R.string.loading));
 	        this.progressDialog.show();
+			//showDialog(DIALOG_LOADING);
 		}
 		
 		@Override
@@ -758,6 +789,7 @@ public class SMSBankingActivity extends ListActivity{
 	        if (this.progressDialog.isShowing()) {
 	             this.progressDialog.dismiss();
 	        }
+			//dismissDialog(DIALOG_LOADING);
 			if (openBD){
 				myAdapter.close();
 				openBD = false;
@@ -770,6 +802,7 @@ public class SMSBankingActivity extends ListActivity{
 	        if (this.progressDialog.isShowing()) {
 	             this.progressDialog.dismiss();
 	        }
+			//dismissDialog(DIALOG_LOADING);
 			//if (openBD)
 			{
 			transactionAdapter = new TransactionAdapter(context, cursor);

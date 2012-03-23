@@ -62,13 +62,13 @@ public class TransactionData {
 		setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
 		setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
 		setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
-		//setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
+		setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
 	}
 	
 	TransactionData(Bundle extras){
 	   	setTransactionValue(extras.getFloat(TransactionData.TRANSACTION_VALUE, 0));
        	setFundValue(extras.getFloat(TransactionData.FUND_VALUE, 0));
-       	//setBankName(extras.getString(TransactionData.BANK_NAME));
+       	setBankName(extras.getString(TransactionData.BANK_NAME));
        	setCardNumber(extras.getString(TransactionData.CARD_NUMBER));
        	setFundCurrency(extras.getString(TransactionData.FUND_CURRENCY));
        	setTransactionCurrency(extras.getString(TransactionData.TRANSACTION_CURRENCY));
@@ -77,7 +77,8 @@ public class TransactionData {
 	}
 	
 	public void setCardNumber(String number){
-		cardNumber = new String(number);
+		if (number != null)
+			cardNumber = new String(number);
 	}
 	
 	public String getCardNumber(){
@@ -85,7 +86,8 @@ public class TransactionData {
 	}
 
 	public void setTransactionDate(String date){
-		transactionDate = new String(date);
+		if (date != null)
+			transactionDate = new String(date);
 	}
 	
 	public String getTransactionDate(){
@@ -93,7 +95,8 @@ public class TransactionData {
 	}
 
 	public void setTransactionPlace(String place){
-		transactionPlace = new String(place);
+		if (place != null)
+			transactionPlace = new String(place);
 	}
 	
 	public String getTransactionPlace(){
@@ -101,7 +104,8 @@ public class TransactionData {
 	}
 
 	public void setTransactionCurrency(String currency){
-		transactionCurrency = new String(currency);
+		if (currency != null)
+			transactionCurrency = new String(currency);
 	}
 	
 	public String getTransactionCurrency(){
@@ -109,7 +113,8 @@ public class TransactionData {
 	}
 
 	public void setFundCurrency(String currency){
-		fundCurrency = new String(currency);
+		if (currency != null)
+			fundCurrency = new String(currency);
 	}
 	
 	public String getFundCurrency(){
@@ -117,7 +122,8 @@ public class TransactionData {
 	}
 
 	public void setBankName(String name){
-		bankName = new String(name);
+		if (name != null)
+			bankName = new String(name);
 	}
 	
 	public String getBankName(){
@@ -143,7 +149,7 @@ public class TransactionData {
 	public void fillIntent(Intent intent){
 		intent.putExtra(TransactionData.TRANSACTION_VALUE, getTransactionValue());
 		intent.putExtra(TransactionData.FUND_VALUE, getFundValue());
-		//intent.putExtra(TransactionData.BANK_NAME, getBankName());
+		intent.putExtra(TransactionData.BANK_NAME, getBankName());
 		intent.putExtra(TransactionData.CARD_NUMBER, getCardNumber());
 		intent.putExtra(TransactionData.FUND_CURRENCY, getFundCurrency());
 		intent.putExtra(TransactionData.TRANSACTION_CURRENCY, getTransactionCurrency());
