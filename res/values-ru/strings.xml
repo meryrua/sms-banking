@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, SMSBankingActivity!</string>
+    <string name="app_name">Счетовед</string>
     <string name="sms_process">Обработка SMS</string>
     <string name="set_filters">Фильтры</string>
     <string name="application_only">Обработка SMS только в приложении</string>
@@ -33,7 +34,8 @@
     <string name="notification_string">Новая SMS от Банка. Баланс:</string>        
     <string name="detail_info">Информация об операции</string>  
     <string name="filters_screen_name">Установить фильтры для отображения</string>  
-	<string name="no_data">Нет данных</string>                
+	<string name="no_data">Нет данных</string>  
+	<string name="no_data_info">Нет SMS от банка</string>      
 	<string name="save">Сохранить</string>     
 	<string name="card_description">Пояснение к карте</string>    
 	<string name="input_password">Ввведите пароль</string>  
@@ -46,5 +48,6 @@
 	<string name="repeat_password">Повторите пароль</string>   
 	<string name="settings">Настройки</string>    
 	<string name="checking">Проверка</string>            
-	<string name="loading">Загрузка данных...</string>     
+	<string name="loading">Загрузка данных...</string>   
+	<string name="choose_sms">Выберите SMS для создания шаблона</string> 
 </resources>
