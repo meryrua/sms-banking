@@ -81,7 +81,10 @@ public class SMSReceiver extends BroadcastReceiver {
 			        }
 			         
 			        smsParcer = new SMSParcer(messageForParcing, myContext);
-			        boolean matchSMS = smsParcer.isMatch();
+					MyDBAdapter myDBAdapter = new MyDBAdapter(context);
+					myDBAdapter.openToRead();
+					boolean matchSMS = smsParcer.isMatch(myDBAdapter);
+					myDBAdapter.close();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
 			        //Log.d("NATALIA!!! ", "match " + matchSMS);
@@ -115,8 +118,10 @@ public class SMSReceiver extends BroadcastReceiver {
 		        }		 
 		 }
 		 else if (intent.getAction().equals(SEND_SMS_ACTION)) {
-		            
-			 boolean matchSMS = smsParcer.isMatch();
+			MyDBAdapter myDBAdapter = new MyDBAdapter(context);
+			myDBAdapter.openToRead();
+			boolean matchSMS = smsParcer.isMatch(myDBAdapter);
+			myDBAdapter.close();	            
 				          			            
 			 //transactionData = new TransactionData();
 			 //smsParcer.setTranzactionData(transactionData);

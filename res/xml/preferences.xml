@@ -10,7 +10,7 @@
   		android:key="@string/sms_processing"
   		android:entries="@array/array_for_sms_processing"
   		android:entryValues="@array/array_for_sms_processing"
-  		android:defaultValue="@string/application_only">
+  		android:defaultValue="@string/normal_processing">
   	</ListPreference>
   	
   </PreferenceCategory>

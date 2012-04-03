@@ -50,4 +50,9 @@
 	<string name="checking">Проверка</string>            
 	<string name="loading">Загрузка данных...</string>   
 	<string name="choose_sms">Выберите SMS для создания шаблона</string> 
+	<string name="delete_data">Удалить данные</string>
+	<string name="load_from_sms">Загрузить данные из SMS после удаления данных?</string>
+	<string name="first_data_load">Приложение запущено первый раз. Загрузить данные из SMS (Входящие)?</string>
+	<string name="loading_sms">Загрузка данных из SMS...</string> 
+	<string name="data_not_loaded">Данные из SMS не были загружены...</string>   
 </resources>

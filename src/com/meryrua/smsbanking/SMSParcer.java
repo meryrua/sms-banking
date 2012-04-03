@@ -6,6 +6,7 @@ import java.util.regex.*;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -124,12 +125,10 @@ public class SMSParcer {
 	}
 
 	
-	public boolean isMatch(){
-		Boolean isBankSMS = false;
-		MyDBAdapter myDBAdapter = new MyDBAdapter(context);
-		myDBAdapter.open();
+	public boolean isMatch(MyDBAdapter myDBAdapter){
+		boolean isBankSMS = false;
 		Log.d("NATALIA123", "Open DB SMSParcer isMatch");
-		
+			
 		cursor = myDBAdapter.getOperationPattern();
 		if (cursor.moveToFirst()){
 			do{
@@ -138,7 +137,7 @@ public class SMSParcer {
 		}
 		cursor.close();
 		Log.d("NATALIA123", "Close DB SMSParcer isMatch");
-		myDBAdapter.close();
+
 		return isBankSMS;
 	}
 	

@@ -55,6 +55,7 @@ public class MyDBAdapter {
 	private Context context;
 	private DbHelper dbHelper;
 	private SQLiteDatabase db;
+	private boolean databaseOpened = false;
 	
 	public static final String FILTER_VALUE = "filter_value";
 	
@@ -64,20 +65,29 @@ public class MyDBAdapter {
 		}
 	
 	//нужен флаг, что база будет открыта только на чтение???
-	public MyDBAdapter open() throws SQLiteException {
+	public MyDBAdapter open() {
 		try{
 			db = dbHelper.getWritableDatabase();
+			databaseOpened = true;
 		}
 		catch (SQLiteException ex){
-			db = dbHelper.getReadableDatabase();			
+			db = dbHelper.getReadableDatabase();
+			databaseOpened = true;
 		}
 		Log.d("NATALIA111", "open DB " + db);
+		return this;
+	}
+	
+	public MyDBAdapter openToRead() throws SQLiteException{
+		db = dbHelper.getReadableDatabase();	
+		databaseOpened = true;
 		return this;
 	}
 	
 	public void close(){
 		Log.d("NATALIA111", "close DB " + db);
 		db.close();
+		databaseOpened = false;
 	}
 	
 	public void insertTransaction(TransactionData transactionData){
@@ -109,6 +119,22 @@ public class MyDBAdapter {
 			 Log.d("NATALIA!!!", "Error");
 		
 		return rowIndex;
+	}
+	
+	public void beginDatabaseTranzaction(){
+		db.beginTransaction();
+	}
+	
+	public void endDatabaseTranzaction(){
+		db.endTransaction();
+	}
+	
+	public void setSuccesfullTranzaction(){
+		db.setTransactionSuccessful();
+	}
+	
+	public boolean isDatabaseOpen(){
+		return databaseOpened;
 	}
 	
 	public TransactionData getTransactionFromCursor(Cursor transactionCursor){
