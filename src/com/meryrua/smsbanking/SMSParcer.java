@@ -130,12 +130,13 @@ public class SMSParcer {
 		Log.d("NATALIA123", "Open DB SMSParcer isMatch");
 			
 		cursor = myDBAdapter.getOperationPattern();
-		if (cursor.moveToFirst()){
+		if ((cursor != null) && (cursor.moveToFirst())){
 			do{
 				isBankSMS = (isCardOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.TRANSACTION_PATTERN_STRING))) || isIncomingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.INCOMING_OPERATION_PATTERN_STRING))) || isOutgoingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.OUTGOING_OPERATION_PATTERN_STRING))));
 			}while ((cursor.moveToNext()) && (!isBankSMS));
+			cursor.close();
 		}
-		cursor.close();
+
 		Log.d("NATALIA123", "Close DB SMSParcer isMatch");
 
 		return isBankSMS;

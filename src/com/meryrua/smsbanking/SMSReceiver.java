@@ -177,20 +177,23 @@ public class SMSReceiver extends BroadcastReceiver {
 		@Override
 		protected Boolean doInBackground(TransactionData... params) {
 			// TODO Auto-generated method stub
+			boolean result = false;
 			MyDBAdapter myDBAdapter = new MyDBAdapter(myContext);
 			myDBAdapter.open();
 			Log.d("NATALIA123", "Open DB SaveTransaction doInBackground");
-			myDBAdapter.insertTransaction(params[0]);
+			result = myDBAdapter.insertTransaction(params[0]);
 			Log.d("NATALIA123", "Close DB SaveTransaction doInBackground");
 			myDBAdapter.close();
-			return true;
+			return result;
 		}
 		
 		@Override
 		protected void onPostExecute(Boolean result){
 			//LocalBroadcastManager.getInstance(myContext);
-			Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-			myContext.sendBroadcast(updateIntent);
+			if (result){
+				Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+				myContext.sendBroadcast(updateIntent);
+			}
 		}
 	}
 }

@@ -71,66 +71,84 @@ public class MyDBAdapter {
 			databaseOpened = true;
 		}
 		catch (SQLiteException ex){
-			db = dbHelper.getReadableDatabase();
-			databaseOpened = true;
+			try{
+				db = dbHelper.getReadableDatabase();
+				databaseOpened = true;
+			}catch(SQLiteException ex1){
+				databaseOpened = false;
+				Log.d("MyDBAdapter", "open catch exception");
+			}
 		}
-		Log.d("NATALIA111", "open DB " + db);
+		Log.d("MyDBAdapter", "open DB " + databaseOpened);
 		return this;
 	}
 	
-	public MyDBAdapter openToRead() throws SQLiteException{
-		db = dbHelper.getReadableDatabase();	
-		databaseOpened = true;
+	public MyDBAdapter openToRead(){
+		try{
+			db = dbHelper.getReadableDatabase();	
+			databaseOpened = true;
+		}catch(SQLiteException ex){
+			Log.d("MyDBAdapter", "openToRead catch exception");
+			databaseOpened = false;
+		}
 		return this;
 	}
 	
 	public void close(){
-		Log.d("NATALIA111", "close DB " + db);
-		db.close();
+		Log.d("MyDBAdapter", "close DB " + db);
+		if (isDatabaseOpen()){
+			db.close();
+		}
 		databaseOpened = false;
 	}
 	
-	public void insertTransaction(TransactionData transactionData){
+	public boolean insertTransaction(TransactionData transactionData){
+		long i, j ;
+		i = insertTransactionData(transactionData);
 		if (isExistCard(transactionData.getCardNumber())){
-			long i = insertTransactionData(transactionData);
-			long j = updateCardBalance(transactionData);
+			j = updateCardBalance(transactionData);
 		}
 		else
 		{
-			long i = insertCardNumber(transactionData.getCardNumber(), transactionData.getFundValue(), transactionData.getFundCurrency(), transactionData.getBankName());
-			long j = insertTransactionData(transactionData);
+			j = insertCardNumber(transactionData.getCardNumber(), transactionData.getFundValue(), transactionData.getFundCurrency(), transactionData.getBankName());
 		}
-	}
+		Log.d("MyDBAdapter ", "insert result " + i + " " + j);
+		return ((i != -1) && (j != -1));
+}
 	
 	public long insertTransactionData(TransactionData transactionData){
-		long rowIndex = 0;
-		
-		ContentValues cv = new ContentValues();
-		cv.put(TransactionData.CARD_NUMBER, transactionData.getCardNumber());
-		cv.put(TransactionData.TRANSACTION_DATE, transactionData.getTransactionDate());
-		cv.put(TransactionData.TRANSACTION_PLACE, transactionData.getTransactionPlace());
-		cv.put(TransactionData.TRANSACTION_VALUE, Float.valueOf(transactionData.getTransactionValue()));
-		cv.put(TransactionData.TRANSACTION_CURRENCY, transactionData.getTransactionCurrency());
-		cv.put(TransactionData.FUND_VALUE, Float.valueOf(transactionData.getFundValue()));
-		cv.put(TransactionData.FUND_CURRENCY, transactionData.getFundCurrency());
-		cv.put(TransactionData.BANK_NAME, transactionData.getBankName());
-		rowIndex = db.insert(TRANSACTION_TABLE_NAME, null, cv);
-		if (rowIndex <= 0)
-			 Log.d("NATALIA!!!", "Error");
+		long rowIndex = -1;
+		if (isDatabaseOpen()){
+			ContentValues cv = new ContentValues();
+			cv.put(TransactionData.CARD_NUMBER, transactionData.getCardNumber());
+			cv.put(TransactionData.TRANSACTION_DATE, transactionData.getTransactionDate());
+			cv.put(TransactionData.TRANSACTION_PLACE, transactionData.getTransactionPlace());
+			cv.put(TransactionData.TRANSACTION_VALUE, Float.valueOf(transactionData.getTransactionValue()));
+			cv.put(TransactionData.TRANSACTION_CURRENCY, transactionData.getTransactionCurrency());
+			cv.put(TransactionData.FUND_VALUE, Float.valueOf(transactionData.getFundValue()));
+			cv.put(TransactionData.FUND_CURRENCY, transactionData.getFundCurrency());
+			cv.put(TransactionData.BANK_NAME, transactionData.getBankName());
+			rowIndex = db.insert(TRANSACTION_TABLE_NAME, null, cv);
+		}
 		
 		return rowIndex;
 	}
 	
 	public void beginDatabaseTranzaction(){
-		db.beginTransaction();
+		Log.d("MyDBAdapter", "Database locked");
+		if (isDatabaseOpen())
+			db.beginTransaction();
 	}
 	
 	public void endDatabaseTranzaction(){
-		db.endTransaction();
+		Log.d("MyDBAdapter", "Database unlocked");
+		if (isDatabaseOpen())
+			db.endTransaction();
 	}
 	
 	public void setSuccesfullTranzaction(){
-		db.setTransactionSuccessful();
+		if (isDatabaseOpen())
+			db.setTransactionSuccessful();
 	}
 	
 	public boolean isDatabaseOpen(){
@@ -154,24 +172,33 @@ public class MyDBAdapter {
 
 	
 	public Cursor getAllTransaction(){
-		return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, null, null, null, null, null);
+		if (isDatabaseOpen()){
+			return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, null, null, null, null, null);
+		}else return null;
 	}
 
 	public Cursor getTransactionWithFilter(String filter){
-		return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, filter, null, null, null, new String(ID + " DESC"));
+		if (isDatabaseOpen()){
+			return db.query(TRANSACTION_TABLE_NAME, ALL_TRANSACTION_COLUMNS_NAME, filter, null, null, null, new String(ID + " DESC"));
+		}else return null;
 	}
 
 	public boolean removeTransaction(long transactionId){
-		return (db.delete(TRANSACTION_TABLE_NAME, ID + " = " + transactionId, null) > 0);
+		int result = 0;
+		if (isDatabaseOpen()){
+			result = db.delete(TRANSACTION_TABLE_NAME, ID + " = " + transactionId, null);
+		}
+		return (result > 0);
 	}
 	
 	public Cursor selectCardsNumber (String cardNumber){
 		Log.d("NATALIA!!! ", "request " + cardNumber);
-		if (!cardNumber.equals(""))
-			return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
-		else
-			return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, null, null, TransactionData.CARD_NUMBER, null, null);
-			
+		if (isDatabaseOpen()){
+			if (!cardNumber.equals(""))
+				return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
+			else
+				return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, null, null, TransactionData.CARD_NUMBER, null, null);
+		}else return null;	
 	}
 	
 	public boolean updateCardAlias(String cardAlias, String cardNumber){
@@ -179,14 +206,16 @@ public class MyDBAdapter {
 		
 		ContentValues cv = new ContentValues();
 		cv.put(CARD_ALIAS, cardAlias);
-		rowIndex = db.update(CARD_TABLE_NAME, cv, new String(TransactionData.CARD_NUMBER + "='" + cardNumber +"'"), null);
+		if (isDatabaseOpen()){
+			rowIndex = db.update(CARD_TABLE_NAME, cv, new String(TransactionData.CARD_NUMBER + "='" + cardNumber +"'"), null);
+		}
 		if (rowIndex <= 0)
 			Log.d("NATALIA!!! ", "Update Error");
 		return true;
 	}
 	
 	public long insertCardNumber(String cardNamber, float cardBalance, String cardCurrency, String bankName){
-		long rowIndex = 0;
+		long rowIndex = -1;
 		
 		ContentValues cv = new ContentValues();
 		cv.put(TransactionData.CARD_NUMBER, cardNamber);
@@ -194,10 +223,9 @@ public class MyDBAdapter {
 		cv.put(TransactionData.FUND_CURRENCY, cardCurrency);
 		cv.put(TransactionData.BANK_NAME, bankName);
 		cv.put(CARD_ALIAS, "");
-		rowIndex = db.insert(CARD_TABLE_NAME, null, cv);
-		if (rowIndex <= 0)
-			 Log.d("NATALIA!!!", "Error");
-		
+		if (isDatabaseOpen()){
+			rowIndex = db.insert(CARD_TABLE_NAME, null, cv);
+		}
 		return rowIndex;
 	}
 	
@@ -207,42 +235,63 @@ public class MyDBAdapter {
 		ContentValues cv = new ContentValues();
 		cv.put(TransactionData.FUND_VALUE, Float.valueOf(transactionData.getFundValue()));
 		cv.put(TransactionData.FUND_CURRENCY, transactionData.getFundCurrency());
-		rowIndex = db.update(CARD_TABLE_NAME, cv, new String(TransactionData.CARD_NUMBER + "='" + transactionData.getCardNumber() +"'"), null);
-		if (rowIndex <= 0)
-			Log.d("NATALIA!!! ", "Update Error");
+		if (isDatabaseOpen()){
+			rowIndex = db.update(CARD_TABLE_NAME, cv, new String(TransactionData.CARD_NUMBER + "='" + transactionData.getCardNumber() +"'"), null);
+		}
 		return rowIndex;
 	}
 	
 	public boolean isExistCard(String cardNumber){
 		boolean existing = false;
-		Cursor cursor = db.query(CARD_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
-		if (cursor.getCount() > 0)
-			existing = true;
-		cursor.close();
+		if (isDatabaseOpen()){
+			Cursor cursor = db.query(CARD_TABLE_NAME, new String[]{ID, TransactionData.CARD_NUMBER}, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
+			if (cursor.getCount() > 0)
+				existing = true;
+			cursor.close();
+		}
 		return existing;
 	}
 	
 	public Cursor getOperationPattern(){
-		return db.query(CARD_OPERATION_PATTERN_TABLE_NAME, new String[] {ID, TRANSACTION_PATTERN_STRING, INCOMING_OPERATION_PATTERN_STRING, OUTGOING_OPERATION_PATTERN_STRING}, null, null, null, null, null);
+		if (isDatabaseOpen()){
+			return db.query(CARD_OPERATION_PATTERN_TABLE_NAME, new String[] {ID, TRANSACTION_PATTERN_STRING, INCOMING_OPERATION_PATTERN_STRING, OUTGOING_OPERATION_PATTERN_STRING}, null, null, null, null, null);
+		}else{
+			return null;
+		}
 	}
 	
 	public String getBalance(String cardNumber){
-		String balance = new String();
-		/*
-		Cursor cursor = getTransactionWithFilter(TransactionData.CARD_NUMBER + "='" + cardNumber + "';");
-		if (cursor.moveToLast()){
-			balance += cursor.getString(cursor.getColumnIndex(TransactionData.FUND_VALUE)).toString() + " " +
-			cursor.getString(cursor.getColumnIndex(TransactionData.FUND_CURRENCY)).toString();
-		}*/
-		Cursor cursor = selectCardsNumber(cardNumber);
-		if (cursor.moveToFirst()){
-			balance += cursor.getString(cursor.getColumnIndex(TransactionData.FUND_VALUE)).toString() + " " +
-			cursor.getString(cursor.getColumnIndex(TransactionData.FUND_CURRENCY)).toString();
-		}else{
-			balance += "0.00 RUB";
+		String balance = null;
+		if (isDatabaseOpen()){
+			Cursor cursor = selectCardsNumber(cardNumber);
+			if (cursor.moveToFirst()){
+				balance = new String(cursor.getString(cursor.getColumnIndex(TransactionData.FUND_VALUE)).toString() + " " +
+				cursor.getString(cursor.getColumnIndex(TransactionData.FUND_CURRENCY)).toString());
+			}else{
+				balance = new String("0.00 RUB");
+			}
+			cursor.close();
 		}
-		cursor.close();
 		return balance;
+	}
+	
+	public void deleteAllTransactions(){
+		if (isDatabaseOpen()) db.delete(TRANSACTION_TABLE_NAME, null, null);
+	}
+	
+	public void deleteAllCards(){
+		if (isDatabaseOpen()) db.delete(CARD_TABLE_NAME, null, null);
+	}
+	
+	public void restoreOperations(){
+		if (isDatabaseOpen()){
+			db.delete(CARD_OPERATION_PATTERN_TABLE_NAME, null, null);
+			ContentValues cv = new ContentValues();
+			cv.put(TRANSACTION_PATTERN_STRING, SMSParcer.DEFAULT_TRANSACTION_PATTERN);
+			cv.put(INCOMING_OPERATION_PATTERN_STRING, SMSParcer.DEFAULT_INCOMING_PATTERN);
+			cv.put(OUTGOING_OPERATION_PATTERN_STRING, SMSParcer.DEFAULT_OUTGOING_PATTERN);
+			db.insert(CARD_OPERATION_PATTERN_TABLE_NAME, null, cv);
+		}
 	}
 	
 	private class DbHelper extends SQLiteOpenHelper{

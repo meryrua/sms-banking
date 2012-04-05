@@ -26,6 +26,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -77,6 +78,7 @@ public class SMSBankingActivity extends ListActivity{
 	static int numberUpdate = 0;
 	private LoadTransactionData loadTask = null;
 	private LoadDataFromSMS loadFromSMSTask = null;
+	private boolean firstLoading = false;
 	
 	
 	private static final int ID_FILTER_ACTIVITY = 1;
@@ -96,7 +98,7 @@ public class SMSBankingActivity extends ListActivity{
 	private static final int DIALOG_WRONG_PASSWORD = 4;
 	private static final int DIALOG_LOADING = 5;
 	private static final int DIALOG_LOAD_DATA_REQUEST = 6;
-	private static final int DIALOG_FIRST_LOAD = 7;
+	private static final int DIALOG_NEED_TO_LOAD = 7;
 	
 	public static final String UPDATE_TRANSACTION_LIST_INTENT = "com.meryrua.smsbanking.UPDATE_TRANSACTION_LIST";
 	public static final String VIEW_TRANSACTION_DETAIL_INTENT = "com.meryrua.smsbanking.VIEW_TRANSACTION_DETAIL";
@@ -142,6 +144,7 @@ public class SMSBankingActivity extends ListActivity{
     		editorSettings.putBoolean(NEED_TO_LOAD, true);
     		editorSettings.commit();
     		Log.d("NATALIA!!! ", "NEED_TO_LOAD, true");
+    		firstLoading = true;
         }
        
     	
@@ -201,7 +204,7 @@ public class SMSBankingActivity extends ListActivity{
 			showActivityData();
 		}else{
 			Log.d("NATALIA!!! ", "show dialog load data");
-			showDialog(DIALOG_FIRST_LOAD);
+			showDialog(DIALOG_NEED_TO_LOAD);
 		}
     	
     }
@@ -580,17 +583,32 @@ public class SMSBankingActivity extends ListActivity{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-					
+					new DeleteDataTask().execute(true);
+				}
+			});
+			loadDataRequestDialog.setNegativeButton(resources.getString(R.string.no), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+				new DeleteDataTask().execute(false);	
 				}
 			});
 			alertDialog = loadDataRequestDialog.create();
 			
 			break;
-		case DIALOG_FIRST_LOAD:
+		case DIALOG_NEED_TO_LOAD:
+			String message;
 			AlertDialog.Builder firstDataLoadDialog;
 			
 			firstDataLoadDialog = new AlertDialog.Builder(this);
-			firstDataLoadDialog.setMessage(resources.getString(R.string.first_data_load));
+			if (firstLoading){
+				firstLoading = false;
+				message = new String(resources.getString(R.string.first_data_load) + " " + resources.getString(R.string.load_from_sms_request));
+			}else{
+				message = resources.getString(R.string.first_data_load);
+			}
+			firstDataLoadDialog.setMessage(message);
 			firstDataLoadDialog.setPositiveButton(resources.getString(R.string.yes), new DialogInterface.OnClickListener() {
 				
 				@Override
@@ -831,7 +849,21 @@ public class SMSBankingActivity extends ListActivity{
 		transactionAdapter.notifyDataSetChanged();
 		//Log.d("NATALIA!!! ", "updateTransactionList end ");
 	}
-
+	
+	protected Cursor getTransactionDataForList(MyDBAdapter myDBAdapter){
+		if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+			balanceValue = myDBAdapter.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+			
+		}
+		String filterString = getSQLWhereFromFilter();
+		//Log.d("NATALIA!!! ", "doInBackground begin " + context);
+			
+		Cursor cursor = myDBAdapter.getTransactionWithFilter(filterString);
+		//Log.d("NATALIA", "filter " + filterString + " cursor " + cursor.getCount());
+		startManagingCursor(cursor);
+		return cursor;
+	}
+	
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -844,7 +876,7 @@ public class SMSBankingActivity extends ListActivity{
 	    	}
 	    }
 	}
-
+	
 	class LoadTransactionData extends AsyncTask<Void, Integer, Cursor>{
 		private MyDBAdapter myAdapter;
         private ProgressDialog progressDialog  = new ProgressDialog(SMSBankingActivity.this);
@@ -860,20 +892,11 @@ public class SMSBankingActivity extends ListActivity{
 		@Override
 		protected Cursor doInBackground(Void... params) {
 			// TODO Auto-generated method stub
-			String filterString = getSQLWhereFromFilter();
 			myAdapter = new MyDBAdapter(context);
 			Log.d("NATALIA123", "Open DB LoadTransactionData doInBackground");
 			myAdapter.open();
 			
-			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
-				balanceValue = myAdapter.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
-				
-			}
-			//Log.d("NATALIA!!! ", "doInBackground begin " + context);
-				
-			Cursor cursor = myAdapter.getTransactionWithFilter(filterString);
-			//Log.d("NATALIA", "filter " + filterString + " cursor " + cursor.getCount());
-			startManagingCursor(cursor);
+			Cursor cursor = getTransactionDataForList(myAdapter);
 			for (int i = 0; i <= 10000000; i++);
 			if (isCancelled())
 			{
@@ -891,8 +914,7 @@ public class SMSBankingActivity extends ListActivity{
 	        if (this.progressDialog.isShowing()) {
 	             this.progressDialog.dismiss();
 	        }
-			//dismissDialog(DIALOG_LOADING);
-			if (myAdapter.isDatabaseOpen()){
+			if ((!SMSBankingActivity.this.isFinishing()) && (myAdapter.isDatabaseOpen())){
 				myAdapter.close();
 			}
 		}
@@ -902,16 +924,13 @@ public class SMSBankingActivity extends ListActivity{
 	        if (this.progressDialog.isShowing()) {
 	             this.progressDialog.dismiss();
 	        }
-			//dismissDialog(DIALOG_LOADING);
-			//if (openBD)
+			if (cursor != null)
 			{
-			transactionAdapter = new TransactionAdapter(context, cursor);
-
-			setListAdapter(transactionAdapter);
-			updateTransactionList();
-			myAdapter.close();
-			//loadTask = null;
+				transactionAdapter = new TransactionAdapter(context, cursor);
+				setListAdapter(transactionAdapter);
+				updateTransactionList();
 			}
+			myAdapter.close();
 		}
 
 	}
@@ -946,34 +965,38 @@ public class SMSBankingActivity extends ListActivity{
 		@Override
 		protected void onPostExecute(Cursor cursor){
 			boolean cardsExist = false;
-			if (selectAllCards){
-				if (cursor.moveToFirst()){
-					cardsExist = true;
-					cardAdapter.add(context.getResources().getString(R.string.all));
-					do{
-						cardAdapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
-					} while (cursor.moveToNext());
-					cursor.close();
-				}
-				myDBAdapter.close();
-				Log.d("NATALIA123", "Close DB LoadCardDatas onPostExecute 1");
-				cardAdapter.setNotifyOnChange(true);
-				if (cardsExist)
-					showDialog(DIALOG_CARD_FILTER);
-				else
-					Toast.makeText(context, resources.getText(R.string.no_data), 500).show();
-			}else{
-				if (cursor.moveToFirst()){
-					if(cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
-						cardAliasString = new String (cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
+			if (cursor != null){
+				if (selectAllCards){
+					if (cursor.moveToFirst()){
+						cardsExist = true;
+						cardAdapter.add(context.getResources().getString(R.string.all));
+						do{
+							cardAdapter.add(cursor.getString(cursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+						} while (cursor.moveToNext());
+						cursor.close();
+					}
+					myDBAdapter.close();
+					Log.d("NATALIA123", "Close DB LoadCardDatas onPostExecute 1");
+					cardAdapter.setNotifyOnChange(true);
+					if (cardsExist)
+						showDialog(DIALOG_CARD_FILTER);
+					else
+						Toast.makeText(context, resources.getText(R.string.no_data), 500).show();
+				}else{
+					if (cursor.moveToFirst()){
+						if(cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
+							cardAliasString = new String (cursor.getString(cursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
+						else
+							cardAliasString = new String("");
+					}
 					else
 						cardAliasString = new String("");
+					Log.d("NATALIA123", "Close DB LoadCardDatas onPostExecute 2");
+					myDBAdapter.close();
+					showDialog(DIALOG_CARD_DATA);
 				}
-				else
-					cardAliasString = new String("");
-				Log.d("NATALIA123", "Close DB LoadCardDatas onPostExecute 2");
-				myDBAdapter.close();
-				showDialog(DIALOG_CARD_DATA);
+			}else{
+				Toast.makeText(context, resources.getText(R.string.no_data), 500).show();
 			}
 		}
 	}
@@ -1033,31 +1056,31 @@ public class SMSBankingActivity extends ListActivity{
         		Log.d("NATALIA!!! ", "LoadDataFromSMS is cancelled in Running");
         		allDone = false;
         	}
-			if ((inboxSMSCursor.moveToFirst()) && (allDone)){
-			myDBAdapter = new MyDBAdapter(context);
-			myDBAdapter.open();
-			myDBAdapter.beginDatabaseTranzaction();
-			for (int j = 0; j < 100000; j++);
-			do {
-					SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
-							inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);
-			        if (smsParcer.isMatch(myDBAdapter)){
-			        	transactionData = smsParcer.getTransactionData();
-			        	if (!isCancelled()){
-			        		myDBAdapter.insertTransaction(transactionData);
-			        	}
-			        	else{
-			        		Log.d("NATALIA!!! ", "LoadDataFromSMS is cancelled in Running");
-			        		allDone = false;
-			        	}
-			        }
-				}while ((inboxSMSCursor.moveToNext()) && (allDone));
-			if (allDone){
-				Log.d("NATALIA!!! ", "LoadDataFromSMS success");
-        		myDBAdapter.setSuccesfullTranzaction();
-			}
-			myDBAdapter.endDatabaseTranzaction();
-			myDBAdapter.close();		        
+			if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst()) && (allDone)){
+				myDBAdapter = new MyDBAdapter(context);
+				myDBAdapter.open();
+				myDBAdapter.beginDatabaseTranzaction();
+				for (int j = 0; j < 100000; j++);
+				do {
+						SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
+								inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);
+				        if (smsParcer.isMatch(myDBAdapter)){
+				        	transactionData = smsParcer.getTransactionData();
+				        	if (!isCancelled()){
+				        		allDone = myDBAdapter.insertTransaction(transactionData);
+				        	}
+				        	else{
+				        		Log.d("NATALIA!!! ", "LoadDataFromSMS is cancelled in Running");
+				        		allDone = false;
+				        	}
+				        }
+					}while ((inboxSMSCursor.moveToNext()) && (allDone));
+				if (allDone){
+					Log.d("NATALIA!!! ", "LoadDataFromSMS success");
+	        		myDBAdapter.setSuccesfullTranzaction();
+				}
+				myDBAdapter.endDatabaseTranzaction();
+				myDBAdapter.close();		        
 			}
 
 			inboxSMSCursor.close();
@@ -1090,6 +1113,102 @@ public class SMSBankingActivity extends ListActivity{
 	             this.progressDialog.dismiss();
 	        }
 	        showActivityData();
+		}
+		
+	}
+	
+	class DeleteDataTask extends AsyncTask<Boolean, Void, Boolean>{
+		private MyDBAdapter myDBAdapter;
+        private ProgressDialog progressDialog  = new ProgressDialog(SMSBankingActivity.this);
+        private boolean loadData;
+
+        @Override
+		protected void onPreExecute(){
+			this.progressDialog.setCancelable(false);
+			this.progressDialog.setMessage(resources.getText(R.string.deleting));
+	        this.progressDialog.show();
+		}
+
+		@Override
+		protected Boolean doInBackground(Boolean... params) {
+			// TODO Auto-generated method stub
+			loadData = params[0];
+			boolean result = true;
+			myDBAdapter = new MyDBAdapter(context);
+			myDBAdapter.open();
+			myDBAdapter.beginDatabaseTranzaction();
+			{
+				for (int j = 0; j < 10000000; j++);
+				myDBAdapter.deleteAllTransactions();
+				myDBAdapter.deleteAllCards();
+				myDBAdapter.restoreOperations();
+				myDBAdapter.setSuccesfullTranzaction();
+			}
+			myDBAdapter.endDatabaseTranzaction();
+			
+			if((loadData)){
+				Uri uriSms = Uri.parse("content://sms/inbox");
+				boolean allDone = true;
+				String sort_by = new String(SMSViewingAdapter.SMS_DATE_FIELD + " ASC");
+				Cursor inboxSMSCursor = context.getContentResolver().query(
+						uriSms, 
+						new String[] { SMSViewingAdapter.SMS_ID_FIELD,
+								SMSViewingAdapter.SMS_DATE_FIELD,
+								SMSViewingAdapter.SMS_BODY_FIELD}, 
+						null, null, sort_by);
+	
+				
+				if (isCancelled()){
+	        		Log.d("NATALIA!!! ", "LoadDataFromSMS is cancelled in Running");
+	        		allDone = false;
+	        	}
+				if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst()) && (allDone)){
+					myDBAdapter.beginDatabaseTranzaction();
+					for (int j = 0; j < 100000; j++);
+					do {
+							SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
+									inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);
+					        if (smsParcer.isMatch(myDBAdapter)){
+					        	transactionData = smsParcer.getTransactionData();
+					        	if (!isCancelled()){
+					        		allDone = myDBAdapter.insertTransaction(transactionData);
+					        	}
+					        	else{
+					        		Log.d("NATALIA!!! ", "LoadDataFromSMS is cancelled in Running");
+					        		allDone = false;
+					        	}
+					        }
+						}while ((inboxSMSCursor.moveToNext()) && (allDone));
+					if (allDone){
+						Log.d("NATALIA!!! ", "LoadDataFromSMS success");
+		        		myDBAdapter.setSuccesfullTranzaction();
+						SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+				        SharedPreferences.Editor editorSettings = settings.edit();
+				    	editorSettings.putBoolean(NEED_TO_LOAD, false);
+				    	editorSettings.commit();
+					}
+					else{
+						SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+				        SharedPreferences.Editor editorSettings = settings.edit();
+				    	editorSettings.putBoolean(NEED_TO_LOAD, true);
+				    	editorSettings.commit();
+					}
+				myDBAdapter.endDatabaseTranzaction();
+				inboxSMSCursor.close();
+			}
+
+			}
+
+			myDBAdapter.close();
+			return result;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean result){
+	        if (this.progressDialog.isShowing()) {
+	             this.progressDialog.dismiss();
+	        }
+        	showTransactionList();
 		}
 		
 	}

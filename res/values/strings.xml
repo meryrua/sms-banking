@@ -53,9 +53,11 @@
 	<string name="choose_sms">Choose SMS for pattern creating</string> 
 	<string name="delete_data">Delete all data</string>
 	<string name="load_from_sms">Load new data from SMS after deleting?</string>  
-	<string name="first_data_load">It\'s the first time loading. Do you want load data from Inbox?</string>
+	<string name="first_data_load">It\'s the first time loading.</string>
+	<string name="load_from_sms_request">Do you want load data from Inbox?</string>
 	<string name="loading_sms">Loading data from SMS...</string> 
-	<string name="data_not_loaded">Data from SMS wasn\'t loaded...</string> 
+	<string name="data_not_loaded">Data from SMS wasn\'t loaded.</string>
+	<string name="deleting">Deleting...</string>  
 			
 	<string name="using_password">using_password</string>
 	<string name="sms_processing">sms_processing</string>
