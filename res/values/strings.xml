@@ -22,7 +22,7 @@
     <string name="string_transaction">byla provedena tranzaccija na summu</string> 
     <string name="string_incoming_operation">schet popolnilsya na summu</string>
     <string name="string_outgoing_operation">schet umenshilsya na summu</string> 
-    <string name="operation_card_number">Card number: *</string>
+    <string name="operation_card_number">Card:</string>
     <string name="operation_date">Date:</string>
     <string name="operation_amount">Amount:</string>
     <string name="operation_place">Place:</string>

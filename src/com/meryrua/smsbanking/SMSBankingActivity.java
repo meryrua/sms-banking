@@ -440,11 +440,11 @@ public class SMSBankingActivity extends ListActivity{
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData =  new TransactionData((Cursor)getListAdapter().getItem(position));
-		//showDialog(DIALOG_SMS_DETAIL);
-		Intent detailIntent = new Intent();
+		showDialog(DIALOG_SMS_DETAIL);
+		/*Intent detailIntent = new Intent();
 		detailIntent.setClass(context, SMSDetail.class);
 		transactionData.fillIntent(detailIntent);
-		startActivity(detailIntent);
+		startActivity(detailIntent);*/
  	}
 	
 	protected boolean onListItemLongClick(int pos, long id){
@@ -465,6 +465,15 @@ public class SMSBankingActivity extends ListActivity{
 			
 			smsDetailDialogBuilder = new AlertDialog.Builder(this);
 			smsDetailDialogBuilder.setView(layoutSMSDetail);
+			smsDetailDialogBuilder.setTitle(resources.getString(R.string.detail_info));
+			smsDetailDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+					dialog.dismiss();
+				}
+			});
 			alertDialog = smsDetailDialogBuilder.create();
 			//Log.d("NATALIA!!! ", "Dialog DIALOG_SMS_DETAIL create");
 			break;
@@ -651,24 +660,24 @@ public class SMSBankingActivity extends ListActivity{
 			case DIALOG_SMS_DETAIL:
 			
 				TextView cardNumberText = (TextView) dialog.findViewById(R.id.card_number);
-		        cardNumberText.setText(resources.getString(R.string.operation_card_number) + transactionData.getCardNumber());
+		        cardNumberText.setText(transactionData.getCardNumber());
 		        
 		        TextView dateText = (TextView) dialog.findViewById(R.id.date);
-		        dateText.setText(resources.getString(R.string.operation_date) + " " + transactionData.getTransactionDate());
+		        dateText.setText(transactionData.getTransactionDate());
 
 		        TextView amountText = (TextView) dialog.findViewById(R.id.amount);
 		        String tranzValue = new String(Float.toString(transactionData.getTransactionValue()).replace(".", ","));
 		        tranzValue += transactionData.getTransactionCurrency();
-		        amountText.setText(resources.getString(R.string.operation_amount) + " " + tranzValue);
+		        amountText.setText(tranzValue);
 		        
 		        TextView placeText = (TextView) dialog.findViewById(R.id.place);
 		        String placeOrOperation = transactionData.getTransactionPlace();
 		        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
-		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_incoming_name));
+		        	placeText.setText(resources.getString(R.string.operation_incoming_name));
 		        }else if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
-		        	placeText.setText(resources.getString(R.string.operation_name) + " " + resources.getString(R.string.operation_outgoing_name));
+		        	placeText.setText(resources.getString(R.string.operation_outgoing_name));
 		        }else {
-		        	placeText.setText(resources.getString(R.string.operation_place) + " " + transactionData.getTransactionPlace());
+		        	placeText.setText(transactionData.getTransactionPlace());
 		        }
 		        int height = placeText.getMeasuredHeight();
 		        //Log.d("NATALIA!!! ", "height " + height);
@@ -677,7 +686,7 @@ public class SMSBankingActivity extends ListActivity{
 		        String balanceValue = new String(Float.toString(transactionData.getFundValue()).replace(".", ","));
 		        balanceValue += transactionData.getFundCurrency();
 		        //Log.d("NATALIA!!!", "balance " + balanceValue);
-		        balanceText.setText(resources.getString(R.string.operation_balance) + " " + balanceValue);
+		        balanceText.setText(balanceValue);
 				break;
 			/*case DIALOG_LOADING:
 
@@ -897,7 +906,7 @@ public class SMSBankingActivity extends ListActivity{
 			myAdapter.open();
 			
 			Cursor cursor = getTransactionDataForList(myAdapter);
-			for (int i = 0; i <= 10000000; i++);
+			//for (int i = 0; i <= 10000000; i++);
 			if (isCancelled())
 			{
 				Log.d("NATALIA!!! ", "LoadTransactionData isCancelled " + isCancelled());
@@ -1060,7 +1069,7 @@ public class SMSBankingActivity extends ListActivity{
 				myDBAdapter = new MyDBAdapter(context);
 				myDBAdapter.open();
 				myDBAdapter.beginDatabaseTranzaction();
-				for (int j = 0; j < 100000; j++);
+				//for (int j = 0; j < 100000; j++);
 				do {
 						SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
 								inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);
@@ -1164,7 +1173,7 @@ public class SMSBankingActivity extends ListActivity{
 	        	}
 				if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst()) && (allDone)){
 					myDBAdapter.beginDatabaseTranzaction();
-					for (int j = 0; j < 100000; j++);
+					//for (int j = 0; j < 100000; j++);
 					do {
 							SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
 									inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);

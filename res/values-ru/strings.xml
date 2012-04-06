@@ -21,9 +21,9 @@
     <string name="string_transaction">была проведена транзакция на сумму</string> 
     <string name="string_incoming_operation">счет пополнился на сумму</string>
     <string name="string_outgoing_operation">счет уменьшился на сумму</string>    
-    <string name="operation_card_number">Номер карты: *</string>
+    <string name="operation_card_number">Карта:</string>
     <string name="operation_date">Дата:</string>
-    <string name="operation_amount">На сумму:</string>
+    <string name="operation_amount">Сумма:</string>
     <string name="operation_place">Место:</string>
     <string name="operation_name">Операция:</string>
     <string name="operation_incoming_name">Пополнение счета</string>
