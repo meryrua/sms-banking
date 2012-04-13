@@ -67,6 +67,7 @@ public class MyDBAdapter {
 	//нужен флаг, что база будет открыта только на чтение???
 	public MyDBAdapter open() {
 		try{
+		
 			db = dbHelper.getWritableDatabase();
 			databaseOpened = true;
 		}

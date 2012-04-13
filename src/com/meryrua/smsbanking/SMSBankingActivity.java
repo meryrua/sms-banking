@@ -21,7 +21,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.ComponentName;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -33,6 +35,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -80,7 +85,6 @@ public class SMSBankingActivity extends ListActivity{
 	private LoadDataFromSMS loadFromSMSTask = null;
 	private boolean firstLoading = false;
 	
-	
 	private static final int ID_FILTER_ACTIVITY = 1;
 	private static final int IDM_PREFERENCES = 101;
 	private static final int IDM_CARD_FILTER = 102;
@@ -110,12 +114,70 @@ public class SMSBankingActivity extends ListActivity{
 	
 	private TransactionData transactionData;
 	
+	private SMSBankingActivityHandler thisActivityHandler;
+	private DatabaseConnectionService connectionService; 
+
+	private ServiceConnection serviceConnection = new ServiceConnection() {
+		
+		@Override
+		public void onServiceDisconnected(ComponentName className) {
+			connectionService = null;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder iBinder) {
+			// TODO Auto-generated method stub
+			Log.d("NATALIA!!!", "servise connected");
+			connectionService = ((DatabaseConnectionService.MyBinder) iBinder).getService();
+			connectionService.setCallbackItem();
+		}
+	};
+	
+	private class SMSBankingActivityHandler extends Handler{
+		static final int SHOW_ALL_CARDS_DATA = 1;
+		
+		public SMSBankingActivityHandler(){
+			super();
+		}
+		
+		@Override
+		public void handleMessage(Message msg){
+			
+		}
+	}
+	
 	protected class UpdateReceiver extends BroadcastReceiver{
 
 		@Override
 		public void onReceive(Context arg0, Intent arg1) {
 			// TODO Auto-generated method stub
 			showTransactionList();
+		}
+		
+	}
+	
+	private class DatabaseConnectionCallback implements DatabaseConnectionCallbackInterface{
+
+		public DatabaseConnectionCallback () {}
+		@Override
+		public void showAllCardsData(Cursor cursor) {
+			// TODO Auto-generated method stub
+			Message msg = thisActivityHandler.obtainMessage();
+			msg.what = SMSBankingActivityHandler.SHOW_ALL_CARDS_DATA;
+			msg.obj = cursor;
+			thisActivityHandler.sendMessage(msg);
+		}
+
+		@Override
+		public void showCardData(Cursor cursor) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void showTransactionData(Cursor cursor) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}
@@ -132,7 +194,8 @@ public class SMSBankingActivity extends ListActivity{
 	    resources = context.getResources();
         
 	    isChecked = false;
-    	//Log.d("NATALIA!!! ", "111 passw " );	    
+
+	    bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
     	
 	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
     	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
@@ -191,7 +254,6 @@ public class SMSBankingActivity extends ListActivity{
 			    public boolean onItemLongClick(AdapterView<?> av, View v, int pos, long id) {
 				 return onListItemLongClick(pos, id);
 			    }
-
 		});
 		listView.setClickable(true);
 		//Log.d("NATALIA!!! ", "listView after");
@@ -206,7 +268,6 @@ public class SMSBankingActivity extends ListActivity{
 			Log.d("NATALIA!!! ", "show dialog load data");
 			showDialog(DIALOG_NEED_TO_LOAD);
 		}
-    	
     }
     
     protected void showActivityData(){
@@ -282,6 +343,10 @@ public class SMSBankingActivity extends ListActivity{
             src = new FileInputStream(from).getChannel();
             dst = new FileOutputStream(to).getChannel();
             dst.transferFrom(src, 0, src.size());
+        }catch(FileNotFoundException ex1){
+        	Log.d("Exc", "FileNotFoundException");
+        }catch(IOException ex1){
+        	Log.d("Exc", "IOException");
         }
         finally {
             if (src != null)
@@ -395,6 +460,7 @@ public class SMSBankingActivity extends ListActivity{
     protected void onStart(){
      	Log.d("NATALIA!!! ", "onStart");
     	super.onStart();
+    	thisActivityHandler = new SMSBankingActivityHandler();
 	    if (isChecked){
 	    	Log.d("NATALIA!!! ", "onResume ");
 	    	prepareActivity();
@@ -906,7 +972,7 @@ public class SMSBankingActivity extends ListActivity{
 			myAdapter.open();
 			
 			Cursor cursor = getTransactionDataForList(myAdapter);
-			//for (int i = 0; i <= 10000000; i++);
+			for (int i = 0; i <= 10000000; i++);
 			if (isCancelled())
 			{
 				Log.d("NATALIA!!! ", "LoadTransactionData isCancelled " + isCancelled());
@@ -1173,7 +1239,7 @@ public class SMSBankingActivity extends ListActivity{
 	        	}
 				if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst()) && (allDone)){
 					myDBAdapter.beginDatabaseTranzaction();
-					//for (int j = 0; j < 100000; j++);
+					for (int j = 0; j < 10000000; j++);
 					do {
 							SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
 									inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);
