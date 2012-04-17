@@ -66,18 +66,20 @@ public class MyDBAdapter {
 	
 	//нужен флаг, что база будет открыта только на чтение???
 	public MyDBAdapter open() {
-		try{
-		
-			db = dbHelper.getWritableDatabase();
-			databaseOpened = true;
-		}
-		catch (SQLiteException ex){
+		if (!isDatabaseOpen()){
 			try{
-				db = dbHelper.getReadableDatabase();
+			
+				db = dbHelper.getWritableDatabase();
 				databaseOpened = true;
-			}catch(SQLiteException ex1){
-				databaseOpened = false;
-				Log.d("MyDBAdapter", "open catch exception");
+			}
+			catch (SQLiteException ex){
+				try{
+					db = dbHelper.getReadableDatabase();
+					databaseOpened = true;
+				}catch(SQLiteException ex1){
+					databaseOpened = false;
+					Log.d("MyDBAdapter", "open catch exception");
+				}
 			}
 		}
 		Log.d("MyDBAdapter", "open DB " + databaseOpened);
@@ -85,12 +87,14 @@ public class MyDBAdapter {
 	}
 	
 	public MyDBAdapter openToRead(){
-		try{
-			db = dbHelper.getReadableDatabase();	
-			databaseOpened = true;
-		}catch(SQLiteException ex){
-			Log.d("MyDBAdapter", "openToRead catch exception");
-			databaseOpened = false;
+		if (!isDatabaseOpen()){
+			try{
+				db = dbHelper.getReadableDatabase();	
+				databaseOpened = true;
+			}catch(SQLiteException ex){
+				Log.d("MyDBAdapter", "openToRead catch exception");
+				databaseOpened = false;
+			}
 		}
 		return this;
 	}
@@ -131,7 +135,6 @@ public class MyDBAdapter {
 			cv.put(TransactionData.BANK_NAME, transactionData.getBankName());
 			rowIndex = db.insert(TRANSACTION_TABLE_NAME, null, cv);
 		}
-		
 		return rowIndex;
 	}
 	
@@ -276,23 +279,35 @@ public class MyDBAdapter {
 		return balance;
 	}
 	
-	public void deleteAllTransactions(){
-		if (isDatabaseOpen()) db.delete(TRANSACTION_TABLE_NAME, null, null);
-	}
-	
-	public void deleteAllCards(){
-		if (isDatabaseOpen()) db.delete(CARD_TABLE_NAME, null, null);
-	}
-	
-	public void restoreOperations(){
+	public boolean deleteAllTransactions(){
 		if (isDatabaseOpen()){
+			db.delete(TRANSACTION_TABLE_NAME, null, null);
+			return true;
+		}else return false;
+	}
+	
+	public boolean deleteAllCards(){
+		if (isDatabaseOpen()){
+			db.delete(CARD_TABLE_NAME, null, null);
+			return true;
+		}else return false;
+	}
+	
+	public boolean restoreOperations(){
+		if (isDatabaseOpen()){
+			long result = 0;
 			db.delete(CARD_OPERATION_PATTERN_TABLE_NAME, null, null);
 			ContentValues cv = new ContentValues();
 			cv.put(TRANSACTION_PATTERN_STRING, SMSParcer.DEFAULT_TRANSACTION_PATTERN);
 			cv.put(INCOMING_OPERATION_PATTERN_STRING, SMSParcer.DEFAULT_INCOMING_PATTERN);
 			cv.put(OUTGOING_OPERATION_PATTERN_STRING, SMSParcer.DEFAULT_OUTGOING_PATTERN);
-			db.insert(CARD_OPERATION_PATTERN_TABLE_NAME, null, cv);
-		}
+			result = db.insert(CARD_OPERATION_PATTERN_TABLE_NAME, null, cv);
+			return (result > 0);
+		}else return false;
+	}
+	
+	public boolean deleteData(){
+		return (deleteAllTransactions() && deleteAllCards() && restoreOperations());
 	}
 	
 	private class DbHelper extends SQLiteOpenHelper{

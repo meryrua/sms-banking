@@ -100,8 +100,14 @@ public class SMSReceiver extends BroadcastReceiver {
 				        //transactionData = new TransactionData();
 			        	//smsParcer.setTranzactionData(transactionData);
 			        	
-						transactionData = smsParcer.getTransactionData();	
-			        	new SaveTransaction().execute(transactionData);
+						transactionData = smsParcer.getTransactionData();
+						Intent startServiceIntent = new Intent();
+						startServiceIntent.setAction(SMSBankingGlobalClass.INSERT_DATA);
+						transactionData.fillIntent(startServiceIntent);
+						startServiceIntent.setClass(context, DatabaseConnectionService.class);
+			        	//new SaveTransaction().execute(transactionData);
+						context.startService(startServiceIntent);
+						Log.d("NATALIA!!! ", "Start service");
 						
 						/*myDBAdapter = new MyDBAdapter(context);
 						myDBAdapter.open();

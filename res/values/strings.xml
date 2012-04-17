@@ -58,6 +58,7 @@
 	<string name="loading_sms">Loading data from SMS...</string> 
 	<string name="data_not_loaded">Data from SMS wasn\'t loaded.</string>
 	<string name="deleting">Deleting...</string>  
+	<string name="error_happened">Error happened</string>
 			
 	<string name="using_password">using_password</string>
 	<string name="sms_processing">sms_processing</string>

@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.Editable;
@@ -112,10 +113,13 @@ public class SMSBankingActivity extends ListActivity{
 	
 	private static final String NEED_TO_LOAD = "need_to_load";
 	
+	private ProgressDialog progressDialog;
+	
 	private TransactionData transactionData;
 	
 	private SMSBankingActivityHandler thisActivityHandler;
-	private DatabaseConnectionService connectionService; 
+	private DatabaseConnectionService connectionService;
+	DatabaseConnectionCallback databaseConnectionCallback = new DatabaseConnectionCallback();
 
 	private ServiceConnection serviceConnection = new ServiceConnection() {
 		
@@ -129,12 +133,35 @@ public class SMSBankingActivity extends ListActivity{
 			// TODO Auto-generated method stub
 			Log.d("NATALIA!!!", "servise connected");
 			connectionService = ((DatabaseConnectionService.MyBinder) iBinder).getService();
-			connectionService.setCallbackItem();
+			connectionService.setCallbackItem(databaseConnectionCallback);
+			if (progressDialog.isShowing()){
+				progressDialog.dismiss();
+			}
+			if (isChecked){
+				connectionService.getTransactionData(getSQLWhereFromFilter());
+				if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+					connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				}else{
+					hideBalance();
+					Log.d("NATALIA", "1");
+				}
+			}
 		}
 	};
 	
 	private class SMSBankingActivityHandler extends Handler{
-		static final int SHOW_ALL_CARDS_DATA = 1;
+		static final int SHOW_ALL_CARDS_DATA = 101;
+		static final int SHOW_ONE_CARD_DATA = 102;
+		static final int NO_ERROR = 103;
+		static final int ERROR_HAPPENED = 104;
+		static final int SHOW_TRANSACTION_DATA = 1;
+		static final int SHOW_CARD_DATA = 2;
+		static final int ALIAS_WAS_UPDATED = 3;
+		static final int DATA_FROM_SMS_WAS_LOADED = 4;
+		static final int DATA_WAS_DELETED = 5;
+		static final int DATA_WAS_DELETED_AND_LOADED = 6;
+		static final int DATA_WAS_INSERTED = 7;
+		static final int SET_BALANCE = 8;
 		
 		public SMSBankingActivityHandler(){
 			super();
@@ -142,7 +169,107 @@ public class SMSBankingActivity extends ListActivity{
 		
 		@Override
 		public void handleMessage(Message msg){
-			
+	    	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+	    	SharedPreferences.Editor editor = settings.edit();
+			switch(msg.what){
+			case SHOW_TRANSACTION_DATA:
+				Log.d("NATALIA!!!", "SMSBankingActivityHandler");
+				Cursor transactionCursor = (Cursor) msg.obj;
+				startManagingCursor(transactionCursor);
+				transactionAdapter = new TransactionAdapter(context, transactionCursor);
+				setListAdapter(transactionAdapter);
+				transactionAdapter.notifyDataSetChanged();
+				//updateTransactionList();
+				updateTransactionList_new();
+				break;
+			case SET_BALANCE:
+				Log.d("NATALIA!!!", "Activity balance " + msg.obj);
+				if (msg.obj != null){
+					setBalance(msg.obj.toString());
+				}
+				break;
+			case SHOW_CARD_DATA:
+				boolean cardsExist = false;
+				Cursor cardCursor = (Cursor) msg.obj;
+				startManagingCursor(cardCursor);
+				if (cardCursor != null){
+					if (msg.arg1 == SHOW_ALL_CARDS_DATA){
+						if (cardCursor.moveToFirst()){
+							cardAdapter.clear();
+							cardsExist = true;
+							cardAdapter.add(context.getResources().getString(R.string.all));
+							do{
+								cardAdapter.add(cardCursor.getString(cardCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
+							} while (cardCursor.moveToNext());
+							cardCursor.close();
+						}
+						cardAdapter.setNotifyOnChange(true);
+						if (cardsExist)
+							showDialog(DIALOG_CARD_FILTER);
+						else
+							Toast.makeText(context, resources.getText(R.string.no_data), 500).show();
+					}else{
+						if (cardCursor.moveToFirst()){
+							if(cardCursor.getString(cardCursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)) != null)
+								cardAliasString = new String (cardCursor.getString(cardCursor.getColumnIndex(MyDBAdapter.CARD_ALIAS)));
+							else
+								cardAliasString = new String("");
+						}
+						else
+							cardAliasString = new String("");
+						showDialog(DIALOG_CARD_DATA);
+					}
+				}else{
+					Toast.makeText(context, resources.getText(R.string.no_data), 500).show();
+				}
+				break;
+			case ALIAS_WAS_UPDATED:
+				if (msg.arg1 == ERROR_HAPPENED) Toast.makeText(context, resources.getText(R.string.error_happened), 500).show();
+				break;
+			case DATA_FROM_SMS_WAS_LOADED:
+				if (msg.arg1 == NO_ERROR){
+					Log.d("NATALIA!!! ", "LoadDataFromSMS success");
+			    	editor.putBoolean(NEED_TO_LOAD, false);
+			    	editor.commit();
+				}
+				else{
+			    	editor.putBoolean(NEED_TO_LOAD, true);
+			    	editor.commit();
+				}		
+				if(connectionService != null){
+					connectionService.getTransactionData(getSQLWhereFromFilter());
+					if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+						connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+					}else{
+						hideBalance();
+						Log.d("NATALIA", "2");
+					}
+				}
+				break;
+			case DATA_WAS_DELETED:
+				if (msg.arg1 == ERROR_HAPPENED){
+					Toast.makeText(context, resources.getText(R.string.error_happened), 500).show();
+				}else{
+			   		filterMap.remove(TransactionData.CARD_NUMBER);
+		    		filterMap.put(TransactionData.CARD_NUMBER, context.getResources().getString(R.string.all));
+		    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
+		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+
+		    	   	editor.putString(TransactionData.CARD_NUMBER, context.getResources().getString(R.string.all));
+		    	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+		    	   	editor.commit();
+				}
+				if(connectionService != null){
+					connectionService.getTransactionData(getSQLWhereFromFilter());
+					if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+						connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+					}else{
+						hideBalance();
+						Log.d("NATALIA", "3");
+					}
+				}
+				break;
+			}
 		}
 	}
 	
@@ -151,7 +278,17 @@ public class SMSBankingActivity extends ListActivity{
 		@Override
 		public void onReceive(Context arg0, Intent arg1) {
 			// TODO Auto-generated method stub
-			showTransactionList();
+			//showTransactionList();
+			Log.d("NATALIA!!! ", "service " + connectionService);
+			if (connectionService != null){
+				connectionService.getTransactionData(getSQLWhereFromFilter());
+				if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+					connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				}else{
+					hideBalance();
+					Log.d("NATALIA", "4");
+				}
+			}
 		}
 		
 	}
@@ -159,27 +296,78 @@ public class SMSBankingActivity extends ListActivity{
 	private class DatabaseConnectionCallback implements DatabaseConnectionCallbackInterface{
 
 		public DatabaseConnectionCallback () {}
+
 		@Override
-		public void showAllCardsData(Cursor cursor) {
+		public void showTransactionData(Cursor cursor) {
 			// TODO Auto-generated method stub
 			Message msg = thisActivityHandler.obtainMessage();
-			msg.what = SMSBankingActivityHandler.SHOW_ALL_CARDS_DATA;
+			msg.what = SMSBankingActivityHandler.SHOW_TRANSACTION_DATA;
+			msg.obj = cursor;
+			thisActivityHandler.sendMessage(msg);
+			Log.d("NATALIA!!!", "DatabaseConnectionCallback");			
+		}
+		
+		@Override
+		public void showCardsData(Cursor cursor, String cardNumber){
+			Message msg = thisActivityHandler.obtainMessage();
+			msg.what = SMSBankingActivityHandler.SHOW_CARD_DATA;
+			if (cardNumber.equals("")){
+				msg.arg1 = SMSBankingActivityHandler.SHOW_ALL_CARDS_DATA;
+			}else{
+				msg.arg1 = SMSBankingActivityHandler.SHOW_ONE_CARD_DATA;
+			}
 			msg.obj = cursor;
 			thisActivityHandler.sendMessage(msg);
 		}
 
 		@Override
-		public void showCardData(Cursor cursor) {
+		public void aliasUpdated(boolean result) {
 			// TODO Auto-generated method stub
-			
+			Message msg = thisActivityHandler.obtainMessage();
+			msg.what = SMSBankingActivityHandler.ALIAS_WAS_UPDATED;
+			if (!result){
+				msg.arg1 = SMSBankingActivityHandler.ERROR_HAPPENED;
+			}else{
+				msg.arg1 = SMSBankingActivityHandler.NO_ERROR;
+			}
+			thisActivityHandler.sendMessage(msg);
 		}
 
 		@Override
-		public void showTransactionData(Cursor cursor) {
+		public void dataWasLoaded(boolean result) {
 			// TODO Auto-generated method stub
-			
+			Message msg = thisActivityHandler.obtainMessage();
+			msg.what = SMSBankingActivityHandler.DATA_FROM_SMS_WAS_LOADED;
+			if (!result){
+				msg.arg1 = SMSBankingActivityHandler.ERROR_HAPPENED;
+			}else{
+				msg.arg1 = SMSBankingActivityHandler.NO_ERROR;
+			}
+			thisActivityHandler.sendMessage(msg);
 		}
-		
+
+		@Override
+		public void dataWasDeleted(boolean result) {
+			// TODO Auto-generated method stub
+			Message msg = thisActivityHandler.obtainMessage();
+			msg.what = SMSBankingActivityHandler.DATA_WAS_DELETED;
+			if (!result){
+				msg.arg1 = SMSBankingActivityHandler.ERROR_HAPPENED;
+			}else{
+				msg.arg1 = SMSBankingActivityHandler.NO_ERROR;
+			}
+			thisActivityHandler.sendMessage(msg);			
+		}
+
+		@Override
+		public void setBalance(String balanceValue) {
+			// TODO Auto-generated method stub
+			Message msg = thisActivityHandler.obtainMessage();
+			msg.what = SMSBankingActivityHandler.SET_BALANCE;
+			msg.obj = balanceValue;
+			thisActivityHandler.sendMessage(msg);			
+		}
+
 	}
 	
 	/** Called when the activity is first created. */
@@ -194,8 +382,12 @@ public class SMSBankingActivity extends ListActivity{
 	    resources = context.getResources();
         
 	    isChecked = false;
+	    
+	    //Looper.prepare();
+    	thisActivityHandler = new SMSBankingActivityHandler();
+    	//Looper.loop();
 
-	    bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
+	    //bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
     	
 	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
     	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
@@ -263,7 +455,7 @@ public class SMSBankingActivity extends ListActivity{
 	   	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 		if (!settings.getBoolean(NEED_TO_LOAD, true)){
 			Log.d("NATALIA!!! ", "do not load data");
-			showActivityData();
+			showActivityData_new();
 		}else{
 			Log.d("NATALIA!!! ", "show dialog load data");
 			showDialog(DIALOG_NEED_TO_LOAD);
@@ -286,6 +478,24 @@ public class SMSBankingActivity extends ListActivity{
 			}
 		}
 		showTransactionList();
+    }
+    
+    protected void showActivityData_new(){
+    	Log.d("NATALIA!!! ", "showActivityData");
+		if(bundle != null){
+			if (viewIntent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)){
+				//Log.d("NATALIA!!! ", "onCreate " + viewIntent.getAction());
+				transactionData = new TransactionData(bundle);
+				bundle = null;	
+				showDialog(DIALOG_SMS_DETAIL);
+				/*Intent detailIntent = new Intent();
+				detailIntent.setClass(context, SMSDetail.class);
+				transactionData.fillIntent(detailIntent);
+				startActivity(detailIntent);*/
+
+			}
+		}
+		showTransactionList_new();
     }
     
     @Override
@@ -384,13 +594,14 @@ public class SMSBankingActivity extends ListActivity{
     	SharedPreferences.Editor editor = settings.edit();
     	switch(item.getItemId()){
     	case IDM_PREFERENCES:
-    		Intent startIntentProcessing = new Intent();
-    		startIntentProcessing.setClass(context, Settings.class);
-    		startActivity(startIntentProcessing);   
+    		Intent intentSettings = new Intent();
+    		intentSettings.setClass(context, Settings.class);
+    		startActivity(intentSettings);   
     		return true;
     	case IDM_CARD_FILTER:
     		//showDialog(DIALOG_CARD_FILTER);  
-    		new LoadCardDatas().execute("");
+    		//new LoadCardDatas().execute("");
+    		if (connectionService != null) connectionService.getCardsData("");
     		return true;
        	case IDM_TEST:
        		Intent intent = new Intent();
@@ -407,7 +618,16 @@ public class SMSBankingActivity extends ListActivity{
     	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
     	   	editor.commit();
     	   	
-    		showTransactionList();
+    	   	if (connectionService != null){
+    	   		connectionService.getTransactionData(getSQLWhereFromFilter());
+				if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+					connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				}else{
+					hideBalance();
+					Log.d("NATALIA", "5");
+				}
+    	   	}
+    		//showTransactionList();
     		return true;
     	case IDM_OPERATION_FILTER_CARD_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
@@ -416,7 +636,16 @@ public class SMSBankingActivity extends ListActivity{
     	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
     	   	editor.commit();
     	   	
-    		showTransactionList();
+    	   	if (connectionService != null){
+    	   		connectionService.getTransactionData(getSQLWhereFromFilter());
+				if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+					connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				}else{
+					hideBalance();
+					Log.d("NATALIA", "6");
+				}
+    	   	}
+    		//showTransactionList();
     		return true;
     	case IDM_OPERATION_FILTER_INCOMING_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
@@ -425,7 +654,16 @@ public class SMSBankingActivity extends ListActivity{
     		editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
     	   	editor.commit();
     	   	
-    		showTransactionList();
+    	   	if (connectionService != null){
+    	   		connectionService.getTransactionData(getSQLWhereFromFilter());
+				if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+					connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				}else{
+					hideBalance();
+					Log.d("NATALIA", "7");
+				}
+    	   	}
+    	   	//showTransactionList();
         	return true;
     	case IDM_OPERATION_FILTER_OUTGOING_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
@@ -434,7 +672,16 @@ public class SMSBankingActivity extends ListActivity{
     		editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
     	   	editor.commit();
     	   	
-    		showTransactionList();
+    	   	if (connectionService != null){
+    	   		connectionService.getTransactionData(getSQLWhereFromFilter());
+				if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+					connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+				}else{
+					hideBalance();
+					Log.d("NATALIA", "8");
+				}
+    	   	}
+    	   	//showTransactionList();
     		return true;
         }
 
@@ -460,8 +707,12 @@ public class SMSBankingActivity extends ListActivity{
     protected void onStart(){
      	Log.d("NATALIA!!! ", "onStart");
     	super.onStart();
-    	thisActivityHandler = new SMSBankingActivityHandler();
+    	bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
 	    if (isChecked){
+	    	progressDialog = new ProgressDialog(SMSBankingActivity.this);
+	    	progressDialog.setCancelable(false);
+	    	progressDialog.setMessage(resources.getText(R.string.loading));
+	    	progressDialog.show();
 	    	Log.d("NATALIA!!! ", "onResume ");
 	    	prepareActivity();
 	    	//showTransactionList();
@@ -475,7 +726,9 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     protected void onStop(){
     	//super.onStop();
+    	unbindService(serviceConnection);
      	Log.d("NATALIA!!! ", "onStop");
+     	/*
 		if ((loadTask != null))// && (loadTask.getStatus() == AsyncTask.Status.RUNNING))
 		{
 			Log.d("NATALIA!!!", "cancel task onStop" + loadTask);
@@ -487,7 +740,7 @@ public class SMSBankingActivity extends ListActivity{
 			loadFromSMSTask.cancel(false);
 			//loadFromSMSTask.cancel(true);
 		}
-		//transactionAdapter.getCursor().close();
+		//transactionAdapter.getCursor().close();*/
 		unregisterReceiver(updateReceiver);
     	super.onStop();
     }
@@ -515,7 +768,8 @@ public class SMSBankingActivity extends ListActivity{
 	
 	protected boolean onListItemLongClick(int pos, long id){
 		transactionData = new TransactionData((Cursor)getListAdapter().getItem(pos));
-		new LoadCardDatas().execute(transactionData.getCardNumber());
+	   	if (connectionService != null) connectionService.getCardsData(transactionData.getCardNumber());
+	   	//new LoadCardDatas().execute(transactionData.getCardNumber());
 		return true;
 	}
 	
@@ -569,7 +823,16 @@ public class SMSBankingActivity extends ListActivity{
 		    	   	editor.putString(TransactionData.CARD_NUMBER, newSelection);
 		    	   	editor.commit();
 		    	   	
-		    		showTransactionList();
+		    	   	if (connectionService != null){
+		    	   		connectionService.getTransactionData(getSQLWhereFromFilter());
+						if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+							connectionService.getBalance(filterMap.get(TransactionData.CARD_NUMBER));
+						}else{
+							hideBalance();
+							Log.d("NATALIA", "9");
+						}
+		    	   	}
+		    	   	//showTransactionList();
 		    		removeDialog(DIALOG_CARD_FILTER);
 				}
 			});
@@ -600,7 +863,8 @@ public class SMSBankingActivity extends ListActivity{
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
 					if (cardAliasString != null){
-						new UpdateCardAlias().execute();
+						if (connectionService != null) connectionService.updateCardAlias(transactionData.getCardNumber(), cardAliasString);
+						//new UpdateCardAlias().execute();
 					}
 				}
 			});
@@ -658,7 +922,8 @@ public class SMSBankingActivity extends ListActivity{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-					new DeleteDataTask().execute(true);
+					//new DeleteDataTask().execute(true);
+					if (connectionService != null) connectionService.deleteAllData(true);
 				}
 			});
 			loadDataRequestDialog.setNegativeButton(resources.getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -666,7 +931,8 @@ public class SMSBankingActivity extends ListActivity{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-				new DeleteDataTask().execute(false);	
+				//new DeleteDataTask().execute(false);	
+					if (connectionService != null) connectionService.deleteAllData(false);
 				}
 			});
 			alertDialog = loadDataRequestDialog.create();
@@ -689,7 +955,8 @@ public class SMSBankingActivity extends ListActivity{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
-					loadFromSMSTask = (LoadDataFromSMS) new LoadDataFromSMS().execute();
+					//loadFromSMSTask = (LoadDataFromSMS) new LoadDataFromSMS().execute();
+					if (connectionService != null) connectionService.loadDataFromSMS();
 				}
 			});
 			firstDataLoadDialog.setNegativeButton(resources.getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -857,6 +1124,88 @@ public class SMSBankingActivity extends ListActivity{
 			loadTask.execute();
 		}
 
+	}
+	
+	private void showTransactionList_new(){
+		if (connectionService != null){
+			Log.d("NATALIA!!! ", "Service is started. Run update");
+			//connectionService.getTransactionData(getSQLWhereFromFilter());
+		}else{
+			Log.d("NATALIA!!! ", "Service is not started yet");
+		}
+
+	}
+	
+	private void setBalance(String balance){
+		TextView curBalance = (TextView) findViewById(R.id.current_balance);
+		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
+        String str = new String();
+        Log.d("NATALIA!!!", "setBalance " + balance);
+        if (balance != null){
+	        str += resources.getString(R.string.operation_balance) + " " + balance;
+	        curBalance.setVisibility(TextView.VISIBLE);
+	        curBalance.setText(str);
+        }
+        String str1 = new String();
+        str1 += resources.getString(R.string.operation_card_number) + filterMap.get(TransactionData.CARD_NUMBER);
+        filterInfo.setVisibility(TextView.VISIBLE);
+        filterInfo.setText(str1);
+	}
+	
+	private void  hideBalance(){
+		TextView curBalance = (TextView) findViewById(R.id.current_balance);
+		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
+		curBalance.setText(null);
+		curBalance.setVisibility(TextView.GONE);
+		filterInfo.setText(null);
+		filterInfo.setVisibility(TextView.GONE);
+	}
+	
+	private void updateTransactionList_new(){
+		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
+		TextView noDataField = (TextView) findViewById(R.id.no_data_field);
+		TextView noDataFieldInfo = (TextView) findViewById(R.id.no_data_field_info);
+	
+		if (transactionAdapter.getCursor() != null)	transactionAdapter.getCursor().requery();
+		
+		//Log.d("NATALIA!!! ", "updateTransactionList " + transactionAdapter.getCursor().getCount());
+		if ((transactionAdapter.getCursor() != null) && (transactionAdapter.getCursor().moveToFirst())){
+			listView.setVisibility(ListView.VISIBLE);
+			noDataField.setVisibility(TextView.GONE);
+			noDataFieldInfo.setVisibility(TextView.GONE);
+			//Log.d("NATALIA!!! ", "moveToFirst ");
+			if (!filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.all))){
+			    String str1 = new String();
+			    str1 += filterMap.get(TransactionData.TRANSACTION_PLACE);
+			    filterInfo.setVisibility(TextView.VISIBLE);
+			    filterInfo.setText(filterMap.get(TransactionData.TRANSACTION_PLACE));
+			}else{
+				filterInfo.setText(null);
+				filterInfo.setVisibility(TextView.GONE);
+			}
+		} 
+		else {
+			/*
+			curBalance.setVisibility(TextView.VISIBLE);
+			curBalance.setText(resources.getString(R.string.no_data));
+			if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+				String str1 = new String();
+		        str1 += resources.getString(R.string.operation_card_number) + filterMap.get(TransactionData.CARD_NUMBER);
+		        filterInfo.setVisibility(TextView.VISIBLE);
+		        filterInfo.setText(str1);
+			}
+			else{
+				filterInfo.setText(null);
+				filterInfo.setVisibility(TextView.GONE);				
+			}*/
+			filterInfo.setVisibility(TextView.GONE);
+			listView.setVisibility(TextView.GONE);
+			noDataField.setVisibility(TextView.VISIBLE);
+			noDataFieldInfo.setVisibility(TextView.VISIBLE);
+		}
+		
+		transactionAdapter.notifyDataSetChanged();
+		//Log.d("NATALIA!!! ", "updateTransactionList end ");
 	}
 
 	private void updateTransactionList(){
