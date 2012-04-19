@@ -8,10 +8,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 
 public class SMSViewingActivity extends ListActivity{
-	
+	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
+    
 	private Context context;
 	@Override
 	public void onCreate(Bundle bundle){
@@ -33,14 +33,10 @@ public class SMSViewingActivity extends ListActivity{
 		if (inboxSMSCursor.moveToFirst()){
 			do{
 				String str = inboxSMSCursor.getString(inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD));
-				Log.d("NATALIA!!! ", "sms " + str);
+				Log.d(LOG_TAG, "sms " + str);
 			}while (inboxSMSCursor.moveToNext());
 		}
 		setListAdapter(adapterSMS);
-		
-		TextView chooseText = (TextView) findViewById(R.id.choose_text);
-		int j = chooseText.getBottom();
-		
 	}
 
 }

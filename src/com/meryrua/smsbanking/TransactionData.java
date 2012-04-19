@@ -1,21 +1,14 @@
 package com.meryrua.smsbanking;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Matcher;
-
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 
 /*
  *Maybe we should save SMS receiving date... ?
  *Also we should know if it debit or kredit (oplata ili postuplenie) 
 */
 public class TransactionData {
-	
 	//data from parced SMS
 	public static final String CARD_NUMBER = "cardNumber";
 	public static final String TRANSACTION_DATE = "transactionDate";
@@ -37,9 +30,6 @@ public class TransactionData {
 	
 	public static final int numberOfField = 8;
 	public static final String PARCED_DATA = "parced_data";
-	
-	private static float currentBalance = 0; //But we should have several Balances (for each of funds number) and currency
-	private static String balanceCurrency; //But we should have several Balances (for each of funds number) and currency
 	
 	public static final String INCOMING_BANK_OPERATION = "popolnilsya";
 	public static final String OUTGOING_BANK_OPERATION = "umenshilsya";
@@ -77,8 +67,9 @@ public class TransactionData {
 	}
 	
 	public void setCardNumber(String number){
-		if (number != null)
-			cardNumber = new String(number);
+		if (number != null){
+		    cardNumber = new String(number);
+		}
 	}
 	
 	public String getCardNumber(){
@@ -86,8 +77,9 @@ public class TransactionData {
 	}
 
 	public void setTransactionDate(String date){
-		if (date != null)
-			transactionDate = new String(date);
+		if (date != null){
+		    transactionDate = new String(date);
+		}
 	}
 	
 	public String getTransactionDate(){
@@ -95,8 +87,9 @@ public class TransactionData {
 	}
 
 	public void setTransactionPlace(String place){
-		if (place != null)
-			transactionPlace = new String(place);
+		if (place != null){
+		    transactionPlace = new String(place);
+		}
 	}
 	
 	public String getTransactionPlace(){
@@ -104,8 +97,9 @@ public class TransactionData {
 	}
 
 	public void setTransactionCurrency(String currency){
-		if (currency != null)
-			transactionCurrency = new String(currency);
+		if (currency != null){
+		    transactionCurrency = new String(currency);
+		}
 	}
 	
 	public String getTransactionCurrency(){
@@ -113,8 +107,9 @@ public class TransactionData {
 	}
 
 	public void setFundCurrency(String currency){
-		if (currency != null)
-			fundCurrency = new String(currency);
+		if (currency != null){
+		    fundCurrency = new String(currency);
+		}
 	}
 	
 	public String getFundCurrency(){
@@ -122,8 +117,9 @@ public class TransactionData {
 	}
 
 	public void setBankName(String name){
-		if (name != null)
-			bankName = new String(name);
+		if (name != null){
+		    bankName = new String(name);
+		}
 	}
 	
 	public String getBankName(){

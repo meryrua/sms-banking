@@ -1,62 +1,51 @@
 package com.meryrua.smsbanking;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.*;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteException;
-import android.os.AsyncTask;
 import android.util.Log;
 
 
 //Should we create new Parcer for each new SMS from bank???
 public class SMSParcer {
-
 	private Pattern smsPattern;
 	private Matcher matcherWithPattern;
 	private String smsMessage = null;
 	private String operationName;
 	
-	private List<String> tokenArray;
-	
 	private Cursor cursor;
-	private Context context;
 	public static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
 	public static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
 	public static final String DEFAULT_OUTGOING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\sumenshilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 	
-	private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
+	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSParcer";
+	
+	/*private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	private static final String testOutgoingString = "Balans vashey karty *1234 umenshilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
 	private static final String testIncomingString = "Balans vashey karty *1234 popolnilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
+	*/
 	
 	SMSParcer(String str, String pattern, Context myContext){
 		smsMessage = new String(str);
 		smsPattern = Pattern.compile(pattern);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
-		context = myContext;
 	}
 	
 	SMSParcer(String str, Context myContext){
 		smsMessage = new String(str);
-		context = myContext;
-		//smsPattern = Pattern.compile(DEFAULT_TRANSACTION_PATTERN);
-		//matcherWithPattern = smsPattern.matcher(smsMessage);
 	}
 	
 	SMSParcer(Context myContext){
-		smsMessage = new String(testString);
+		//smsMessage = new String(testString);
 		smsPattern = Pattern.compile(DEFAULT_TRANSACTION_PATTERN);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
-		context = myContext;
 	}
 	
 	public boolean isCardOperation(String patterString){
 		boolean matchFound = false;
-		int i = 0;
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
@@ -64,70 +53,63 @@ public class SMSParcer {
 		if (matcherWithPattern.matches())
 		{
 			operationName = TransactionData.CARD_OPERATION;
-			//matchFound = matcherWithPattern.find();
 			matchFound = true;
-			//Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
+			//Log.d(LOG_TAG, "number = % d " + matcherWithPattern.groupCount());
 		
 			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
-				//Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPattern.group(j));
+				//Log.d(LOG_TAG, "number %d " + j + " = % d " + matcherWithPattern.group(j));
 			}
+		}else{
+		    Log.d(LOG_TAG, "do mot match");
 		}
-		else 
-			Log.d("NATALIA!!!", "do mot match");
 		return matchFound;
 	}
 	
 	public boolean isIncomingFundOperation(String patterString){
 		boolean matchFound = false;
-		int i = 0;
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
-		if (matcherWithPattern.matches())
-		{
+		if (matcherWithPattern.matches()){
 			operationName = TransactionData.INCOMING_BANK_OPERATION;
-			//matchFound = matcherWithPattern.find();
 			matchFound = true;
 		
-			//Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
+			//Log.d(LOG_TAG, "number = % d " + matcherWithPattern.groupCount());
 		
 			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
-				//Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPattern.group(j));
+				//Log.d(LOG_TAG, "number %d " + j + " = % d " + matcherWithPattern.group(j));
 			}
+		}else{
+		    Log.d(LOG_TAG, "do mot match");
 		}
-		else 
-			Log.d("NATALIA!!!", "do mot match");
 		return matchFound;
 	}
 
 	public boolean isOutgoingFundOperation(String patterString){
 		boolean matchFound = false;
-		int i = 0;
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
-		if (matcherWithPattern.matches())
-		{
+		if (matcherWithPattern.matches()){
 			operationName = TransactionData.OUTGOING_BANK_OPERATION;
-			//matchFound = matcherWithPattern.find();
 			matchFound = true;		
-			//Log.d("NATALIA!!!", "number = % d " + matcherWithPattern.groupCount());
+			//Log.d(LOG_TAG, "number = % d " + matcherWithPattern.groupCount());
 		
 			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
-				//Log.d("NATALIA!!!", "number %d " + j + " = % d " + matcherWithPattern.group(j));
+				//Log.d(LOG_TAG, "number %d " + j + " = % d " + matcherWithPattern.group(j));
 			}
+		}else{
+		    Log.d(LOG_TAG, "do mot match");
 		}
-		else 
-			Log.d("NATALIA!!!", "do mot match");
 		return matchFound;
 	}
 
 	
 	public boolean isMatch(MyDBAdapter myDBAdapter){
 		boolean isBankSMS = false;
-		Log.d("NATALIA123", "Open DB SMSParcer isMatch");
+		Log.d(LOG_TAG, "Open DB SMSParcer isMatch");
 			
 		cursor = myDBAdapter.getOperationPattern();
 		if ((cursor != null) && (cursor.moveToFirst())){
@@ -136,8 +118,7 @@ public class SMSParcer {
 			}while ((cursor.moveToNext()) && (!isBankSMS));
 			cursor.close();
 		}
-
-		Log.d("NATALIA123", "Close DB SMSParcer isMatch");
+		Log.d(LOG_TAG, "Close DB SMSParcer isMatch");
 
 		return isBankSMS;
 	}

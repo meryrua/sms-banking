@@ -4,8 +4,8 @@
   android:id="@+id/list_view_item_layout"
   android:orientation="vertical"
   android:colorBackground="@color/list_item_selector"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent">
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
 <ImageView
 	android:id="@+id/operation_icon"
 	android:layout_width="wrap_content"

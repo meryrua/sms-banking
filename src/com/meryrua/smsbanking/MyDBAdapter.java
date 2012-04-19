@@ -1,11 +1,8 @@
 package com.meryrua.smsbanking;
 
-import java.util.HashMap;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -13,7 +10,6 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
 
 public class MyDBAdapter {
-
 	private static final int DB_VERSION = 2;
 	private static final String DB_NAME = "smsbanking_base";
 	private static final String TRANSACTION_TABLE_NAME = "transaction_data";
@@ -30,19 +26,19 @@ public class MyDBAdapter {
 		TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
 	
-	private static final String CREATE_TRANSACTION_TABLE_HELP = "create table " + TRANSACTION_TABLE_NAME +"_help" + 
+	/*private static final String CREATE_TRANSACTION_TABLE_HELP = "create table " + TRANSACTION_TABLE_NAME +"_help" + 
 	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 	TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " + 
 	TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " + 
-	TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
+	TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";*/
 	
 	private static final String CREATE_CARD_TABLE = "create table " + CARD_TABLE_NAME + 
-	" (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
+	    " (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
 		TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " +
 		CARD_ALIAS + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
 	
 	private static final String CREATE_PATTERN_TABLE = "create table " + CARD_OPERATION_PATTERN_TABLE_NAME + 
-	" (" + ID + " integer primary key autoincrement, " + TRANSACTION_PATTERN_STRING + " TEXT, " + 
+	    " (" + ID + " integer primary key autoincrement, " + TRANSACTION_PATTERN_STRING + " TEXT, " + 
 		INCOMING_OPERATION_PATTERN_STRING  + " TEXT, " + OUTGOING_OPERATION_PATTERN_STRING + " TEXT, " + 
 		TransactionData.BANK_NAME + " TEXT);";
 	
@@ -58,6 +54,8 @@ public class MyDBAdapter {
 	private boolean databaseOpened = false;
 	
 	public static final String FILTER_VALUE = "filter_value";
+	
+	private static final String LOG_TAG = "com.meryrua.smsbanking:MyDBAdapter";
 	
 	public MyDBAdapter(Context cont) {
 		context = cont;
@@ -78,11 +76,11 @@ public class MyDBAdapter {
 					databaseOpened = true;
 				}catch(SQLiteException ex1){
 					databaseOpened = false;
-					Log.d("MyDBAdapter", "open catch exception");
+					Log.d(LOG_TAG, "open catch exception");
 				}
 			}
 		}
-		Log.d("MyDBAdapter", "open DB " + databaseOpened);
+		Log.d(LOG_TAG, "open DB " + databaseOpened);
 		return this;
 	}
 	
@@ -92,7 +90,7 @@ public class MyDBAdapter {
 				db = dbHelper.getReadableDatabase();	
 				databaseOpened = true;
 			}catch(SQLiteException ex){
-				Log.d("MyDBAdapter", "openToRead catch exception");
+				Log.d(LOG_TAG, "openToRead catch exception");
 				databaseOpened = false;
 			}
 		}
@@ -100,7 +98,7 @@ public class MyDBAdapter {
 	}
 	
 	public void close(){
-		Log.d("MyDBAdapter", "close DB " + db);
+		Log.d(LOG_TAG, "close DB " + db);
 		if (isDatabaseOpen()){
 			db.close();
 		}
@@ -117,7 +115,7 @@ public class MyDBAdapter {
 		{
 			j = insertCardNumber(transactionData.getCardNumber(), transactionData.getFundValue(), transactionData.getFundCurrency(), transactionData.getBankName());
 		}
-		Log.d("MyDBAdapter ", "insert result " + i + " " + j);
+		Log.d(LOG_TAG, "insert result " + i + " " + j + " database open " + isDatabaseOpen());
 		return ((i != -1) && (j != -1));
 }
 	
@@ -139,20 +137,23 @@ public class MyDBAdapter {
 	}
 	
 	public void beginDatabaseTranzaction(){
-		Log.d("MyDBAdapter", "Database locked");
-		if (isDatabaseOpen())
-			db.beginTransaction();
+		Log.d(LOG_TAG, "Database locked");
+		if (isDatabaseOpen()){
+		    db.beginTransaction();
+		}
 	}
 	
 	public void endDatabaseTranzaction(){
-		Log.d("MyDBAdapter", "Database unlocked");
-		if (isDatabaseOpen())
-			db.endTransaction();
+		Log.d(LOG_TAG, "Database unlocked");
+		if (isDatabaseOpen()){
+		    db.endTransaction();
+		}
 	}
 	
 	public void setSuccesfullTranzaction(){
-		if (isDatabaseOpen())
-			db.setTransactionSuccessful();
+		if (isDatabaseOpen()){
+		    db.setTransactionSuccessful();
+		}
 	}
 	
 	public boolean isDatabaseOpen(){
@@ -196,7 +197,7 @@ public class MyDBAdapter {
 	}
 	
 	public Cursor selectCardsNumber (String cardNumber){
-		Log.d("NATALIA!!! ", "request " + cardNumber);
+		Log.d(LOG_TAG, "request " + cardNumber);
 		if (isDatabaseOpen()){
 			if (!cardNumber.equals(""))
 				return db.query(CARD_TABLE_NAME, ALL_CARDS_NUMBER_COLUMNS_NAME, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null, TransactionData.CARD_NUMBER, null, null);
@@ -213,8 +214,7 @@ public class MyDBAdapter {
 		if (isDatabaseOpen()){
 			rowIndex = db.update(CARD_TABLE_NAME, cv, new String(TransactionData.CARD_NUMBER + "='" + cardNumber +"'"), null);
 		}
-		if (rowIndex <= 0)
-			Log.d("NATALIA!!! ", "Update Error");
+		if (rowIndex <= 0) Log.d(LOG_TAG, "Update Error");
 		return true;
 	}
 	
@@ -282,6 +282,8 @@ public class MyDBAdapter {
 	public boolean deleteAllTransactions(){
 		if (isDatabaseOpen()){
 			db.delete(TRANSACTION_TABLE_NAME, null, null);
+			db.execSQL("drop table " + TRANSACTION_TABLE_NAME + ";");
+			db.execSQL(CREATE_TRANSACTION_TABLE);
 			return true;
 		}else return false;
 	}
@@ -289,6 +291,8 @@ public class MyDBAdapter {
 	public boolean deleteAllCards(){
 		if (isDatabaseOpen()){
 			db.delete(CARD_TABLE_NAME, null, null);
+			db.execSQL("drop table " + CARD_TABLE_NAME + ";");
+			db.execSQL(CREATE_CARD_TABLE);
 			return true;
 		}else return false;
 	}
@@ -297,6 +301,8 @@ public class MyDBAdapter {
 		if (isDatabaseOpen()){
 			long result = 0;
 			db.delete(CARD_OPERATION_PATTERN_TABLE_NAME, null, null);
+			db.execSQL("drop table " + CARD_OPERATION_PATTERN_TABLE_NAME + ";");
+			db.execSQL(CREATE_PATTERN_TABLE);
 			ContentValues cv = new ContentValues();
 			cv.put(TRANSACTION_PATTERN_STRING, SMSParcer.DEFAULT_TRANSACTION_PATTERN);
 			cv.put(INCOMING_OPERATION_PATTERN_STRING, SMSParcer.DEFAULT_INCOMING_PATTERN);
@@ -310,6 +316,16 @@ public class MyDBAdapter {
 		return (deleteAllTransactions() && deleteAllCards() && restoreOperations());
 	}
 	
+	public boolean deleteCardData(String cardNumber){
+	    boolean result = false;
+	    if (isDatabaseOpen()){
+	        db.delete(CARD_TABLE_NAME, new String(TransactionData.CARD_NUMBER + " = " + cardNumber), null);
+	        db.delete(TRANSACTION_TABLE_NAME, new String(TransactionData.CARD_NUMBER + " = " + cardNumber), null);
+	        result = true;
+	    }
+	    return result;
+	}
+	
 	private class DbHelper extends SQLiteOpenHelper{
 			
 		public DbHelper(Context context, String name, CursorFactory factory, int version){
@@ -318,7 +334,7 @@ public class MyDBAdapter {
 		
 		@Override
 		public void onCreate(SQLiteDatabase sqLiteDatabase){
-			Log.d("NATALIA!!! ", "onCreate Base");
+			Log.d(LOG_TAG, "onCreate Base");
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
 			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 			
@@ -329,17 +345,17 @@ public class MyDBAdapter {
 		
 		@Override
 		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1){
-			/*sqLiteDatabase.execSQL("DROP TABLE " + TRANSACTION_TABLE_NAME + ";");
+			sqLiteDatabase.execSQL("DROP TABLE " + TRANSACTION_TABLE_NAME + ";");
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
 			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 			
 			sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
-			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");*/
+			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
 
-			Log.d("NATALIA", "versions " + i + ", " + i1);
+			/*Log.d(LOG_TAG, "versions " + i + ", " + i1);
 			if ((i == 1) &&(i1 == 2))
 			{
-				Log.d("NATALIA", "versions " + i + ", " + i1);
+				Log.d(LOG_TAG, "versions " + i + ", " + i1);
 				sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 				sqLiteDatabase.execSQL("INSERT INTO " + CARD_TABLE_NAME + "(" + TransactionData.CARD_NUMBER + ") SELECT DISTINCT " + TransactionData.CARD_NUMBER + " FROM " + TRANSACTION_TABLE_NAME + ";");
 				
@@ -365,7 +381,7 @@ public class MyDBAdapter {
 				sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
 				sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
 				
-			}
+			}*/
 		}
 	}
 }

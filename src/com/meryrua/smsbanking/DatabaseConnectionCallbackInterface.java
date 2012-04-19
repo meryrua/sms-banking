@@ -9,4 +9,6 @@ public interface DatabaseConnectionCallbackInterface {
 	void dataWasLoaded(boolean result);
 	void dataWasDeleted(boolean result);
 	void setBalance(String balanceValue);
+	void onReady();
+	void cardDataWasDeleted();
 }

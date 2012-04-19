@@ -9,7 +9,5 @@ public class SMSBankingApplication extends Application{
 		super.onCreate();
 		CrashReporter crashReporter = new CrashReporter();
 		crashReporter.init(this);
-
 	}
-
 }

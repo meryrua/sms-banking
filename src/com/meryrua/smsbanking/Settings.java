@@ -1,9 +1,5 @@
 package com.meryrua.smsbanking;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-
 import com.meryrua.smsbanking.R;
 
 import android.app.AlertDialog;
@@ -11,7 +7,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
@@ -21,24 +16,18 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-
-
-
 public class Settings extends PreferenceActivity{
 
 	private Context context;
 	private final static int DIALOG_SET_PASSWORD = 0;
-	
 	private static String passwordString;
 	private static String repeatPasswordString;
-	private static boolean passwordEquals = false;
 	
 	public final static String PASSWORD_FILE_NAME = "password_file.txt";
 	
@@ -48,7 +37,6 @@ public class Settings extends PreferenceActivity{
 		
 		context = getApplicationContext();
 		addPreferencesFromResource(R.xml.preferences);
-
 	}
 	
 	@Override 
@@ -62,8 +50,9 @@ public class Settings extends PreferenceActivity{
 			public boolean onPreferenceChange(Preference preference,
 					Object newValue) {
 				// TODO Auto-generated method stub
-				if (newValue.equals(new Boolean(true)))
-					showDialog(DIALOG_SET_PASSWORD);
+				if (newValue.equals(new Boolean(true))){
+				    showDialog(DIALOG_SET_PASSWORD);
+				}
 				return true;
 			}
 			
@@ -89,7 +78,6 @@ public class Settings extends PreferenceActivity{
 		case DIALOG_SET_PASSWORD:
 			passwordString = null;
 			repeatPasswordString = null;
-			passwordEquals = false;
 			
 			AlertDialog.Builder setPasswordDialogBuilder = new AlertDialog.Builder(this);
 			

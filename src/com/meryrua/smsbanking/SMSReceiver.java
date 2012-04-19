@@ -2,18 +2,13 @@ package com.meryrua.smsbanking;
 
 import com.meryrua.smsbanking.R;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
@@ -22,13 +17,12 @@ import android.widget.Toast;
 
 
 public class SMSReceiver extends BroadcastReceiver {
-	
 	public static final String BANK_ADDRESS_ACTION = "com.meryrua.smsbanking.BANK_ADDRESS";
 	public static final String SEND_SMS_ACTION = "com.meryrua.smsbanking.SEND_SMS";
 	public static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
 	public static final String TYPE = "address"; 
 	
-	private static final String BANK_ADDRESS = "5556";
+	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSReceiver";
 	
 	private static int NOTIFICATION_ID = 0;
 	
@@ -36,27 +30,24 @@ public class SMSReceiver extends BroadcastReceiver {
 	String currBankAddress = null;
 	private Notification notification;
 	
-	private SMSParcer smsParcer;// = new SMSParcer(); //One parcer 
-//	private MyDBAdapter myDBAdapter;
+	private SMSParcer smsParcer;
 	
 	private TransactionData transactionData;
 	Context myContext;
 	
-	private boolean allowSMSProcessing = false;
-	
-	 @Override
+	@Override
 	  public void onReceive(Context context, Intent intent) {
 		 	
 		 myContext = context;
-		 //Log.d("NATALIA!!!", bankAddress);
+		 //Log.d(LOG_TAG, bankAddress);
 		 if (intent.getAction().equals(BANK_ADDRESS_ACTION))
 		 {
 			 bankAddress = intent.getStringExtra(TYPE); 
-			 //Log.d("NATALIA!!!",  bankAddress);
+			 //Log.d(LOG_TAG,  bankAddress);
 		 }
 		 else if (intent.getAction().equals(SMS_RECEIVED))
 		 {
-			//Log.d("NATALIA!!!",  bankAddress);
+			//Log.d(LOG_TAG,  bankAddress);
 		 	Bundle bundle = intent.getExtras();        
 	        SmsMessage[] msgs = null;
 			SmsMessage msgs1 = null;
@@ -72,12 +63,10 @@ public class SMSReceiver extends BroadcastReceiver {
 	                msgs1 = SmsMessage.createFromPdu((byte[])pdus[0]);
 	                str1 += msgs1.getOriginatingAddress();
 	                
-	                //if (str1.contains(bankAddress))
-	                {
-	                	smsMessage += "SMS is from bank " + msgs1.getOriginatingAddress();
-			            for (int i=0; i<msgs.length; i++){
-				            msgs[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
-				            messageForParcing += msgs[i].getMessageBody().toString();
+	                smsMessage += "SMS is from bank " + msgs1.getOriginatingAddress();
+			        for (int i=0; i<msgs.length; i++){
+				        msgs[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
+				        messageForParcing += msgs[i].getMessageBody().toString();
 			        }
 			         
 			        smsParcer = new SMSParcer(messageForParcing, myContext);
@@ -87,40 +76,27 @@ public class SMSReceiver extends BroadcastReceiver {
 					myDBAdapter.close();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
-			        //Log.d("NATALIA!!! ", "match " + matchSMS);
+			        //Log.d(LOG_TAG, "match " + matchSMS);
 			        
 			       if (matchSMS){
-			        	
-
 			        	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_processing), context.getResources().getString(R.string.application_only));
-			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only)))
-			        			abortBroadcast(); 
-			            	
-				        //transactionData = new TransactionData();
-			        	//smsParcer.setTranzactionData(transactionData);
+			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_processing), context.getResources().getString(R.string.normal_processing));
+			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only))){
+			        			abortBroadcast();
+			        			Log.d(LOG_TAG, "abort broadcast");
+			        	}
 			        	
 						transactionData = smsParcer.getTransactionData();
 						Intent startServiceIntent = new Intent();
-						startServiceIntent.setAction(SMSBankingGlobalClass.INSERT_DATA);
+						startServiceIntent.setAction(DatabaseConnectionService.INSERT_DATA_ACTION);
 						transactionData.fillIntent(startServiceIntent);
 						startServiceIntent.setClass(context, DatabaseConnectionService.class);
-			        	//new SaveTransaction().execute(transactionData);
 						context.startService(startServiceIntent);
-						Log.d("NATALIA!!! ", "Start service");
-						
-						/*myDBAdapter = new MyDBAdapter(context);
-						myDBAdapter.open();
-						myDBAdapter.insertTransaction(transactionData);
-						myDBAdapter.close();
-						*/
+						Log.d(LOG_TAG, "Start service");
 						
 						setSMSNotification(myContext, "New sms", transactionData); 		
 
-						//Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-						//context.sendBroadcast(updateIntent);
 			        }
-	                }
 		        }		 
 		 }
 		 else if (intent.getAction().equals(SEND_SMS_ACTION)) {
@@ -128,19 +104,18 @@ public class SMSReceiver extends BroadcastReceiver {
 			myDBAdapter.openToRead();
 			boolean matchSMS = smsParcer.isMatch(myDBAdapter);
 			myDBAdapter.close();	            
-				          			            
-			 //transactionData = new TransactionData();
-			 //smsParcer.setTranzactionData(transactionData);
-			 transactionData = smsParcer.getTransactionData();
-			 
-	         new SaveTransaction().execute(transactionData);
-				            
-			 /*myDBAdapter = new MyDBAdapter(context);
-			 myDBAdapter.open();
-			 myDBAdapter.insertTransaction(transactionData);
-			 myDBAdapter.close();*/
-			 
-			 setSMSNotification(context, "New sms", transactionData); 
+				      
+			if (matchSMS){
+    			transactionData = smsParcer.getTransactionData();
+    			 
+    			Intent startServiceIntent = new Intent();
+    			startServiceIntent.setAction(DatabaseConnectionService.INSERT_DATA_ACTION);
+    			transactionData.fillIntent(startServiceIntent);
+    			startServiceIntent.setClass(context, DatabaseConnectionService.class);
+    			context.startService(startServiceIntent);
+    			 
+    			setSMSNotification(context, "New sms", transactionData); 
+			}
 		}
 	 }
 	
@@ -160,7 +135,8 @@ public class SMSReceiver extends BroadcastReceiver {
 	    notiIntent.setAction(SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
 	    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-	    fillIntent(notiIntent, tranzactionData);
+	    tranzactionData.fillIntent(notiIntent);
+	    //fillIntent(notiIntent, tranzactionData);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
@@ -179,27 +155,4 @@ public class SMSReceiver extends BroadcastReceiver {
 		intent.putExtra(TransactionData.TRANSACTION_PLACE, tranzactionData.getTransactionPlace());
 	}
 
-	class SaveTransaction extends AsyncTask<TransactionData, Void, Boolean>{
-		@Override
-		protected Boolean doInBackground(TransactionData... params) {
-			// TODO Auto-generated method stub
-			boolean result = false;
-			MyDBAdapter myDBAdapter = new MyDBAdapter(myContext);
-			myDBAdapter.open();
-			Log.d("NATALIA123", "Open DB SaveTransaction doInBackground");
-			result = myDBAdapter.insertTransaction(params[0]);
-			Log.d("NATALIA123", "Close DB SaveTransaction doInBackground");
-			myDBAdapter.close();
-			return result;
-		}
-		
-		@Override
-		protected void onPostExecute(Boolean result){
-			//LocalBroadcastManager.getInstance(myContext);
-			if (result){
-				Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-				myContext.sendBroadcast(updateIntent);
-			}
-		}
-	}
 }
