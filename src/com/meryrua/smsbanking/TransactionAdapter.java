@@ -32,6 +32,7 @@ public class TransactionAdapter extends CursorAdapter{
 	public void bindView(View view, Context viewContext, Cursor cursor) {
 		// TODO Auto-generated method stub
 		ImageView operationImage;
+		Log.d(LOG_TAG, "bindView view " + view + " " + cursor.getString(cursor.getColumnIndex(MyDBAdapter.ID)));
 
 		TransactionData item = new TransactionData(cursor);
 	    

@@ -234,7 +234,7 @@ public class SMSBankingActivity extends ListActivity{
 				break;
 			case TREAD_IS_READY:
 				serviceThreadIsReady = true;
-				if (progressDialog.isShowing()){
+				if ((progressDialog != null) && (progressDialog.isShowing())){
 					progressDialog.dismiss();
 				}
 				showTransactionList();
@@ -426,6 +426,7 @@ public class SMSBankingActivity extends ListActivity{
 			Log.d(LOG_TAG, "show dialog load data");
 			showDialog(DIALOG_NEED_TO_LOAD);
 		}
+		showTransactionList();
     }
     
     protected void showActivityData(){
@@ -751,7 +752,7 @@ public class SMSBankingActivity extends ListActivity{
 			
 			passwordDialogBuilder = new AlertDialog.Builder(this);
 			passwordDialogBuilder.setView(layoutPassword);
-			passwordDialogBuilder.setPositiveButton(resources.getString(R.string.save), new DialogInterface.OnClickListener() {
+			passwordDialogBuilder.setPositiveButton(resources.getString(R.string.ok_string), new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub

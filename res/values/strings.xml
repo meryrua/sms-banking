@@ -61,7 +61,8 @@
 	<string name="error_happened">Error happened</string>
 	<string name="delete_card">Delete card data</string> 
 	<string name="delete_card_request">Delete all data for card</string> 
-			
+	
+	<string name="ok_string">OK</string> 
 	<string name="using_password">using_password</string>
 	<string name="sms_processing">sms_processing</string>
 	<string name="change_password">change_password</string>
