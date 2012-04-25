@@ -313,7 +313,7 @@ public class MyDBAdapter {
 	}
 	
 	public boolean deleteData(){
-		return (deleteAllTransactions() && deleteAllCards() && restoreOperations());
+		return (deleteAllTransactions() && deleteAllCards());// && restoreOperations());
 	}
 	
 	public boolean deleteCardData(String cardNumber){
@@ -338,8 +338,8 @@ public class MyDBAdapter {
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
 			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 			
-			sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
-			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
+			//sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
+			//sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
 
 		}
 		
@@ -349,8 +349,8 @@ public class MyDBAdapter {
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
 			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 			
-			sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
-			sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
+			//sqLiteDatabase.execSQL(CREATE_PATTERN_TABLE);
+			//sqLiteDatabase.execSQL("INSERT INTO " + CARD_OPERATION_PATTERN_TABLE_NAME + " (" + TRANSACTION_PATTERN_STRING + ", " + INCOMING_OPERATION_PATTERN_STRING + ", " + OUTGOING_OPERATION_PATTERN_STRING + ") VALUES ('" + SMSParcer.DEFAULT_TRANSACTION_PATTERN + "', '" + SMSParcer.DEFAULT_INCOMING_PATTERN + "', '" + SMSParcer.DEFAULT_OUTGOING_PATTERN + "');");
 
 			/*Log.d(LOG_TAG, "versions " + i + ", " + i1);
 			if ((i == 1) &&(i1 == 2))

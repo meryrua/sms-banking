@@ -33,11 +33,12 @@ public class SMSReceiver extends BroadcastReceiver {
 	private SMSParcer smsParcer;
 	
 	private TransactionData transactionData;
+	
 	Context myContext;
 	
 	@Override
 	  public void onReceive(Context context, Intent intent) {
-		 	
+
 		 myContext = context;
 		 //Log.d(LOG_TAG, bankAddress);
 		 if (intent.getAction().equals(BANK_ADDRESS_ACTION))

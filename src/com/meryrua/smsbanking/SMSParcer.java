@@ -1,9 +1,10 @@
 package com.meryrua.smsbanking;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.*;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.util.Log;
 
 
@@ -14,7 +15,8 @@ public class SMSParcer {
 	private String smsMessage = null;
 	private String operationName;
 	
-	private Cursor cursor;
+	private HashMap<String, ArrayList<String>> operationPatterns;
+	
 	public static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
 	public static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
@@ -28,20 +30,26 @@ public class SMSParcer {
 	private static final String testIncomingString = "Balans vashey karty *1234 popolnilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
 	*/
 	
-	SMSParcer(String str, String pattern, Context myContext){
+	public SMSParcer(String str, Context myContext){
 		smsMessage = new String(str);
-		smsPattern = Pattern.compile(pattern);
-		matcherWithPattern = smsPattern.matcher(smsMessage);
+		getOperationParrens(myContext);
 	}
 	
-	SMSParcer(String str, Context myContext){
-		smsMessage = new String(str);
-	}
-	
-	SMSParcer(Context myContext){
-		//smsMessage = new String(testString);
-		smsPattern = Pattern.compile(DEFAULT_TRANSACTION_PATTERN);
-		matcherWithPattern = smsPattern.matcher(smsMessage);
+	private void getOperationParrens(Context context){
+        XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
+        operationPatterns = xmlSerializer.parcePatterns(context);
+        if (!operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)){
+            operationPatterns.put(XMLParcerSerializer.TRANSACTION_TAG, new ArrayList<String>());
+            operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).add(DEFAULT_TRANSACTION_PATTERN);
+        }
+        if (!operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG)){
+            operationPatterns.put(XMLParcerSerializer.INCOMING_TAG, new ArrayList<String>());
+            operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).add(DEFAULT_INCOMING_PATTERN);
+        }
+        if (!operationPatterns.containsKey(XMLParcerSerializer.OUTGOING_TAG)){
+            operationPatterns.put(XMLParcerSerializer.OUTGOING_TAG, new ArrayList<String>());
+            operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).add(DEFAULT_OUTGOING_PATTERN);
+        }
 	}
 	
 	public boolean isCardOperation(String patterString){
@@ -109,7 +117,23 @@ public class SMSParcer {
 	
 	public boolean isMatch(MyDBAdapter myDBAdapter){
 		boolean isBankSMS = false;
-		Log.d(LOG_TAG, "Open DB SMSParcer isMatch");
+		
+		if (operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)){
+		    for (int i = 0; ((i < operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).size()) && (!isBankSMS)); i++){
+		        isBankSMS = isCardOperation(operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).get(i));
+		    }
+		}
+        if ((!isBankSMS) && (operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG))){
+            for (int i = 0; ((i < operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).size()) && (!isBankSMS)); i++){
+                isBankSMS = isIncomingFundOperation(operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).get(i));
+            }
+        }
+        if ((!isBankSMS) && (operationPatterns.containsKey(XMLParcerSerializer.OUTGOING_TAG))){
+            for (int i = 0; ((i < operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).size()) && (!isBankSMS)); i++){
+                isBankSMS = isOutgoingFundOperation(operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).get(i));
+            }
+        }
+		/*Log.d(LOG_TAG, "Open DB SMSParcer isMatch");
 			
 		cursor = myDBAdapter.getOperationPattern();
 		if ((cursor != null) && (cursor.moveToFirst())){
@@ -118,7 +142,9 @@ public class SMSParcer {
 			}while ((cursor.moveToNext()) && (!isBankSMS));
 			cursor.close();
 		}
-		Log.d(LOG_TAG, "Close DB SMSParcer isMatch");
+		Log.d(LOG_TAG, "Close DB SMSParcer isMatch");*/
+		
+		
 
 		return isBankSMS;
 	}

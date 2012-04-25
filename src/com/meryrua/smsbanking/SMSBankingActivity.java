@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.meryrua.smsbanking.R;
@@ -93,6 +94,8 @@ public class SMSBankingActivity extends ListActivity{
 	public static final String INTENT_ACTION = "intent_action";
 	public static final String DEFAULT_PASSWORD = "1234";
 	public static final String PASSWORD_TEXT = "password";
+	
+	public static final String OPERATION_PATTERN_NUMBER = "operation_pattern_number";
 	
 	private static final String NEED_TO_LOAD = "need_to_load";
 	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSBankingActivity";
@@ -371,8 +374,11 @@ public class SMSBankingActivity extends ListActivity{
     		editorSettings.commit();
     		Log.d(LOG_TAG, "NEED_TO_LOAD, true");
     		firstLoading = true;
+    		setDefaultPatterns();
         }
     	
+
+        //getPatterns();
     	//Log.d(LOG_TAG, "passw " + usingPassword);
     
     	if ((usingPassword) && (!isChecked)){
@@ -403,6 +409,26 @@ public class SMSBankingActivity extends ListActivity{
         finally{
         }
     }
+    
+    private void setDefaultPatterns(){
+        XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
+        HashMap<String, ArrayList<String>> patternMap = new HashMap<String, ArrayList<String>>();
+        patternMap.put(XMLParcerSerializer.TRANSACTION_TAG, new ArrayList<String>());
+        patternMap.get(XMLParcerSerializer.TRANSACTION_TAG).add(SMSParcer.DEFAULT_TRANSACTION_PATTERN);
+        patternMap.put(XMLParcerSerializer.INCOMING_TAG, new ArrayList<String>());
+        patternMap.get(XMLParcerSerializer.INCOMING_TAG).add(SMSParcer.DEFAULT_INCOMING_PATTERN);
+        patternMap.put(XMLParcerSerializer.OUTGOING_TAG, new ArrayList<String>());
+        patternMap.get(XMLParcerSerializer.OUTGOING_TAG).add(SMSParcer.DEFAULT_OUTGOING_PATTERN);
+        xmlSerializer.serializePatterns(patternMap, context);
+    }
+    
+    /*private void getPatterns(){
+        XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
+        HashMap<String, ArrayList<String>> patternMap = xmlSerializer.parcePatterns(context);
+      
+    }*/
+    
+
     
     private void prepareActivity(){
         cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
@@ -815,7 +841,7 @@ public class SMSBankingActivity extends ListActivity{
 				firstLoading = false;
 				message = new String(resources.getString(R.string.first_data_load) + " " + resources.getString(R.string.load_from_sms_request));
 			}else{
-				message = resources.getString(R.string.first_data_load);
+				message = resources.getString(R.string.load_from_sms_request);
 			}
 			firstDataLoadDialog.setMessage(message);
 			firstDataLoadDialog.setPositiveButton(resources.getString(R.string.yes), new DialogInterface.OnClickListener() {
@@ -833,6 +859,10 @@ public class SMSBankingActivity extends ListActivity{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
+                    SharedPreferences settings1 = PreferenceManager.getDefaultSharedPreferences(context);
+                    SharedPreferences.Editor editor1 = settings1.edit();
+                    editor1.putBoolean(NEED_TO_LOAD, false);
+                    editor1.commit();
 					dialog.dismiss();
 				}
 			});
