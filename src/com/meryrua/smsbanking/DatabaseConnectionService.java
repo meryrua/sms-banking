@@ -44,7 +44,7 @@ public class DatabaseConnectionService extends Service{
 				
         @Override
 	    public void handleMessage(Message msg) {
-	    	Log.d(LOG_TAG, "handleMessage thread " + android.os.Process.getThreadPriority(Process.myTid()));
+	    	Log.d(LOG_TAG, "handleMessage thread " + (Process.myTid()));
     		boolean loadResult = false, deleteResult = false;
     		
     		if (!myDBAdapter.isDatabaseOpen()) myDBAdapter.open();
@@ -130,8 +130,9 @@ public class DatabaseConnectionService extends Service{
 	    	case DELETE_CARD:
                 myDBAdapter.beginDatabaseTranzaction();	 
                 try{
-                    myDBAdapter.deleteCardData(msg.obj.toString());
-                    myDBAdapter.setSuccesfullTranzaction();
+                    if (myDBAdapter.deleteCardData(msg.obj.toString())){
+                        myDBAdapter.setSuccesfullTranzaction();                       
+                    }
                 }catch(Exception exc){
                     Log.d(LOG_TAG, "Error in deleting card data");
                 }

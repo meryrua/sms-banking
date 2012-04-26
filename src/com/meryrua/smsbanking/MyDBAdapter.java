@@ -69,11 +69,13 @@ public class MyDBAdapter {
 			
 				db = dbHelper.getWritableDatabase();
 				databaseOpened = true;
+				Log.d(LOG_TAG, "getWritableDatabase");
 			}
 			catch (SQLiteException ex){
 				try{
 					db = dbHelper.getReadableDatabase();
 					databaseOpened = true;
+					Log.d(LOG_TAG, "getWritableDatabase");
 				}catch(SQLiteException ex1){
 					databaseOpened = false;
 					Log.d(LOG_TAG, "open catch exception");
@@ -151,6 +153,7 @@ public class MyDBAdapter {
 	}
 	
 	public void setSuccesfullTranzaction(){
+	    Log.d(LOG_TAG, "setSuccesfullTranzaction");
 		if (isDatabaseOpen()){
 		    db.setTransactionSuccessful();
 		}
@@ -319,8 +322,8 @@ public class MyDBAdapter {
 	public boolean deleteCardData(String cardNumber){
 	    boolean result = false;
 	    if (isDatabaseOpen()){
-	        db.delete(CARD_TABLE_NAME, new String(TransactionData.CARD_NUMBER + " = " + cardNumber), null);
-	        db.delete(TRANSACTION_TABLE_NAME, new String(TransactionData.CARD_NUMBER + " = " + cardNumber), null);
+	        db.delete(CARD_TABLE_NAME, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null);
+	        db.delete(TRANSACTION_TABLE_NAME, new String(TransactionData.CARD_NUMBER + "='" + cardNumber + "'"), null);
 	        result = true;
 	    }
 	    return result;

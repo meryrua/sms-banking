@@ -31,6 +31,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Process;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -135,6 +136,7 @@ public class SMSBankingActivity extends ListActivity{
 		static final int DATA_WAS_DELETED = 5;
 		static final int SET_BALANCE = 8;
 		static final int TREAD_IS_READY = 9;
+		static final int CARD_WAS_DELETED = 10;
 		
 		public SMSBankingActivityHandler(){
 			super();
@@ -142,6 +144,7 @@ public class SMSBankingActivity extends ListActivity{
 		
 		@Override
 		public void handleMessage(Message msg){
+            Log.d(LOG_TAG, "activity handleMessage thread " + (Process.myTid()));
 	    	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 	    	SharedPreferences.Editor editor = settings.edit();
 			switch(msg.what){
@@ -242,6 +245,9 @@ public class SMSBankingActivity extends ListActivity{
 				}
 				showTransactionList();
 				break;
+			case CARD_WAS_DELETED:
+			    showTransactionList();
+			    break;
 			}
 		}
 	}
@@ -344,7 +350,9 @@ public class SMSBankingActivity extends ListActivity{
         @Override
         public void cardDataWasDeleted() {
             // TODO Auto-generated method stub
-            showTransactionList();
+            Message msg = thisActivityHandler.obtainMessage();
+            msg.what = SMSBankingActivityHandler.CARD_WAS_DELETED;
+            thisActivityHandler.sendMessage(msg);
         }
 
 	}
