@@ -211,6 +211,9 @@ public class SMSBankingActivity extends ListActivity{
 				}
 				break;
 			case DATA_FROM_SMS_WAS_LOADED:
+	             if ((progressDialog != null) && (progressDialog.isShowing())){
+	                    progressDialog.dismiss();
+	                }
 				if (msg.arg1 == NO_ERROR){
 					Log.d(LOG_TAG, "LoadDataFromSMS success");
 			    	editor.putBoolean(NEED_TO_LOAD, false);
@@ -479,11 +482,6 @@ public class SMSBankingActivity extends ListActivity{
 	    	    }
     	}
    	
-    }
-    
-    @Override
-    protected void onUserLeaveHint(){
-        
     }
     
     private void backupDb() throws IOException {
@@ -819,6 +817,13 @@ public class SMSBankingActivity extends ListActivity{
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Auto-generated method stub
 					if ((connectionService != null) && (serviceThreadIsReady)){
+					    if (progressDialog != null){
+					        progressDialog.dismiss();
+					    }
+			            progressDialog = new ProgressDialog(SMSBankingActivity.this);
+			            progressDialog.setCancelable(false);
+			            progressDialog.setMessage(resources.getText(R.string.loading));
+			            progressDialog.show();
 					    connectionService.deleteAllData(true);
 					}
 				}
