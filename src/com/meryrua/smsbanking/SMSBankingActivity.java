@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.meryrua.smsbanking.R;
@@ -236,6 +235,7 @@ public class SMSBankingActivity extends ListActivity{
 				showTransactionList();
 				break;
 			case TREAD_IS_READY:
+			    Log.d(LOG_TAG, "TREAD_IS_READY + progressDialog "+ progressDialog);
 				serviceThreadIsReady = true;
 				if ((progressDialog != null) && (progressDialog.isShowing())){
 					progressDialog.dismiss();
@@ -374,12 +374,10 @@ public class SMSBankingActivity extends ListActivity{
     		editorSettings.commit();
     		Log.d(LOG_TAG, "NEED_TO_LOAD, true");
     		firstLoading = true;
-    		setDefaultPatterns();
-        }
-    	
+          }
 
         //getPatterns();
-    	//Log.d(LOG_TAG, "passw " + usingPassword);
+    	Log.d(LOG_TAG, "passw " + usingPassword + " checked " + isChecked);
     
     	if ((usingPassword) && (!isChecked)){
         	if (!settings.contains(PASSWORD_TEXT))
@@ -410,18 +408,7 @@ public class SMSBankingActivity extends ListActivity{
         }
     }
     
-    private void setDefaultPatterns(){
-        XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
-        HashMap<String, ArrayList<String>> patternMap = new HashMap<String, ArrayList<String>>();
-        patternMap.put(XMLParcerSerializer.TRANSACTION_TAG, new ArrayList<String>());
-        patternMap.get(XMLParcerSerializer.TRANSACTION_TAG).add(SMSParcer.DEFAULT_TRANSACTION_PATTERN);
-        patternMap.put(XMLParcerSerializer.INCOMING_TAG, new ArrayList<String>());
-        patternMap.get(XMLParcerSerializer.INCOMING_TAG).add(SMSParcer.DEFAULT_INCOMING_PATTERN);
-        patternMap.put(XMLParcerSerializer.OUTGOING_TAG, new ArrayList<String>());
-        patternMap.get(XMLParcerSerializer.OUTGOING_TAG).add(SMSParcer.DEFAULT_OUTGOING_PATTERN);
-        xmlSerializer.serializePatterns(patternMap, context);
-    }
-    
+   
     /*private void getPatterns(){
         XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
         HashMap<String, ArrayList<String>> patternMap = xmlSerializer.parcePatterns(context);
@@ -470,6 +457,7 @@ public class SMSBankingActivity extends ListActivity{
     @Override
     protected void onNewIntent(Intent intent){
     	super.onNewIntent(intent);
+    	Log.d(LOG_TAG, "intent " + intent.getAction());
     	if (isChecked){
 	    	//Log.d(LOG_TAG, "onNewIntent " + intent.getAction());
 	    	if (intent.getAction().equals(UPDATE_TRANSACTION_LIST_INTENT)){
@@ -483,6 +471,11 @@ public class SMSBankingActivity extends ListActivity{
 	    	    }
     	}
    	
+    }
+    
+    @Override
+    protected void onUserLeaveHint(){
+        
     }
     
     private void backupDb() throws IOException {
@@ -620,12 +613,15 @@ public class SMSBankingActivity extends ListActivity{
     	super.onResume();
         bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
         if (isChecked){
-            //showDialog(DIALOG_LOADING);
+            //without it activity is locked after incoming call
+            if (progressDialog != null){
+                progressDialog.dismiss();
+            }
             progressDialog = new ProgressDialog(this);
             progressDialog.setCancelable(false);
             progressDialog.setMessage(resources.getText(R.string.loading));
             progressDialog.show();
-            Log.d(LOG_TAG, "onStart ");
+            Log.d(LOG_TAG, "onResume() ");
             prepareActivity();
             showTransactionList();
         }

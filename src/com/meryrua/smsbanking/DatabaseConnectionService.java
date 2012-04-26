@@ -157,10 +157,11 @@ public class DatabaseConnectionService extends Service{
 							null, null, sort_by);
 				loadResult = true;
 				if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst())){
+				    SMSParcer smsParcer = new SMSParcer();
 					//for (int j = 0; j < 10000000; j++);
 					do {
-						SMSParcer smsParcer = new SMSParcer(inboxSMSCursor.getString(
-									inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)), context);
+						smsParcer.setParcedString(inboxSMSCursor.getString(
+									inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)));
 					    if (smsParcer.isMatch(myDBAdapter)){
 					    	loadResult = myDBAdapter.insertTransaction(smsParcer.getTransactionData());
 					    }
