@@ -12,7 +12,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
-import android.util.Log;
 import android.widget.Toast;
 
 
@@ -22,12 +21,10 @@ public class SMSReceiver extends BroadcastReceiver {
 	public static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
 	public static final String TYPE = "address"; 
 	
-	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSReceiver";
+	private static final String LOG_TAG = "SMSReceiver";
 	
 	private static int NOTIFICATION_ID = 0;
 	
-	static String bankAddress = null;
-	String currBankAddress = null;
 	private Notification notification;
 	
 	private SMSParcer smsParcer;
@@ -38,25 +35,17 @@ public class SMSReceiver extends BroadcastReceiver {
 	
 	@Override
 	  public void onReceive(Context context, Intent intent) {
-
+        DebugLogging.log(context, (LOG_TAG + " onReceive  "));
+        
 		 myContext = context;
-		 //Log.d(LOG_TAG, bankAddress);
-		 if (intent.getAction().equals(BANK_ADDRESS_ACTION))
-		 {
-			 bankAddress = intent.getStringExtra(TYPE); 
-			 //Log.d(LOG_TAG,  bankAddress);
-		 }
-		 else if (intent.getAction().equals(SMS_RECEIVED))
-		 {
-			//Log.d(LOG_TAG,  bankAddress);
+		 if (intent.getAction().equals(SMS_RECEIVED)) {
 		 	Bundle bundle = intent.getExtras();        
 	        SmsMessage[] msgs = null;
 			SmsMessage msgs1 = null;
 	        String str1 = "";            
 	        String smsMessage = "";    
 	        String messageForParcing = "";
-	        if (bundle != null)
-	        {
+	        if (bundle != null) {
 	            //---retrieve the SMS message received---
 	            Object[] pdus = (Object[]) bundle.get("pdus");
 	            msgs = new SmsMessage[pdus.length];  
@@ -65,7 +54,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	                str1 += msgs1.getOriginatingAddress();
 	                
 	                smsMessage += "SMS is from bank " + msgs1.getOriginatingAddress();
-			        for (int i=0; i<msgs.length; i++){
+			        for (int i=0; i<msgs.length; i++) {
 				        msgs[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
 				        messageForParcing += msgs[i].getMessageBody().toString();
 			        }
@@ -77,14 +66,12 @@ public class SMSReceiver extends BroadcastReceiver {
 					myDBAdapter.close();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
-			        //Log.d(LOG_TAG, "match " + matchSMS);
 			        
-			       if (matchSMS){
+			       if (matchSMS) {
 			        	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 			        	String smsProcessing = settings.getString(context.getResources().getString(R.string.sms_processing), context.getResources().getString(R.string.normal_processing));
-			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only))){
+			        	if (smsProcessing.equals(context.getResources().getString(R.string.application_only))) {
 			        			abortBroadcast();
-			        			Log.d(LOG_TAG, "abort broadcast");
 			        	}
 			        	
 						transactionData = smsParcer.getTransactionData();
@@ -93,31 +80,12 @@ public class SMSReceiver extends BroadcastReceiver {
 						transactionData.fillIntent(startServiceIntent);
 						startServiceIntent.setClass(context, DatabaseConnectionService.class);
 						context.startService(startServiceIntent);
-						Log.d(LOG_TAG, "Start service");
-						
+				        DebugLogging.log(context, (LOG_TAG + " startService  "));	
+				        
 						setSMSNotification(myContext, "New sms", transactionData); 		
-
 			        }
 		        }		 
 		 }
-		 else if (intent.getAction().equals(SEND_SMS_ACTION)) {
-			MyDBAdapter myDBAdapter = new MyDBAdapter(context);
-			myDBAdapter.openToRead();
-			boolean matchSMS = smsParcer.isMatch(myDBAdapter);
-			myDBAdapter.close();	            
-				      
-			if (matchSMS){
-    			transactionData = smsParcer.getTransactionData();
-    			 
-    			Intent startServiceIntent = new Intent();
-    			startServiceIntent.setAction(DatabaseConnectionService.INSERT_DATA_ACTION);
-    			transactionData.fillIntent(startServiceIntent);
-    			startServiceIntent.setClass(context, DatabaseConnectionService.class);
-    			context.startService(startServiceIntent);
-    			 
-    			setSMSNotification(context, "New sms", transactionData); 
-			}
-		}
 	 }
 	
 	private void setSMSNotification(Context context,CharSequence notiDetail, TransactionData tranzactionData) {
@@ -130,14 +98,12 @@ public class SMSReceiver extends BroadcastReceiver {
 	    int icon = R.drawable.icon;
 	    notification = new Notification(icon, smsNoti, when);
 	    notification.flags = notification.flags | Notification.FLAG_AUTO_CANCEL;// | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND; //remove notification on user click
-	            
 
 	    Intent notiIntent = new Intent(context, SMSBankingActivity.class);
 	    notiIntent.setAction(SMSBankingActivity.VIEW_TRANSACTION_DETAIL_INTENT);
 	    notiIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
 	    tranzactionData.fillIntent(notiIntent);
-	    //fillIntent(notiIntent, tranzactionData);
 	    PendingIntent launchIntent = PendingIntent.getActivity(context, 0, notiIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    notification.setLatestEventInfo(context, smsNoti.subSequence(0, (smsNoti.length() - 1)) , notiDetail, launchIntent);
 	            
@@ -145,7 +111,7 @@ public class SMSReceiver extends BroadcastReceiver {
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 	
-	static public void fillIntent(Intent intent, TransactionData tranzactionData){
+	/*static public void fillIntent(Intent intent, TransactionData tranzactionData){
 		intent.putExtra(TransactionData.TRANSACTION_VALUE, tranzactionData.getTransactionValue());
 		intent.putExtra(TransactionData.FUND_VALUE, tranzactionData.getFundValue());
 		intent.putExtra(TransactionData.BANK_NAME, tranzactionData.getBankName());
@@ -154,6 +120,5 @@ public class SMSReceiver extends BroadcastReceiver {
 		intent.putExtra(TransactionData.TRANSACTION_CURRENCY, tranzactionData.getTransactionCurrency());
 		intent.putExtra(TransactionData.TRANSACTION_DATE, tranzactionData.getTransactionDate());
 		intent.putExtra(TransactionData.TRANSACTION_PLACE, tranzactionData.getTransactionPlace());
-	}
-
+	}*/
 }

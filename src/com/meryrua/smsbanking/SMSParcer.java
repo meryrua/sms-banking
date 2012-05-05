@@ -3,138 +3,98 @@ package com.meryrua.smsbanking;
 import java.util.regex.*;
 
 import android.content.Context;
-import android.util.Log;
 
-
-//Should we create new Parcer for each new SMS from bank???
 public class SMSParcer {
 	private Pattern smsPattern;
 	private Matcher matcherWithPattern;
 	private String smsMessage = null;
 	private String operationName;
 	
-	public static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w-,.]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
+	public static final String DEFAULT_TRANSACTION_PATTERN = "Karta\\s*\\*(\\d+);\\s*Provedena\\stranzakcija:(\\d+,\\d+)(\\w+);\\s*Data:(\\d+/\\d+/\\d+);\\s*Mesto:\\s*([[\\w+\\W+]+\\s*]+);\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
 	public static final String DEFAULT_INCOMING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\spopolnilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 
 	public static final String DEFAULT_OUTGOING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\sumenshilsya\\s*(\\d+/\\d+/\\d+)\\s*na:(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
 	
-	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSParcer";
+	//private static final String LOG_TAG = "com.meryrua.smsbanking:SMSParcer";
 	
 	/*private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	private static final String testOutgoingString = "Balans vashey karty *1234 umenshilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
 	private static final String testIncomingString = "Balans vashey karty *1234 popolnilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
 	*/
 	
-	public SMSParcer(String str, Context myContext){
+	public SMSParcer(String str, Context myContext) {
 		smsMessage = new String(str);
 	}
 	
-	public SMSParcer(){
+	public SMSParcer() {
 	}
 	
-	public void setParcedString(String str){
+	public void setParcedString(String str) {
 	    smsMessage = new String(str);
 	}
 	
-	public boolean isCardOperation(String patterString){
+	public boolean isCardOperation(String patterString) {
 		boolean matchFound = false;
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
-		if (matcherWithPattern.matches())
-		{
+		if (matcherWithPattern.matches()) {
 			operationName = TransactionData.CARD_OPERATION;
 			matchFound = true;
-			//Log.d(LOG_TAG, "number = % d " + matcherWithPattern.groupCount());
-		
-			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
-				//Log.d(LOG_TAG, "number %d " + j + " = % d " + matcherWithPattern.group(j));
-			}
-		}else{
-		    Log.d(LOG_TAG, "do mot match");
 		}
 		return matchFound;
 	}
 	
-	public boolean isIncomingFundOperation(String patterString){
+	public boolean isIncomingFundOperation(String patterString) {
 		boolean matchFound = false;
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
-		if (matcherWithPattern.matches()){
+		if (matcherWithPattern.matches()) {
 			operationName = TransactionData.INCOMING_BANK_OPERATION;
 			matchFound = true;
-		
-			//Log.d(LOG_TAG, "number = % d " + matcherWithPattern.groupCount());
-		
-			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
-				//Log.d(LOG_TAG, "number %d " + j + " = % d " + matcherWithPattern.group(j));
-			}
-		}else{
-		    Log.d(LOG_TAG, "do mot match");
 		}
 		return matchFound;
 	}
 
-	public boolean isOutgoingFundOperation(String patterString){
+	public boolean isOutgoingFundOperation(String patterString) {
 		boolean matchFound = false;
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
-		if (matcherWithPattern.matches()){
+		if (matcherWithPattern.matches()) {
 			operationName = TransactionData.OUTGOING_BANK_OPERATION;
 			matchFound = true;		
-			//Log.d(LOG_TAG, "number = % d " + matcherWithPattern.groupCount());
-		
-			for (int j = 1; j <= matcherWithPattern.groupCount(); j++){
-				//Log.d(LOG_TAG, "number %d " + j + " = % d " + matcherWithPattern.group(j));
-			}
-		}else{
-		    Log.d(LOG_TAG, "do mot match");
 		}
 		return matchFound;
 	}
-
 	
-	public boolean isMatch(MyDBAdapter myDBAdapter){
+	public boolean isMatch(MyDBAdapter myDBAdapter) {
 		boolean isBankSMS = false;
 		
-		if (SMSBankingApplication.operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)){
-		    for (int i = 0; ((i < SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).size()) && (!isBankSMS)); i++){
+		if (SMSBankingApplication.operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)) {
+		    for (int i = 0; ((i < SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).size()) && (!isBankSMS)); i++) {
 		        isBankSMS = isCardOperation(SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).get(i));
 		    }
 		}
-        if ((!isBankSMS) && (SMSBankingApplication.operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG))){
-            for (int i = 0; ((i < SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).size()) && (!isBankSMS)); i++){
+        if ((!isBankSMS) && (SMSBankingApplication.operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG))) {
+            for (int i = 0; ((i < SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).size()) && (!isBankSMS)); i++) {
                 isBankSMS = isIncomingFundOperation(SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).get(i));
             }
         }
-        if ((!isBankSMS) && (SMSBankingApplication.operationPatterns.containsKey(XMLParcerSerializer.OUTGOING_TAG))){
-            for (int i = 0; ((i < SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).size()) && (!isBankSMS)); i++){
+        if ((!isBankSMS) && (SMSBankingApplication.operationPatterns.containsKey(XMLParcerSerializer.OUTGOING_TAG))) {
+            for (int i = 0; ((i < SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).size()) && (!isBankSMS)); i++) {
                 isBankSMS = isOutgoingFundOperation(SMSBankingApplication.operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).get(i));
             }
         }
-		/*Log.d(LOG_TAG, "Open DB SMSParcer isMatch");
-			
-		cursor = myDBAdapter.getOperationPattern();
-		if ((cursor != null) && (cursor.moveToFirst())){
-			do{
-				isBankSMS = (isCardOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.TRANSACTION_PATTERN_STRING))) || isIncomingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.INCOMING_OPERATION_PATTERN_STRING))) || isOutgoingFundOperation(cursor.getString(cursor.getColumnIndex(MyDBAdapter.OUTGOING_OPERATION_PATTERN_STRING))));
-			}while ((cursor.moveToNext()) && (!isBankSMS));
-			cursor.close();
-		}
-		Log.d(LOG_TAG, "Close DB SMSParcer isMatch");*/
-		
-		if (isBankSMS) Log.d(LOG_TAG, "match");
-
 		return isBankSMS;
 	}
 	
-	TransactionData getTransactionData(){
+	TransactionData getTransactionData() {
 		TransactionData tranzactionData =  new TransactionData();
 		if (operationName.equals(TransactionData.CARD_OPERATION)) {
 			tranzactionData.setCardNumber(matcherWithPattern.group(1));
@@ -147,9 +107,9 @@ public class SMSParcer {
 			tranzactionData.setBankName(matcherWithPattern.group(8));
 		} else {
 			tranzactionData.setCardNumber(matcherWithPattern.group(1));
-			if (operationName.equals(TransactionData.INCOMING_BANK_OPERATION)){
+			if (operationName.equals(TransactionData.INCOMING_BANK_OPERATION)) {
 				tranzactionData.setTransactionPlace(TransactionData.INCOMING_BANK_OPERATION);				
-			}else {
+			} else {
 				tranzactionData.setTransactionPlace(TransactionData.OUTGOING_BANK_OPERATION);				
 			}
 			tranzactionData.setTransactionDate(matcherWithPattern.group(2));

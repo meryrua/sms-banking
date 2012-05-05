@@ -4,192 +4,241 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Process;
 import android.os.IBinder;
 import android.os.Looper;
-import android.util.Log;
-import android.widget.Toast;
 
-public class DatabaseConnectionService extends Service{
+public class DatabaseConnectionService extends Service {
 	private boolean handlerIsCreated = false;
 	private MyDBAdapter myDBAdapter;
 	private IBinder myBinder = new MyBinder();
 	private DatabaseConnectionCallbackInterface callbackObject;
 	private ServiceHandlerThread thread;
 	
-	protected static final int GET_TRANSACTION_DATA = 1;
-	protected static final int GET_CARDS_DATA = 2;
-	protected static final int INSERT_DATA = 3;
-	protected static final int UPDATE_CARD_ALIAS = 4;
-	protected static final int DELETE_DATA = 5;
-	protected static final int LOAD_DATA_FROM_SMS = 6;
-	protected static final int DELETE_AND_LOAD_DATA_FROM_SMS = 7;
-	protected static final int OPEN_DATABASE = 8;
-	protected static final int GET_BALANCE = 9;
-	protected static final int DELETE_CARD = 10;
+	private static final int GET_TRANSACTION_DATA = 1;
+	private static final int GET_CARDS_DATA = 2;
+	private static final int INSERT_DATA = 3;
+	private static final int UPDATE_CARD_ALIAS = 4;
+	private static final int DELETE_DATA = 5;
+	private static final int LOAD_DATA_FROM_SMS = 6;
+	private static final int DELETE_AND_LOAD_DATA_FROM_SMS = 7;
+	private static final int OPEN_DATABASE = 8;
+	private static final int GET_BALANCE = 9;
+	private static final int DELETE_CARD = 10;
 	
 	public static final String INSERT_DATA_ACTION = "action.insert_data";
 	
-	protected static final String CARD_DATA = "card_data";
-	protected static final String CARD_ALIAS_DATA = "card_alias_data";
+	private static final String CARD_DATA = "card_data";
+	private static final String CARD_ALIAS_DATA = "card_alias_data";
 	
-	private static final String LOG_TAG = "com.meryrua.smsbanking:DatabaseConnectionService";
+    private static final String LOG_TAG = "DatabaseConnectionService";
 
 	private final class ServiceHandler extends Handler {
 				
         @Override
 	    public void handleMessage(Message msg) {
-	    	Log.d(LOG_TAG, "handleMessage thread " + (Process.myTid()));
-    		boolean loadResult = false, deleteResult = false;
+    		boolean loadResult = false;
+    		boolean deleteResult = false;
     		
-    		if (!myDBAdapter.isDatabaseOpen()) myDBAdapter.open();
+    		if (!myDBAdapter.isDatabaseOpen()) {
+    		    myDBAdapter.open();
+    		}
     		
-	    	switch(msg.what){
-	    	case GET_TRANSACTION_DATA:
-	    		Cursor transactionCursor = myDBAdapter.getTransactionWithFilter(msg.obj.toString());
-	    		Log.d(LOG_TAG, "Handler service call callback");
-	    		callbackObject.showTransactionData(transactionCursor);
+	    	switch(msg.what) {
+	    	case GET_TRANSACTION_DATA: {
+	    	    try {
+	    	        Cursor transactionCursor = myDBAdapter.getTransactionWithFilter(msg.obj.toString());
+	    	        callbackObject.showTransactionData(transactionCursor);
+	    	    } catch (SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));	    	        
+	    	    }
 	    		break;
-	    	case GET_BALANCE:
-	    		Log.d(LOG_TAG, "Handler service balance");
-	    		String balanceValue = myDBAdapter.getBalance(msg.obj.toString());
-	    		callbackObject.setBalance(balanceValue);
+	    	}
+	    	case GET_BALANCE: {
+	    	    try {
+	    	        String balanceValue = myDBAdapter.getBalance(msg.obj.toString());
+	    	        callbackObject.setBalance(balanceValue);
+	    	    } catch (SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));	    	        
+	    	    }
 	    		break;
-	    	case GET_CARDS_DATA:
-	    		Cursor cardsCursor = myDBAdapter.selectCardsNumber(msg.obj.toString());
-	    		callbackObject.showCardsData(cardsCursor, msg.obj.toString());
+	    	}
+	    	case GET_CARDS_DATA: {
+	    	    try {
+	    	        Cursor cardsCursor = myDBAdapter.selectCardsNumber(msg.obj.toString());
+	    	        callbackObject.showCardsData(cardsCursor, msg.obj.toString());
+	    	    } catch (SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
+	    	    }
 	    		break;
-	    	case INSERT_DATA:
+	    	}
+	    	case INSERT_DATA: {
 	    		Bundle bundle = (Bundle) msg.obj;
 	    		TransactionData transactionData = new TransactionData(bundle);
-	    		boolean insertResult = myDBAdapter.insertTransaction(transactionData);
-	    		Log.d(LOG_TAG, "service handler insert data");
-				if (insertResult){
-					Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
-					getApplicationContext().sendBroadcast(updateIntent);
-				}
+	    		try {
+	    		    boolean insertResult = myDBAdapter.insertTransaction(transactionData);
+	    		    if (insertResult) {
+	    		        Intent updateIntent = new Intent(SMSBankingActivity.UPDATE_TRANSACTION_LIST_INTENT);
+	    		        getApplicationContext().sendBroadcast(updateIntent);
+	    		    }
+	    		} catch (SQLiteException exc) {
+	    		    //TODO if error I should inform 
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
+	    		}
 	    		break;
-	    	case UPDATE_CARD_ALIAS:
+	    	}
+	    	case UPDATE_CARD_ALIAS: {
 	    		Bundle cardMap = (Bundle) msg.obj;
-	    		Boolean updateResult = myDBAdapter.updateCardAlias(cardMap.getString(CARD_ALIAS_DATA), cardMap.getString(CARD_DATA));
-	    		callbackObject.aliasUpdated(updateResult);
+	    		try {
+	    		    Boolean updateResult = myDBAdapter.updateCardAlias(cardMap.getString(CARD_ALIAS_DATA), cardMap.getString(CARD_DATA));
+	    		    callbackObject.aliasUpdated(updateResult);
+	    		} catch (SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
+	    		}
 	    		break;	 
-	    	case DELETE_DATA:
-	    		myDBAdapter.beginDatabaseTranzaction();
+	    	}
+	    	case DELETE_DATA: {
+	    		//for (int j = 0; j < 10000000; j++);
+	    		try {
+	    		    myDBAdapter.beginDatabaseTranzaction();
+    				deleteResult = myDBAdapter.deleteData();
+    				if (deleteResult) {
+    				    myDBAdapter.setSuccesfullTranzaction();
+    				}
+                    myDBAdapter.endDatabaseTranzaction();
+                    callbackObject.dataWasDeleted(deleteResult);
+	    		} catch (SQLiteException exc) {
+	    		    callbackObject.sqlLiteExceptionIsCatched();
+	    	        DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
+	    		}
+	    		break;
+	    	}
+	    	case LOAD_DATA_FROM_SMS: {
 				try	{
-					//for (int j = 0; j < 10000000; j++);
-					deleteResult = myDBAdapter.deleteData();
-					if (deleteResult) myDBAdapter.setSuccesfullTranzaction();
-				}catch(Exception ex){
-				    Log.d(LOG_TAG, "Catch error");
-				}
-				myDBAdapter.endDatabaseTranzaction();
-				callbackObject.dataWasDeleted(deleteResult);
-	    		break;	 
-	    	case LOAD_DATA_FROM_SMS:
-				myDBAdapter.beginDatabaseTranzaction();
-				try	{
+	                myDBAdapter.beginDatabaseTranzaction();
 					//for (int j = 0; j < 10000000; j++);
 
 					loadResult = loadDataFromSMS();
-					if (loadResult){
+					if (loadResult) {
 						myDBAdapter.setSuccesfullTranzaction();
 					}
-				}catch(Exception ex){
-                    Log.d(LOG_TAG, "Error in deleting data");
+		            myDBAdapter.endDatabaseTranzaction();
+		            callbackObject.dataWasLoaded(loadResult);
+				} catch(SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
 				}
-				myDBAdapter.endDatabaseTranzaction();
-				callbackObject.dataWasLoaded(loadResult);
 	    		break;	 
-	    	case OPEN_DATABASE:
-	    		myDBAdapter.open();
+	    	}
+	    	case OPEN_DATABASE: {
+	    	    try {
+	    	        DebugLogging.log(getApplicationContext(), (LOG_TAG + " OPEN_DATABASE"));
+	    	        myDBAdapter.open();
+	    	    } catch (SQLiteException exc) {
+	                callbackObject.sqlLiteExceptionIsCatched();
+	                DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
+	    	    }
 	    		break;
-	    	case DELETE_AND_LOAD_DATA_FROM_SMS:
-				myDBAdapter.beginDatabaseTranzaction();
+	    	}
+	    	case DELETE_AND_LOAD_DATA_FROM_SMS: {
 				try	{
-					//for (int j = 0; j < 10000000; j++);
+				    myDBAdapter.beginDatabaseTranzaction();					
+				    //for (int j = 0; j < 10000000; j++);
 					deleteResult = myDBAdapter.deleteData();
 					
-					if (deleteResult){
+					if (deleteResult) {
 						loadResult = loadDataFromSMS();
 						if (loadResult){
 				        	myDBAdapter.setSuccesfullTranzaction();
 						}
 					}
-				}catch(Exception ex){
-	                  Log.d(LOG_TAG, "Error in deleting and loading data from SMS");
-				}
-				myDBAdapter.endDatabaseTranzaction();
-				callbackObject.dataWasLoaded(loadResult);
+	                myDBAdapter.endDatabaseTranzaction();
+	                callbackObject.dataWasLoaded(loadResult);
+	            } catch (SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
+                }
 	    		break;
-	    	case DELETE_CARD:
-                myDBAdapter.beginDatabaseTranzaction();	 
+	    	}
+	    	case DELETE_CARD: {
                 try{
-                    if (myDBAdapter.deleteCardData(msg.obj.toString())){
+                    myDBAdapter.beginDatabaseTranzaction();  
+                    if (myDBAdapter.deleteCardData(msg.obj.toString())) {
                         myDBAdapter.setSuccesfullTranzaction();                       
                     }
-                }catch(Exception exc){
-                    Log.d(LOG_TAG, "Error in deleting card data");
+                    myDBAdapter.endDatabaseTranzaction();
+                    callbackObject.cardDataWasDeleted();
+                } catch (SQLiteException exc) {
+                    callbackObject.sqlLiteExceptionIsCatched();
+                    DebugLogging.log(getApplicationContext(), (LOG_TAG + exc.getMessage()));
                 }
-                myDBAdapter.endDatabaseTranzaction();
-                callbackObject.cardDataWasDeleted();
 	    	    break;
+	    	}
 	    	default:
+	    	    DebugLogging.log(getApplicationContext(), (LOG_TAG + " ServiceHandler handleMessage default tag"));
 	    		break;
 	    	}
 	    }
 	    
-	    private boolean loadDataFromSMS(){
+	    private boolean loadDataFromSMS() {
 			Uri uriSms = Uri.parse("content://sms/inbox");
 			boolean loadResult = false;
-			String sort_by = new String(SMSViewingAdapter.SMS_DATE_FIELD + " ASC");
+			String sort_by = SMSViewingAdapter.SMS_DATE_FIELD + " ASC";
 			Context context = getApplicationContext();
-			try{
-				Cursor inboxSMSCursor = context.getContentResolver().query(
+			Cursor inboxSMSCursor = context.getContentResolver().query(
 							uriSms, 
 							new String[] { SMSViewingAdapter.SMS_ID_FIELD,
 							SMSViewingAdapter.SMS_DATE_FIELD,
 							SMSViewingAdapter.SMS_BODY_FIELD}, 
 							null, null, sort_by);
-				loadResult = true;
-				if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst())){
-				    SMSParcer smsParcer = new SMSParcer();
-					//for (int j = 0; j < 10000000; j++);
-					do {
-						smsParcer.setParcedString(inboxSMSCursor.getString(
-									inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)));
-					    if (smsParcer.isMatch(myDBAdapter)){
-					    	loadResult = myDBAdapter.insertTransaction(smsParcer.getTransactionData());
-					    }
-					}while ((inboxSMSCursor.moveToNext()) && (loadResult));
-				inboxSMSCursor.close();	    	
-				}
-			}catch(Exception exc){}
+			loadResult = true;
+			if ((inboxSMSCursor != null) && (inboxSMSCursor.moveToFirst())) {
+				SMSParcer smsParcer = new SMSParcer();
+				//for (int j = 0; j < 10000000; j++);
+				do {
+					smsParcer.setParcedString(inboxSMSCursor.getString(
+								inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)));
+					if (smsParcer.isMatch(myDBAdapter)) {
+					    loadResult = myDBAdapter.insertTransaction(smsParcer.getTransactionData());
+					}
+				} while ((inboxSMSCursor.moveToNext()) && (loadResult));
+			inboxSMSCursor.close();	    	
+			}
 			return loadResult;
 	    }
 	}
 	
 	public class MyBinder extends Binder {
 		DatabaseConnectionService getService() {
-		return DatabaseConnectionService.this;
+		    return DatabaseConnectionService.this;
 		}
 	}
 	
-	class ServiceHandlerThread extends Thread{
+	class ServiceHandlerThread extends Thread {
 		private ServiceHandler mServiceHandler;
 
-		public void run(){
-			Log.d(LOG_TAG, "run thread");
+		public void run() {
 			Looper.prepare();
 			mServiceHandler = new ServiceHandler();
 			handlerIsCreated = true;
 			
-			if (callbackObject != null) callbackObject.onReady();
+            Message msg = mServiceHandler.obtainMessage();
+            msg.what = OPEN_DATABASE;
+            mServiceHandler.sendMessage(msg);
+			
+			if (callbackObject != null) {
+			    callbackObject.onReady();
+			}
 			Looper.loop();
 		}
 		
@@ -200,8 +249,8 @@ public class DatabaseConnectionService extends Service{
 	}
 	
 	@Override
-	public void onCreate(){
-		Log.d(LOG_TAG, "onCreate thread " + android.os.Process.getThreadPriority(Process.myTid()));
+	public void onCreate() {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " onCreate"));
 		thread = new ServiceHandlerThread();
 	    thread.start();
     
@@ -209,24 +258,26 @@ public class DatabaseConnectionService extends Service{
 	}
 	
 	@Override
-	public void onDestroy(){
+	public void onDestroy() {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " onDestroy"));
 		myDBAdapter.close();
 		super.onDestroy();
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-	    Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
-	    Log.d(LOG_TAG, "onStartCommand thread " + android.os.Process.getThreadPriority(Process.myTid()));
-	    
+	    DebugLogging.log(getApplicationContext(), (LOG_TAG + " onStartCommand handlerIsCreated " + handlerIsCreated + " " +
+	            (intent == null)));
 	    if (handlerIsCreated){
-		    Message msg = thread.getHandler().obtainMessage();
-		    msg.arg1 = startId;
-		    if (intent.getAction().equals(INSERT_DATA_ACTION)){
+		    if ((intent != null) && (intent.getAction() != null) && (intent.getAction().equals(INSERT_DATA_ACTION))){
+		        Message msg = thread.getHandler().obtainMessage();
+		        msg.arg1 = startId;
+		 	    
 		    	msg.what = INSERT_DATA;
 		    	msg.obj = intent.getExtras();
+		    	thread.getHandler().sendMessage(msg);
 		    }
-		    thread.getHandler().sendMessage(msg);
+
 	    }
 	      
 	    return START_STICKY;
@@ -234,41 +285,40 @@ public class DatabaseConnectionService extends Service{
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		// TODO Auto-generated method stub
-		Log.d(LOG_TAG, "onBind  thread " + android.os.Process.getThreadPriority(Process.myTid()));
 		//for (int i = 0; i < 1000000; i++);
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " onBind"));
 		return myBinder;
 	}
 	
-	public void setCallbackItem(DatabaseConnectionCallbackInterface callback){
-		Log.d(LOG_TAG, "Set Callback  thread " + android.os.Process.getThreadPriority(Process.myTid()));
+	public void setCallbackItem(DatabaseConnectionCallbackInterface callback) {
 		callbackObject = callback;
-		if (handlerIsCreated) callbackObject.onReady();
+		if (handlerIsCreated) {
+		    callbackObject.onReady();
+		}
 	}
 	
-	public void getTransactionData(String filter){
-		Log.d(LOG_TAG, "getTransactionData  thread " + android.os.Process.getThreadPriority(Process.myTid()));
+	public void getTransactionData(String filter) {
 	    Message msg = thread.getHandler().obtainMessage();
     	msg.what = GET_TRANSACTION_DATA;
     	msg.obj = filter;
     	thread.getHandler().sendMessage(msg);
 	}
 	
-	public void getBalance(String cardNumber){
+	public void getBalance(String cardNumber) {
 	    Message msg = thread.getHandler().obtainMessage();
     	msg.what = GET_BALANCE;
     	msg.obj = cardNumber;
     	thread.getHandler().sendMessage(msg);		
 	}
 	
-	public void getCardsData(String cardsNumber){
+	public void getCardsData(String cardsNumber) {
 	    Message msg = thread.getHandler().obtainMessage();
     	msg.what = GET_CARDS_DATA;
     	msg.obj = cardsNumber;
     	thread.getHandler().sendMessage(msg);
 	}
 	
-	public void updateCardAlias(String cardsNumber, String alias){
+	public void updateCardAlias(String cardsNumber, String alias) {
 	    Bundle bundle = new Bundle();
 	    bundle.putString(CARD_DATA, cardsNumber);
 	    bundle.putString(CARD_ALIAS_DATA, alias);
@@ -278,24 +328,24 @@ public class DatabaseConnectionService extends Service{
     	thread.getHandler().sendMessage(msg);
 	}
 	
-	public void deleteAllData(boolean loadFromSMS){
+	public void deleteAllData(boolean loadFromSMS) {
 	    Message msg = thread.getHandler().obtainMessage();
-		if (loadFromSMS){
+		if (loadFromSMS) {
 		    msg.what = DELETE_AND_LOAD_DATA_FROM_SMS;
 		    thread.getHandler().sendMessage(msg);			
-		}else{
+		} else {
 	    	msg.what = DELETE_DATA;
 	    	thread.getHandler().sendMessage(msg);
 		}
 	}
 	
-	public void loadDataFromSMS(){
+	public void loadDataFromSMS() {
 	    Message msg = thread.getHandler().obtainMessage();
 		msg.what = LOAD_DATA_FROM_SMS;
 		thread.getHandler().sendMessage(msg);			
 	}
 	
-	public void deleteCardData(String cardNumber){
+	public void deleteCardData(String cardNumber) {
         Message msg = thread.getHandler().obtainMessage();
         msg.what = DELETE_CARD;
         msg.obj = cardNumber;

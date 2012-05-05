@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
-public class SMSDetail extends Activity{
+public class SMSDetail extends Activity {
 	Context context;
 	Resources resources;
 	TransactionData transactionData;
@@ -30,7 +30,6 @@ public class SMSDetail extends Activity{
 
 			@Override
 			public void onClick(View arg0) {
-				// TODO Auto-generated method stub
 				finish();
 			}
         });
@@ -48,12 +47,12 @@ public class SMSDetail extends Activity{
         
         TextView placeText = (TextView) findViewById(R.id.place);
         String placeOrOperation = transactionData.getTransactionPlace();
-        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)){
+        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)) {
         	placeText.setText(resources.getString(R.string.operation_name) + "  " + resources.getString(R.string.operation_incoming_name));
-        }else
-            if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)){
+        } else
+            if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)) {
                 placeText.setText(resources.getString(R.string.operation_name) + "  " + resources.getString(R.string.operation_outgoing_name));
-            }else {
+            } else {
                 placeText.setText(resources.getString(R.string.operation_place) + "  " + transactionData.getTransactionPlace());
             }
 

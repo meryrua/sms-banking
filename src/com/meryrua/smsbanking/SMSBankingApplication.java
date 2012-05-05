@@ -7,22 +7,21 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
-public class SMSBankingApplication extends Application{
+public class SMSBankingApplication extends Application {
     
-    private static final String LOG_TAG = "com.meryrua.smsbanking:SMSBankingApplication";
+    //private static final String LOG_TAG = "com.meryrua.smsbanking:SMSBankingApplication";
     public static HashMap<String, ArrayList<String>> operationPatterns;
     public static final String FIRST_LOADING = "first_loading";
 
 	@Override
-	public void onCreate(){
+	public void onCreate() {
 		super.onCreate();
 		CrashReporter crashReporter = new CrashReporter();
 		crashReporter.init(this);
 		
 	    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-	    if (!settings.contains(FIRST_LOADING)){
+	    if (!settings.contains(FIRST_LOADING)) {
 	        SharedPreferences.Editor editor = settings.edit();
 	        editor.putBoolean(FIRST_LOADING, false);
 	        editor.commit();
@@ -33,8 +32,7 @@ public class SMSBankingApplication extends Application{
 	    //getOperationParrensBase(getApplicationContext());   
 	}
 	
-    private void setDefaultPatterns(){
-        Log.d(LOG_TAG, "set default patterns");
+    private void setDefaultPatterns() {
         XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
         operationPatterns = new HashMap<String, ArrayList<String>>();
         operationPatterns.put(XMLParcerSerializer.TRANSACTION_TAG, new ArrayList<String>());
@@ -46,20 +44,18 @@ public class SMSBankingApplication extends Application{
         xmlSerializer.serializePatterns(operationPatterns, getApplicationContext());
     }
 
-	private void getOperationPatterns(Context context){
-	    Log.d(LOG_TAG, "start getting patterns");
+	private void getOperationPatterns(Context context) {
 	    XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
 	    operationPatterns = xmlSerializer.parcePatterns(context);
-	    Log.d(LOG_TAG, "end getting patterns");
-	    if (!operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)){
+	    if (!operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)) {
 	        operationPatterns.put(XMLParcerSerializer.TRANSACTION_TAG, new ArrayList<String>());
 	        operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).add(SMSParcer.DEFAULT_TRANSACTION_PATTERN);
 	    }
-	    if (!operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG)){
+	    if (!operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG)) {
 	        operationPatterns.put(XMLParcerSerializer.INCOMING_TAG, new ArrayList<String>());
 	        operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).add(SMSParcer.DEFAULT_INCOMING_PATTERN);
 	    }
-	    if (!operationPatterns.containsKey(XMLParcerSerializer.OUTGOING_TAG)){
+	    if (!operationPatterns.containsKey(XMLParcerSerializer.OUTGOING_TAG)) {
 	        operationPatterns.put(XMLParcerSerializer.OUTGOING_TAG, new ArrayList<String>());
 	        operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).add(SMSParcer.DEFAULT_OUTGOING_PATTERN);
 	    }

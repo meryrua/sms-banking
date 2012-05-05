@@ -7,14 +7,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
-public class SMSViewingActivity extends ListActivity{
-	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
+public class SMSViewingActivity extends ListActivity {
+	//private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
     
 	private Context context;
 	@Override
-	public void onCreate(Bundle bundle){
+	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		setContentView(R.layout.sms_view);
 		String sort_by = new String(SMSViewingAdapter.SMS_DATE_FIELD + " DESC");
@@ -30,11 +29,10 @@ public class SMSViewingActivity extends ListActivity{
 		
 		SMSViewingAdapter adapterSMS = new SMSViewingAdapter(context, inboxSMSCursor);
 		
-		if (inboxSMSCursor.moveToFirst()){
-			do{
-				String str = inboxSMSCursor.getString(inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD));
-				Log.d(LOG_TAG, "sms " + str);
-			}while (inboxSMSCursor.moveToNext());
+		if (inboxSMSCursor.moveToFirst()) {
+			do {
+				//String str = inboxSMSCursor.getString(inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD));
+			} while (inboxSMSCursor.moveToNext());
 		}
 		setListAdapter(adapterSMS);
 	}

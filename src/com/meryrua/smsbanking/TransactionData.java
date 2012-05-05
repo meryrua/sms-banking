@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 
+//надо в сеттерах и геттерах сделать везде! обработку на нул
+
 /*
  *Maybe we should save SMS receiving date... ?
  *Also we should know if it debit or kredit (oplata ili postuplenie) 
@@ -35,7 +37,7 @@ public class TransactionData {
 	public static final String OUTGOING_BANK_OPERATION = "umenshilsya";
 	public static final String CARD_OPERATION = "card_operation";	
 	
-	TransactionData(){
+	TransactionData() {
 		cardNumber = null;
 		transactionDate = null;
 		transactionPlace = null;
@@ -44,7 +46,7 @@ public class TransactionData {
 		bankName = null;
 	}
 	
-	TransactionData(Cursor transactionCursor){
+	TransactionData(Cursor transactionCursor) {
 		setCardNumber(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.CARD_NUMBER)));
 		setFundCurrency(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.FUND_CURRENCY)));
 		setTransactionCurrency(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_CURRENCY)));
@@ -55,7 +57,7 @@ public class TransactionData {
 		setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
 	}
 	
-	TransactionData(Bundle extras){
+	TransactionData(Bundle extras) {
 	   	setTransactionValue(extras.getFloat(TransactionData.TRANSACTION_VALUE, 0));
        	setFundValue(extras.getFloat(TransactionData.FUND_VALUE, 0));
        	setBankName(extras.getString(TransactionData.BANK_NAME));
@@ -66,83 +68,83 @@ public class TransactionData {
        	setTransactionPlace(extras.getString(TransactionData.TRANSACTION_PLACE));
 	}
 	
-	public void setCardNumber(String number){
-		if (number != null){
+	public void setCardNumber(String number) {
+		if (number != null) {
 		    cardNumber = new String(number);
 		}
 	}
 	
-	public String getCardNumber(){
+	public String getCardNumber() {
 		return cardNumber;
 	}
 
-	public void setTransactionDate(String date){
-		if (date != null){
+	public void setTransactionDate(String date) {
+		if (date != null) {
 		    transactionDate = new String(date);
 		}
 	}
 	
-	public String getTransactionDate(){
+	public String getTransactionDate() {
 		return transactionDate;
 	}
 
-	public void setTransactionPlace(String place){
-		if (place != null){
+	public void setTransactionPlace(String place) {
+		if (place != null) {
 		    transactionPlace = new String(place);
 		}
 	}
 	
-	public String getTransactionPlace(){
+	public String getTransactionPlace() {
 		return transactionPlace;
 	}
 
-	public void setTransactionCurrency(String currency){
-		if (currency != null){
+	public void setTransactionCurrency(String currency) {
+		if (currency != null) {
 		    transactionCurrency = new String(currency);
 		}
 	}
 	
-	public String getTransactionCurrency(){
+	public String getTransactionCurrency() {
 		return transactionCurrency;
 	}
 
-	public void setFundCurrency(String currency){
-		if (currency != null){
+	public void setFundCurrency(String currency) {
+		if (currency != null) {
 		    fundCurrency = new String(currency);
 		}
 	}
 	
-	public String getFundCurrency(){
+	public String getFundCurrency() {
 		return fundCurrency;
 	}
 
-	public void setBankName(String name){
-		if (name != null){
+	public void setBankName(String name) {
+		if (name != null) {
 		    bankName = new String(name);
 		}
 	}
 	
-	public String getBankName(){
+	public String getBankName() {
 		return bankName;
 	}
 	
-	public void setTransactionValue(float value){
+	public void setTransactionValue(float value) {
 		transactionValue = value;
 	}
 	
-	public float getTransactionValue(){
+	public float getTransactionValue() {
 		return transactionValue;
 	}
 
-	public void setFundValue(float value){
+	public void setFundValue(float value) {
 		fundValue = value;
 	}
 	
-	public float getFundValue(){
+	public float getFundValue() {
 		return fundValue;
 	}
 	
-	public void fillIntent(Intent intent){
+	public void fillIntent(Intent intent) {
 		intent.putExtra(TransactionData.TRANSACTION_VALUE, getTransactionValue());
 		intent.putExtra(TransactionData.FUND_VALUE, getFundValue());
 		intent.putExtra(TransactionData.BANK_NAME, getBankName());

@@ -17,18 +17,18 @@
     <string name="last_year">Last year</string>
     <string name="all">All</string>    
     <string name="card_operations">Card operations</string>    
-    <string name="incoming_operations">Incoming fund operations</string>    
-    <string name="outgoing_operations">Outgoing fund operations</string>
-    <string name="string_transaction">byla provedena tranzaccija na summu</string> 
-    <string name="string_incoming_operation">schet popolnilsya na summu</string>
-    <string name="string_outgoing_operation">schet umenshilsya na summu</string> 
+    <string name="incoming_operations">Credit fund operations</string>    
+    <string name="outgoing_operations">Debit fund operations</string>
+    <string name="string_transaction">sum of transaction</string> 
+    <string name="string_incoming_operation">credit amount</string>
+    <string name="string_outgoing_operation">debit amount</string> 
     <string name="operation_card_number">Card:</string>
     <string name="operation_date">Date:</string>
     <string name="operation_amount">Amount:</string>
     <string name="operation_place">Place:</string>
     <string name="operation_name">Operation:</string>
-    <string name="operation_incoming_name">Popolnenie</string>
-    <string name="operation_outgoing_name">Umenshenie</string>
+    <string name="operation_incoming_name">Credit</string>
+    <string name="operation_outgoing_name">Debit</string>
     <string name="operation_balance">Balance:</string> 
     <string name="close">Close</string>   
     <string name="apply">Apply</string> 
@@ -61,6 +61,7 @@
 	<string name="error_happened">Error happened</string>
 	<string name="delete_card">Delete card data</string> 
 	<string name="delete_card_request">Delete all data for card</string> 
+	<string name="sqlite_ecxeption">SQLite Database Exception. Application will be closed. Remove application\'s data.</string>
 	
 	<string name="ok_string">OK</string> 
 	<string name="using_password">using_password</string>

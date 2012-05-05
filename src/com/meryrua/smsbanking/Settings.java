@@ -22,17 +22,15 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class Settings extends PreferenceActivity{
+public class Settings extends PreferenceActivity {
 
 	private Context context;
 	private final static int DIALOG_SET_PASSWORD = 0;
 	private static String passwordString;
 	private static String repeatPasswordString;
 	
-	public final static String PASSWORD_FILE_NAME = "password_file.txt";
-	
 	@Override
-	public void onCreate(Bundle savedInstanceState){
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		context = getApplicationContext();
@@ -40,7 +38,7 @@ public class Settings extends PreferenceActivity{
 	}
 	
 	@Override 
-	protected void onStart(){
+	protected void onStart() {
 		super.onStart();
 		
 		CheckBoxPreference usePassword = (CheckBoxPreference) findPreference(context.getResources().getString(R.string.using_password));
@@ -49,8 +47,7 @@ public class Settings extends PreferenceActivity{
 			@Override
 			public boolean onPreferenceChange(Preference preference,
 					Object newValue) {
-				// TODO Auto-generated method stub
-				if (newValue.equals(new Boolean(true))){
+				if (newValue.equals(new Boolean(true))) {
 				    showDialog(DIALOG_SET_PASSWORD);
 				}
 				return true;
@@ -59,11 +56,10 @@ public class Settings extends PreferenceActivity{
 		});
 		
 		Preference passwordPref = (Preference) findPreference(context.getResources().getString(R.string.change_password));
-		passwordPref.setOnPreferenceClickListener(new OnPreferenceClickListener(){
+		passwordPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 
 			@Override
 			public boolean onPreferenceClick(Preference arg0) {
-				// TODO Auto-generated method stub
 				showDialog(DIALOG_SET_PASSWORD);
 				return false;
 			}
@@ -72,10 +68,10 @@ public class Settings extends PreferenceActivity{
 	}
 	
 	@Override
-	protected Dialog onCreateDialog(int id){
+	protected Dialog onCreateDialog(int id) {
 		AlertDialog alertDialog;
-		switch (id){
-		case DIALOG_SET_PASSWORD:
+		switch (id) {
+		case DIALOG_SET_PASSWORD: {
 			passwordString = null;
 			repeatPasswordString = null;
 			
@@ -86,11 +82,10 @@ public class Settings extends PreferenceActivity{
 			setPasswordDialogBuilder.setTitle(R.string.input_password);
 			setPasswordDialogBuilder.setView(layoutPassword);
 			
-			setPasswordDialogBuilder.setPositiveButton(context.getResources().getString(R.string.save), new  DialogInterface.OnClickListener(){
+			setPasswordDialogBuilder.setPositiveButton(context.getResources().getString(R.string.save), new  DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					// TODO Auto-generated method stub
 					if (!repeatPasswordString.equals(passwordString)){
 						passwordString = new String(SMSBankingActivity.DEFAULT_PASSWORD);
 				        Toast.makeText(Settings.this,
@@ -102,17 +97,16 @@ public class Settings extends PreferenceActivity{
 				
 			});
 
-			setPasswordDialogBuilder.setNegativeButton(context.getResources().getString(R.string.close), new  DialogInterface.OnClickListener(){
+			setPasswordDialogBuilder.setNegativeButton(context.getResources().getString(R.string.close), new  DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface arg0, int arg1) {
-					// TODO Auto-generated method stub
 					
 				}
-				
 			});
 			alertDialog = setPasswordDialogBuilder.create();
 			break;
+		}
 		default:
 			alertDialog = null;
 		}
@@ -120,66 +114,58 @@ public class Settings extends PreferenceActivity{
 	}
 
 	@Override
-	protected void onPrepareDialog(int id, Dialog dialog){
-		switch (id){
-		case DIALOG_SET_PASSWORD:
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		switch (id) {
+		case DIALOG_SET_PASSWORD: {
 			final EditText firstPassword = (EditText) dialog.findViewById(R.id.password_field);
-			firstPassword.addTextChangedListener(new TextWatcher(){
+			firstPassword.addTextChangedListener(new TextWatcher() {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					passwordString = new String(firstPassword.getText().toString());
 				}
 
 				@Override
 				public void beforeTextChanged(CharSequence s, int start,
 						int count, int after) {
-					// TODO Auto-generated method stub
-					
 				}
 
 				@Override
 				public void onTextChanged(CharSequence s, int start,
 						int before, int count) {
-					// TODO Auto-generated method stub
-					
 				}
 				
 			});
 			firstPassword.setText("");
 			
 			final EditText secondPassword = (EditText) dialog.findViewById(R.id.repeat_password_field);
-			secondPassword.addTextChangedListener(new TextWatcher(){
+			secondPassword.addTextChangedListener(new TextWatcher() {
 
 				@Override
 				public void afterTextChanged(Editable s) {
-					// TODO Auto-generated method stub
 					repeatPasswordString = new String(secondPassword.getText().toString());
 				}
 
 				@Override
 				public void beforeTextChanged(CharSequence s, int start,
 						int count, int after) {
-					// TODO Auto-generated method stub
-					
 				}
 
 				@Override
 				public void onTextChanged(CharSequence s, int start,
 						int before, int count) {
-					// TODO Auto-generated method stub
-					
 				}
 				
 			});
 			secondPassword.setText("");
 			break;
-
+		}
+		default:
+		    //ERROR!!!
 		}
 	}
 	
-	private void savePassword(){
+	private void savePassword() {
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 		SharedPreferences.Editor editor = settings.edit();
 
