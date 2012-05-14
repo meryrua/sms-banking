@@ -42,6 +42,7 @@ public class DatabaseConnectionService extends Service {
 				
         @Override
 	    public void handleMessage(Message msg) {
+            DebugLogging.log(getApplicationContext(), (LOG_TAG + " handleMessage " + msg.what));
     		boolean loadResult = false;
     		boolean deleteResult = false;
     		
@@ -251,10 +252,10 @@ public class DatabaseConnectionService extends Service {
 	@Override
 	public void onCreate() {
         DebugLogging.log(getApplicationContext(), (LOG_TAG + " onCreate"));
+        myDBAdapter = new MyDBAdapter(getApplicationContext());
+        
 		thread = new ServiceHandlerThread();
 	    thread.start();
-    
-	    myDBAdapter = new MyDBAdapter(getApplicationContext());
 	}
 	
 	@Override
