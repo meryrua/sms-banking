@@ -444,7 +444,8 @@ public class SMSBankingActivity extends ListActivity {
     }
     
     private void prepareActivity() {
-        cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
+        //cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
+        cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_singlechoice);
 		
 		listView = getListView();
 		listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -706,7 +707,42 @@ public class SMSBankingActivity extends ListActivity {
 	
     private AlertDialog buildCardFilterDialog() {
         AlertDialog.Builder cardFilterBuilder = new AlertDialog.Builder(this);
-        cardFilterBuilder.setAdapter(cardAdapter, new DialogInterface.OnClickListener() {
+    
+        int selectedCard = cardAdapter.getPosition(filterMap.get(TransactionData.CARD_NUMBER));
+        cardFilterBuilder.setTitle(resources.getString(R.string.card_filter));
+        /*cardFilterBuilder.setAdapter(cardAdapter, new DialogInterface.OnClickListener() {
+            
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newSelection = cardAdapter.getItem(which);
+                if (needToDeleteCard) {
+                    if ((connectionService != null) && (serviceThreadIsReady)) {
+                        connectionService.getCardsData(newSelection);
+                    }                       
+                } else {
+                    filterMap.remove(TransactionData.CARD_NUMBER);
+                    filterMap.put(TransactionData.CARD_NUMBER, newSelection);
+                    
+                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putString(TransactionData.CARD_NUMBER, newSelection);
+                    editor.commit();
+                    showTransactionList();
+                }
+                dialog.dismiss();
+            }
+        });*/
+        
+        cardFilterBuilder.setNegativeButton(resources.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();                
+            }
+        });
+        
+        //for this style of Adapter should be android.R.layout.select_dialog_singlechoice
+        cardFilterBuilder.setSingleChoiceItems(cardAdapter, selectedCard, new DialogInterface.OnClickListener() {
             
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -728,17 +764,7 @@ public class SMSBankingActivity extends ListActivity {
                 dialog.dismiss();
             }
         });
-        //for this style of Adapter should be android.R.layout.select_dialog_singlechoice
-        /*cardFilterBuilder.setSingleChoiceItems(cardAdapter, selectedCard, new DialogInterface.OnClickListener() {
-            
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String newSelection = cardAdapter.getItem(which);
-                filterMap.remove(TransactionData.CARD_NUMBER);
-                filterMap.put(TransactionData.CARD_NUMBER, newSelection);
-                showTransactionList();
-            }
-        });*/
+        
         return cardFilterBuilder.create();
     }
     
@@ -1051,10 +1077,10 @@ public class SMSBankingActivity extends ListActivity {
 			    prepareSMSDetailDialog(dialog);
 				break;
 			case DIALOG_CARD_FILTER:
-				/*
-				cardAdapter.clear();
-				getCardsNumber(cardAdapter);
-				cardAdapter.setNotifyOnChange(true);*/
+			    /*if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))){
+			        int i = cardAdapter.getPosition(filterMap.get(TransactionData.CARD_NUMBER));
+			        dialog.findViewById(i).setPressed(true);
+			    }*/
 				break;
 			case DIALOG_CARD_DATA:
 			    prepareCardDataDialog(dialog);

@@ -62,6 +62,7 @@
 	<string name="delete_card">Delete card data</string> 
 	<string name="delete_card_request">Delete all data for card</string> 
 	<string name="sqlite_ecxeption">SQLite Database Exception. Application will be closed. Remove application\'s data.</string>
+	<string name="cancel">Cancel</string>
 	
 	<string name="ok_string">OK</string> 
 	<string name="using_password">using_password</string>

@@ -19,6 +19,8 @@ public class DatabaseConnectionService extends Service {
 	private IBinder myBinder = new MyBinder();
 	private DatabaseConnectionCallbackInterface callbackObject;
 	private ServiceHandlerThread thread;
+	private boolean needToSaveTransaction = false;
+    private Bundle bundle;
 	
 	private static final int GET_TRANSACTION_DATA = 1;
 	private static final int GET_CARDS_DATA = 2;
@@ -231,11 +233,21 @@ public class DatabaseConnectionService extends Service {
 		public void run() {
 			Looper.prepare();
 			mServiceHandler = new ServiceHandler();
+			for (int i = 0; i < 100000; i++);
 			handlerIsCreated = true;
 			
             Message msg = mServiceHandler.obtainMessage();
             msg.what = OPEN_DATABASE;
             mServiceHandler.sendMessage(msg);
+            
+            if (needToSaveTransaction) {
+                Message msgSave = mServiceHandler.obtainMessage();
+                msgSave.what = INSERT_DATA;
+                msgSave.obj = bundle;
+                needToSaveTransaction = false;
+                bundle = null;
+                mServiceHandler.sendMessage(msgSave);
+            }
 			
 			if (callbackObject != null) {
 			    callbackObject.onReady();
@@ -243,7 +255,7 @@ public class DatabaseConnectionService extends Service {
 			Looper.loop();
 		}
 		
-		public ServiceHandler getHandler(){
+		public ServiceHandler getHandler() {
 			return mServiceHandler;
 		}
 		
@@ -269,17 +281,19 @@ public class DatabaseConnectionService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 	    DebugLogging.log(getApplicationContext(), (LOG_TAG + " onStartCommand handlerIsCreated " + handlerIsCreated + " " +
 	            (intent == null)));
-	    if (handlerIsCreated){
-		    if ((intent != null) && (intent.getAction() != null) && (intent.getAction().equals(INSERT_DATA_ACTION))){
+        if ((intent != null) && (intent.getAction() != null) && (intent.getAction().equals(INSERT_DATA_ACTION))){
+            if (handlerIsCreated) {
 		        Message msg = thread.getHandler().obtainMessage();
 		        msg.arg1 = startId;
 		 	    
 		    	msg.what = INSERT_DATA;
 		    	msg.obj = intent.getExtras();
 		    	thread.getHandler().sendMessage(msg);
-		    }
-
-	    }
+		    } else {
+                needToSaveTransaction = true;
+                bundle = intent.getExtras();
+            }
+	    } 
 	      
 	    return START_STICKY;
 	}

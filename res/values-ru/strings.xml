@@ -60,4 +60,5 @@
 	<string name="delete_card">Удалить данные карты</string> 
 	<string name="delete_card_request">Удалить все данные для карты</string> 
 	<string name="sqlite_ecxeption">Ошибка базы данных SQLite. Приложение будет закрыто. Удалите данные приложения.</string>
+	<string name="cancel">Отмена</string>
 </resources>
