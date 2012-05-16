@@ -35,10 +35,10 @@ import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -71,6 +71,7 @@ public class SMSBankingActivity extends ListActivity {
 	
 	private static final int IDM_PREFERENCES = 101;
 	private static final int IDM_CARD_FILTER = 102;
+	private static final int IDM_OPERATIONS_FULTER = 103;
 	private static final int IDM_OPERATION_FILTER_ALL_OPERATION = 1031;
 	private static final int IDM_OPERATION_FILTER_CARD_OPERATION = 1032;
 	private static final int IDM_OPERATION_FILTER_INCOMING_OPERATION = 1033;
@@ -88,6 +89,7 @@ public class SMSBankingActivity extends ListActivity {
 	private static final int DIALOG_NEED_TO_LOAD = 7;
 	private static final int DIALOG_DELETE_CARD_DATA = 8;
 	private static final int DIALOG_SQLITE_ERROR_HAPPENED = 9;
+	private static final int DIALOG_OPERATIONS_FILTER = 10;
 	
 	public static final String UPDATE_TRANSACTION_LIST_INTENT = "com.meryrua.smsbanking.UPDATE_TRANSACTION_LIST";
 	public static final String VIEW_TRANSACTION_DETAIL_INTENT = "com.meryrua.smsbanking.VIEW_TRANSACTION_DETAIL";
@@ -143,6 +145,7 @@ public class SMSBankingActivity extends ListActivity {
 		
 		@Override
 		public void handleMessage(Message msg) {
+	        DebugLogging.log(getApplicationContext(), (LOG_TAG + " handleMessage " + msg.what));
 	    	SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 	    	SharedPreferences.Editor editor = settings.edit();
 			switch(msg.what){
@@ -270,6 +273,7 @@ public class SMSBankingActivity extends ListActivity {
 
 		@Override
 		public void showTransactionData(Cursor cursor) {
+		    DebugLogging.log(getApplicationContext(), (LOG_TAG + " showTransactionData"));
 			Message msg = thisActivityHandler.obtainMessage();
 			msg.what = SMSBankingActivityHandler.SHOW_TRANSACTION_DATA;
 			msg.obj = cursor;
@@ -362,6 +366,8 @@ public class SMSBankingActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		DebugLogging.log(getApplicationContext(), (LOG_TAG + " onCreate"));
 		
 		viewIntent = getIntent();
 		bundle = viewIntent.getExtras();
@@ -542,14 +548,16 @@ public class SMSBankingActivity extends ListActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
     	menu.add(Menu.NONE, IDM_PREFERENCES, Menu.NONE, resources.getString(R.string.settings));
     	menu.add(Menu.NONE, IDM_CARD_FILTER, Menu.NONE, resources.getString(R.string.card_filter));
+        menu.add(Menu.NONE, IDM_OPERATIONS_FULTER, Menu.NONE, resources.getString(R.string.operation_filter));
         menu.add(Menu.NONE, IDM_DELETE_CARD, Menu.NONE, resources.getString(R.string.delete_card));
     	menu.add(Menu.NONE, IDM_DELETE_DATA, Menu.NONE, resources.getString(R.string.delete_data));
-    	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
+
+/*    	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_CARD_OPERATION, Menu.NONE, resources.getString(R.string.card_operations));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_INCOMING_OPERATION, Menu.NONE, resources.getString(R.string.incoming_operations));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_OUTGOING_OPERATION, Menu.NONE, resources.getString(R.string.outgoing_operations));
-    	subMenuFilters.setIcon(android.R.drawable.ic_menu_more);
+    	subMenuFilters.setIcon(android.R.drawable.ic_menu_more);*/
     	return true;
     }
     
@@ -592,6 +600,9 @@ public class SMSBankingActivity extends ListActivity {
     	   	editor.commit();
     	   	showTransactionList();
     		return true;
+    	case IDM_OPERATIONS_FULTER:
+            showDialog(DIALOG_OPERATIONS_FILTER);
+    	    break;
     	case IDM_OPERATION_FILTER_CARD_OPERATION:
     		filterMap.remove(TransactionData.TRANSACTION_PLACE);
     		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
@@ -622,6 +633,7 @@ public class SMSBankingActivity extends ListActivity {
     
     @Override
     protected void onResume() {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " before super onResume"));
     	super.onResume();
         DebugLogging.log(getApplicationContext(), (LOG_TAG + " onResume"));
         bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
@@ -644,10 +656,13 @@ public class SMSBankingActivity extends ListActivity {
     
     @Override
     protected void onPause() {
-    	super.onPause();
         DebugLogging.log(getApplicationContext(), (LOG_TAG + " onPause"));
         unbindService(serviceConnection);
         unregisterReceiver(updateReceiver);
+        if ((transactionAdapter != null) && (transactionAdapter.getCursor() != null)) {
+            stopManagingCursor(transactionAdapter.getCursor()); //this is for working on Android 3.0
+        }
+        super.onPause();
     }
     
     @Override
@@ -968,13 +983,54 @@ public class SMSBankingActivity extends ListActivity {
 		case DIALOG_DELETE_CARD_DATA:
 		    alertDialog = buildDeleteCardData();
 		    break;
+		case DIALOG_OPERATIONS_FILTER:
+		    alertDialog = buildOperationsFilterDialog();
+		    break;
 		default:
 			alertDialog = null;
 		}
 		return alertDialog;
 	}
 
-	private void passwordCheck() {
+	private AlertDialog buildOperationsFilterDialog() {
+	    AlertDialog.Builder operationsFilterBuilder = new AlertDialog.Builder(this);
+	    final ArrayAdapter<String> operationsArray = new ArrayAdapter<String>(context, 
+	            android.R.layout.select_dialog_singlechoice, new String []{resources.getString(R.string.all),
+	            resources.getString(R.string.card_operations), resources.getString(R.string.incoming_operations),
+	            resources.getString(R.string.outgoing_operations)});
+   
+	    int selectedOperation = operationsArray.getPosition(filterMap.get(TransactionData.TRANSACTION_PLACE));
+	    operationsFilterBuilder.setTitle(resources.getString(R.string.card_operations));
+	        
+	    operationsFilterBuilder.setNegativeButton(resources.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+	            
+	        @Override
+	        public void onClick(DialogInterface dialog, int which) {
+	            dialog.dismiss();                
+	        }
+	    });
+
+	    operationsFilterBuilder.setSingleChoiceItems(operationsArray, selectedOperation, new DialogInterface.OnClickListener() {
+	            
+	        @Override
+	        public void onClick(DialogInterface dialog, int which) {
+	            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+	            SharedPreferences.Editor editor = settings.edit();
+	            String newSelection = operationsArray.getItem(which);
+	            filterMap.remove(TransactionData.TRANSACTION_PLACE);
+	            filterMap.put(TransactionData.TRANSACTION_PLACE, newSelection);
+	                
+	            editor.putString(TransactionData.TRANSACTION_PLACE, newSelection);
+	            editor.commit();
+	            showTransactionList();
+	            dialog.dismiss();
+	        }
+	    });
+	        
+	    return operationsFilterBuilder.create();
+    }
+
+    private void passwordCheck() {
 		if (currentPassword.equals(passwordString)) {
 			isChecked = true;
 			prepareActivity();
@@ -1175,10 +1231,12 @@ public class SMSBankingActivity extends ListActivity {
 	}
 	
 	private void updateTransactionList() {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " updateTransactionList"));
 		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
 		TextView noDataField = (TextView) findViewById(R.id.no_data_field);
 		TextView noDataFieldInfo = (TextView) findViewById(R.id.no_data_field_info);
 		TextView curBalance = (TextView) findViewById(R.id.current_balance);
+		
 	
 		if (transactionAdapter != null) {
 			if (transactionAdapter.getCursor() != null) {

@@ -3,7 +3,8 @@
       package="com.meryrua.smsbanking"
       android:versionCode="1"
       android:versionName="1.0">
-      <uses-sdk android:minSdkVersion="7" />
+      <uses-sdk android:minSdkVersion="4" 
+      			android:targetSdkVersion="12"/>
 
     <application
     	android:name=".SMSBankingApplication" 

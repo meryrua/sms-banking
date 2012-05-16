@@ -233,7 +233,6 @@ public class DatabaseConnectionService extends Service {
 		public void run() {
 			Looper.prepare();
 			mServiceHandler = new ServiceHandler();
-			for (int i = 0; i < 100000; i++);
 			handlerIsCreated = true;
 			
             Message msg = mServiceHandler.obtainMessage();
@@ -297,6 +296,27 @@ public class DatabaseConnectionService extends Service {
 	      
 	    return START_STICKY;
 	}
+	
+	//This is for working on Android 1.6
+	@Override
+	public void onStart(Intent intent, int startId) {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " onStart handlerIsCreated " + handlerIsCreated + " " +
+                (intent == null)));
+        if ((intent != null) && (intent.getAction() != null) && (intent.getAction().equals(INSERT_DATA_ACTION))){
+            if (handlerIsCreated) {
+                Message msg = thread.getHandler().obtainMessage();
+                msg.arg1 = startId;
+                
+                msg.what = INSERT_DATA;
+                msg.obj = intent.getExtras();
+                thread.getHandler().sendMessage(msg);
+            } else {
+                needToSaveTransaction = true;
+                bundle = intent.getExtras();
+            }
+        } 
+	}
+	//This is for working on Android 1.6
 
 	@Override
 	public IBinder onBind(Intent intent) {
