@@ -10,7 +10,7 @@
     	android:name=".SMSBankingApplication" 
     	android:icon="@drawable/icon" 
     	android:label="@string/app_name"
-    	android:debuggable="true">
+    	android:debuggable="false">
 		<activity android:name=".SMSBankingActivity"
 			android:label="@string/app_name"
 			android:taskAffinity=""
@@ -34,6 +34,10 @@
 		<activity android:name=".Settings"
 			android:label="@string/app_name" >
 		</activity>   
+		
+		<activity android:name=".PatternEditActivity"
+			android:label="@string/app_name">
+		</activity>
            
 		<service android:name=".DatabaseConnectionService"/>
        

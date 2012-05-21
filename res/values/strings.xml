@@ -2,8 +2,6 @@
 <resources>
     <string name="hello">Hello World, SMSBankingActivity!</string>
     <string name="app_name">Schetoved</string>
-    <string name="sms_string">SMSString</string>
-    <string name="set_filters">Filters</string>    
     <string name="sms_process">SMS Processing</string>
     <string name="application_only">SMS process only within application</string>
     <string name="normal_processing">Normal SMS processing</string>
@@ -63,6 +61,7 @@
 	<string name="delete_card_request">Delete all data for card</string> 
 	<string name="sqlite_ecxeption">SQLite Database Exception. Application will be closed. Remove application\'s data.</string>
 	<string name="cancel">Cancel</string>
+	<string name="create_pattern">Create pattern for SMS</string>
 	
 	<string name="ok_string">OK</string> 
 	<string name="using_password">using_password</string>

@@ -211,7 +211,7 @@ public class DatabaseConnectionService extends Service {
 				do {
 					smsParcer.setParcedString(inboxSMSCursor.getString(
 								inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)));
-					if (smsParcer.isMatch(myDBAdapter)) {
+					if (smsParcer.isMatch()) {
 					    loadResult = myDBAdapter.insertTransaction(smsParcer.getTransactionData());
 					}
 				} while ((inboxSMSCursor.moveToNext()) && (loadResult));

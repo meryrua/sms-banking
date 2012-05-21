@@ -60,10 +60,7 @@ public class SMSReceiver extends BroadcastReceiver {
 			        }
 			         
 			        smsParcer = new SMSParcer(messageForParcing, myContext);
-					MyDBAdapter myDBAdapter = new MyDBAdapter(context);
-					myDBAdapter.openToRead();
-					boolean matchSMS = smsParcer.isMatch(myDBAdapter);
-					myDBAdapter.close();
+					boolean matchSMS = smsParcer.isMatch();
 			        Toast.makeText(context, "SMS is " + ((matchSMS)?"":"not ") +
 			        		"from bank.", Toast.LENGTH_LONG).show();
 			        

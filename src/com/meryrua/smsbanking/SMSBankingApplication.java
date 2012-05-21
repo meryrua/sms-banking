@@ -10,7 +10,7 @@ import android.preference.PreferenceManager;
 
 public class SMSBankingApplication extends Application {
     
-    //private static final String LOG_TAG = "com.meryrua.smsbanking:SMSBankingApplication";
+    private static final String LOG_TAG = "SMSBankingApplication";
     public static HashMap<String, ArrayList<String>> operationPatterns;
     public static final String FIRST_LOADING = "first_loading";
 
@@ -33,18 +33,22 @@ public class SMSBankingApplication extends Application {
 	}
 	
     private void setDefaultPatterns() {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " setDefaultPatterns"));
         XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
         operationPatterns = new HashMap<String, ArrayList<String>>();
         operationPatterns.put(XMLParcerSerializer.TRANSACTION_TAG, new ArrayList<String>());
         operationPatterns.get(XMLParcerSerializer.TRANSACTION_TAG).add(SMSParcer.DEFAULT_TRANSACTION_PATTERN);
         operationPatterns.put(XMLParcerSerializer.INCOMING_TAG, new ArrayList<String>());
         operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).add(SMSParcer.DEFAULT_INCOMING_PATTERN);
+        //operationPatterns.get(XMLParcerSerializer.INCOMING_TAG).add(SMSParcer.DEFAULT_INCOMING_PATTERN_PLACE);
         operationPatterns.put(XMLParcerSerializer.OUTGOING_TAG, new ArrayList<String>());
         operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).add(SMSParcer.DEFAULT_OUTGOING_PATTERN);
+        //operationPatterns.get(XMLParcerSerializer.OUTGOING_TAG).add(SMSParcer.DEFAULT_OUTGOING_PATTERN_PLACE);
         xmlSerializer.serializePatterns(operationPatterns, getApplicationContext());
     }
 
 	private void getOperationPatterns(Context context) {
+	    DebugLogging.log(getApplicationContext(), (LOG_TAG + " getOperationPatterns"));
 	    XMLParcerSerializer xmlSerializer = new XMLParcerSerializer();
 	    operationPatterns = xmlSerializer.parcePatterns(context);
 	    if (!operationPatterns.containsKey(XMLParcerSerializer.TRANSACTION_TAG)) {

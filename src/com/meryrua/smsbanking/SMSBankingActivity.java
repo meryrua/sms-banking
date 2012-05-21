@@ -35,7 +35,6 @@ import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -76,7 +75,7 @@ public class SMSBankingActivity extends ListActivity {
 	private static final int IDM_OPERATION_FILTER_CARD_OPERATION = 1032;
 	private static final int IDM_OPERATION_FILTER_INCOMING_OPERATION = 1033;
 	private static final int IDM_OPERATION_FILTER_OUTGOING_OPERATION = 1034;
-	private static final int IDM_TEST = 104;
+	private static final int IDM_MAKE_PATTERN = 104;
 	private static final int IDM_DELETE_DATA = 105;
 	private static final int IDM_DELETE_CARD = 106;
 	private static final int DIALOG_SMS_DETAIL = 0;	
@@ -551,6 +550,7 @@ public class SMSBankingActivity extends ListActivity {
         menu.add(Menu.NONE, IDM_OPERATIONS_FULTER, Menu.NONE, resources.getString(R.string.operation_filter));
         menu.add(Menu.NONE, IDM_DELETE_CARD, Menu.NONE, resources.getString(R.string.delete_card));
     	menu.add(Menu.NONE, IDM_DELETE_DATA, Menu.NONE, resources.getString(R.string.delete_data));
+        //menu.add(Menu.NONE, IDM_MAKE_PATTERN, Menu.NONE, resources.getString(R.string.create_pattern));
 
 /*    	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
@@ -583,7 +583,7 @@ public class SMSBankingActivity extends ListActivity {
                 connectionService.getCardsData("");
             }
     	    return true;
-       	case IDM_TEST: {
+       	case IDM_MAKE_PATTERN: {
        		Intent intent = new Intent();
        		intent.setClass(context, SMSViewingActivity.class);
        		startActivity(intent);
@@ -678,6 +678,7 @@ public class SMSBankingActivity extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData =  new TransactionData((Cursor)getListAdapter().getItem(position));
+		v.setPressed(true);
 		showDialog(DIALOG_SMS_DETAIL);
  	}
 	

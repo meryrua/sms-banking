@@ -3,7 +3,6 @@
     <string name="hello">Hello World, SMSBankingActivity!</string>
     <string name="app_name">Счетовед</string>
     <string name="sms_process">Обработка SMS</string>
-    <string name="set_filters">Фильтры</string>
     <string name="application_only">Обработка SMS только в приложении</string>
     <string name="normal_processing">Обычная обработка SMS</string>
     <string name="card_filter">Номер карты/счета</string>
@@ -61,4 +60,5 @@
 	<string name="delete_card_request">Удалить все данные для карты</string> 
 	<string name="sqlite_ecxeption">Ошибка базы данных SQLite. Приложение будет закрыто. Удалите данные приложения.</string>
 	<string name="cancel">Отмена</string>
+	<string name="create_pattern">Создать шаблон SMS</string>
 </resources>
