@@ -8,19 +8,18 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 
 public class SMSViewingActivity extends ListActivity {
-	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
+	@SuppressWarnings("unused")
+    private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
 	private Context context;
 	private Resources resources;
 	    
@@ -99,7 +98,7 @@ public class SMSViewingActivity extends ListActivity {
             public void onClick(DialogInterface dialog, int which) {
                 String selectedItem = operationsArray.getItem(which);
                 Intent startEditPattern = new Intent(context, PatternEditActivity.class);
-                startEditPattern.putExtra(TransactionData.TRANSACTION_PLACE, selectedItem);
+                startEditPattern.putExtra(TransactionData.OPERATION_NAME, selectedItem);
                 startEditPattern.putExtra(PatternEditActivity.MESSAGE_STRING, messageString);
                 startActivity(startEditPattern);
             }

@@ -6,8 +6,11 @@ import android.os.Bundle;
 
 public class PatternEditActivity extends Activity {
     public static final String MESSAGE_STRING = "message_string";
+    @SuppressWarnings("unused")
     private Context context;
+    @SuppressWarnings("unused")
     private String messageString;
+    @SuppressWarnings("unused")
     private int currentStep;
     
     private static final int STEP_CARD = 1;
@@ -23,10 +26,10 @@ public class PatternEditActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getApplicationContext();
-        
-        
+ 
     }
     
+    @SuppressWarnings("unused")
     private void showCurrentStep(int step) {
         switch (step) {
         case STEP_CARD:

@@ -107,15 +107,4 @@ public class SMSReceiver extends BroadcastReceiver {
 	    mNotificationManager.cancel(NOTIFICATION_ID);
 	    mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
-	
-	/*static public void fillIntent(Intent intent, TransactionData tranzactionData){
-		intent.putExtra(TransactionData.TRANSACTION_VALUE, tranzactionData.getTransactionValue());
-		intent.putExtra(TransactionData.FUND_VALUE, tranzactionData.getFundValue());
-		intent.putExtra(TransactionData.BANK_NAME, tranzactionData.getBankName());
-		intent.putExtra(TransactionData.CARD_NUMBER, tranzactionData.getCardNumber());
-		intent.putExtra(TransactionData.FUND_CURRENCY, tranzactionData.getFundCurrency());
-		intent.putExtra(TransactionData.TRANSACTION_CURRENCY, tranzactionData.getTransactionCurrency());
-		intent.putExtra(TransactionData.TRANSACTION_DATE, tranzactionData.getTransactionDate());
-		intent.putExtra(TransactionData.TRANSACTION_PLACE, tranzactionData.getTransactionPlace());
-	}*/
 }

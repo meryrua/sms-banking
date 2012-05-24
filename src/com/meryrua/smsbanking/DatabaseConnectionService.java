@@ -272,7 +272,9 @@ public class DatabaseConnectionService extends Service {
 	@Override
 	public void onDestroy() {
         DebugLogging.log(getApplicationContext(), (LOG_TAG + " onDestroy"));
-		myDBAdapter.close();
+        if (myDBAdapter.isDatabaseOpen()) {
+            myDBAdapter.close();
+        }
 		super.onDestroy();
 	}
 	

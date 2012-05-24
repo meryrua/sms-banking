@@ -232,11 +232,11 @@ public class SMSBankingActivity extends ListActivity {
 				} else {
 			   		filterMap.remove(TransactionData.CARD_NUMBER);
 		    		filterMap.put(TransactionData.CARD_NUMBER, context.getResources().getString(R.string.all));
-		    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
-		    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+		    		filterMap.remove(TransactionData.OPERATION_NAME);
+		    		filterMap.put(TransactionData.OPERATION_NAME, resources.getString(R.string.all));
 
 		    	   	editor.putString(TransactionData.CARD_NUMBER, context.getResources().getString(R.string.all));
-		    	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+		    	   	editor.putString(TransactionData.OPERATION_NAME, resources.getString(R.string.all));
 		    	   	editor.commit();
 				}
 				showTransactionList();
@@ -381,7 +381,7 @@ public class SMSBankingActivity extends ListActivity {
     	boolean usingPassword = settings.getBoolean(resources.getString(R.string.using_password), false);
         filterMap = new HashMap<String, String>();
         filterMap.put(TransactionData.CARD_NUMBER, settings.getString(TransactionData.CARD_NUMBER, resources.getString(R.string.all)));
-        filterMap.put(TransactionData.TRANSACTION_PLACE, settings.getString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all)));
+        filterMap.put(TransactionData.OPERATION_NAME, settings.getString(TransactionData.OPERATION_NAME, resources.getString(R.string.all)));
         if (!settings.contains(NEED_TO_LOAD)) {
         	SharedPreferences.Editor editorSettings = settings.edit();
     		editorSettings.putBoolean(NEED_TO_LOAD, true);
@@ -593,10 +593,10 @@ public class SMSBankingActivity extends ListActivity {
        		showDialog(DIALOG_LOAD_DATA_REQUEST);
     		return true;
     	case IDM_OPERATION_FILTER_ALL_OPERATION:
-    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
-    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+    		filterMap.remove(TransactionData.OPERATION_NAME);
+    		filterMap.put(TransactionData.OPERATION_NAME, resources.getString(R.string.all));
 
-    	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.all));
+    	   	editor.putString(TransactionData.OPERATION_NAME, resources.getString(R.string.all));
     	   	editor.commit();
     	   	showTransactionList();
     		return true;
@@ -604,26 +604,26 @@ public class SMSBankingActivity extends ListActivity {
             showDialog(DIALOG_OPERATIONS_FILTER);
     	    break;
     	case IDM_OPERATION_FILTER_CARD_OPERATION:
-    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
-    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
+    		filterMap.remove(TransactionData.OPERATION_NAME);
+    		filterMap.put(TransactionData.OPERATION_NAME, resources.getString(R.string.card_operations));
     		
-    	   	editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.card_operations));
+    	   	editor.putString(TransactionData.OPERATION_NAME, resources.getString(R.string.card_operations));
     	   	editor.commit();
     		showTransactionList();
     		return true;
     	case IDM_OPERATION_FILTER_INCOMING_OPERATION:
-    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
-    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
+    		filterMap.remove(TransactionData.OPERATION_NAME);
+    		filterMap.put(TransactionData.OPERATION_NAME, resources.getString(R.string.incoming_operations));
 
-    		editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.incoming_operations));
+    		editor.putString(TransactionData.OPERATION_NAME, resources.getString(R.string.incoming_operations));
     	   	editor.commit();
     	   	showTransactionList();
         	return true;
     	case IDM_OPERATION_FILTER_OUTGOING_OPERATION:
-    		filterMap.remove(TransactionData.TRANSACTION_PLACE);
-    		filterMap.put(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
+    		filterMap.remove(TransactionData.OPERATION_NAME);
+    		filterMap.put(TransactionData.OPERATION_NAME, resources.getString(R.string.outgoing_operations));
     		
-    		editor.putString(TransactionData.TRANSACTION_PLACE, resources.getString(R.string.outgoing_operations));
+    		editor.putString(TransactionData.OPERATION_NAME, resources.getString(R.string.outgoing_operations));
     	   	editor.commit();
     	   	showTransactionList();
     		return true;
@@ -1000,7 +1000,7 @@ public class SMSBankingActivity extends ListActivity {
 	            resources.getString(R.string.card_operations), resources.getString(R.string.incoming_operations),
 	            resources.getString(R.string.outgoing_operations)});
    
-	    int selectedOperation = operationsArray.getPosition(filterMap.get(TransactionData.TRANSACTION_PLACE));
+	    int selectedOperation = operationsArray.getPosition(filterMap.get(TransactionData.OPERATION_NAME));
 	    operationsFilterBuilder.setTitle(resources.getString(R.string.card_operations));
 	        
 	    operationsFilterBuilder.setNegativeButton(resources.getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -1018,10 +1018,10 @@ public class SMSBankingActivity extends ListActivity {
 	            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 	            SharedPreferences.Editor editor = settings.edit();
 	            String newSelection = operationsArray.getItem(which);
-	            filterMap.remove(TransactionData.TRANSACTION_PLACE);
-	            filterMap.put(TransactionData.TRANSACTION_PLACE, newSelection);
+	            filterMap.remove(TransactionData.OPERATION_NAME);
+	            filterMap.put(TransactionData.OPERATION_NAME, newSelection);
 	                
-	            editor.putString(TransactionData.TRANSACTION_PLACE, newSelection);
+	            editor.putString(TransactionData.OPERATION_NAME, newSelection);
 	            editor.commit();
 	            showTransactionList();
 	            dialog.dismiss();
@@ -1055,17 +1055,25 @@ public class SMSBankingActivity extends ListActivity {
         
         TextView placeText = (TextView) dialog.findViewById(R.id.place);
         TextView placeOperationText = (TextView) dialog.findViewById(R.id.operation_place_name);
-        String placeOrOperation = transactionData.getTransactionPlace();
-        if (placeOrOperation.equals(TransactionData.INCOMING_BANK_OPERATION)) {
-            placeOperationText.setText(resources.getString(R.string.operation_name));
-            placeText.setText(resources.getString(R.string.operation_incoming_name));
+        String place = transactionData.getTransactionPlace();
+        if (place.equals("")) {
+            placeText.setVisibility(TextView.GONE);
+            placeOperationText.setVisibility(TextView.GONE);
+        } else {
+            placeText.setVisibility(TextView.VISIBLE);
+            placeText.setText(transactionData.getTransactionPlace());
+            placeOperationText.setVisibility(TextView.VISIBLE);
+        }
+        
+        TextView operationText = (TextView) dialog.findViewById(R.id.operation);
+        String operation = transactionData.getOperation();
+        if (operation.equals(TransactionData.INCOMING_BANK_OPERATION)) {
+            operationText.setText(resources.getString(R.string.operation_incoming_name));
         } else 
-            if (placeOrOperation.equals(TransactionData.OUTGOING_BANK_OPERATION)) {
-                placeOperationText.setText(resources.getString(R.string.operation_name));
-                placeText.setText(resources.getString(R.string.operation_outgoing_name));
+            if (operation.equals(TransactionData.OUTGOING_BANK_OPERATION)) {
+                operationText.setText(resources.getString(R.string.operation_outgoing_name));
             } else {
-                placeOperationText.setText(resources.getString(R.string.operation_place));
-                placeText.setText(transactionData.getTransactionPlace());
+                operationText.setText(resources.getString(R.string.operation_card_name));
             }
 
         TextView balanceText = (TextView) dialog.findViewById(R.id.balance);
@@ -1167,17 +1175,17 @@ public class SMSBankingActivity extends ListActivity {
 		if (!filterMap.get(TransactionData.CARD_NUMBER).equals(resources.getString(R.string.all))) {
 			sqlString += TransactionData.CARD_NUMBER + "='" + filterMap.get(TransactionData.CARD_NUMBER) + "'";
 		}
-		if (!filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.all))) {
+		if (!filterMap.get(TransactionData.OPERATION_NAME).equals(resources.getString(R.string.all))) {
 			if (sqlString.length() != 0) {
 			    sqlString += " AND ";
 			}
-	    	if (filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.card_operations))){
-	    		sqlString += "(" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')";
+	    	if (filterMap.get(TransactionData.OPERATION_NAME).equals(resources.getString(R.string.card_operations))){
+	    		sqlString += "(" + TransactionData.OPERATION_NAME + "<>'" + TransactionData.INCOMING_BANK_OPERATION + "') AND (" + TransactionData.TRANSACTION_PLACE + "<>'" + TransactionData.OUTGOING_BANK_OPERATION + "')";
 	    	} else
-	    	    if (filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.incoming_operations))) {
-	    	        sqlString += TransactionData.TRANSACTION_PLACE + "='" + TransactionData.INCOMING_BANK_OPERATION + "'";
+	    	    if (filterMap.get(TransactionData.OPERATION_NAME).equals(resources.getString(R.string.incoming_operations))) {
+	    	        sqlString += TransactionData.OPERATION_NAME + "='" + TransactionData.INCOMING_BANK_OPERATION + "'";
 	    	    } else {
-	    	        sqlString += TransactionData.TRANSACTION_PLACE + "='" + TransactionData.OUTGOING_BANK_OPERATION + "'";
+	    	        sqlString += TransactionData.OPERATION_NAME + "='" + TransactionData.OUTGOING_BANK_OPERATION + "'";
 	    	    }
 		}
 		return sqlString;
@@ -1216,13 +1224,13 @@ public class SMSBankingActivity extends ListActivity {
 	private void  hideBalance() {
 		TextView curBalance = (TextView) findViewById(R.id.current_balance);
 		TextView filterInfo = (TextView) findViewById(R.id.filter_information);
-		if (!filterMap.get(TransactionData.TRANSACTION_PLACE).equals(resources.getString(R.string.all))) {
+		if (!filterMap.get(TransactionData.OPERATION_NAME).equals(resources.getString(R.string.all))) {
 			curBalance.setText(null);
 			curBalance.setVisibility(TextView.GONE);
 		    String str1 = new String();
-		    str1 += filterMap.get(TransactionData.TRANSACTION_PLACE);
+		    str1 += filterMap.get(TransactionData.OPERATION_NAME);
 		    filterInfo.setVisibility(TextView.VISIBLE);
-		    filterInfo.setText(filterMap.get(TransactionData.TRANSACTION_PLACE));			
+		    filterInfo.setText(filterMap.get(TransactionData.OPERATION_NAME));			
 		} else {
 			curBalance.setText(null);
 			curBalance.setVisibility(TextView.GONE);

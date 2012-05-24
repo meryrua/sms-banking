@@ -35,14 +35,14 @@ public class TransactionAdapter extends CursorAdapter {
 	    operationImage = (ImageView) view.findViewById(R.id.operation_icon);
 	    
 	    String date = item.getTransactionDate();
-	    String place = item.getTransactionPlace();
+	    String operation = item.getOperation();
 	    String amount = Float.toString(item.getTransactionValue()) + item.getTransactionCurrency();
 	    String textForList = null;
-	    if (place.equals(TransactionData.INCOMING_BANK_OPERATION)) {
+	    if (operation.equals(TransactionData.INCOMING_BANK_OPERATION)) {
 	    	textForList = date + " " + resources.getString(R.string.string_incoming_operation) + " " + amount;
 	    	operationImage.setImageDrawable(resources.getDrawable(R.drawable.ic_list_green));
 	    } else
-	        if (place.equals(TransactionData.OUTGOING_BANK_OPERATION)) {
+	        if (operation.equals(TransactionData.OUTGOING_BANK_OPERATION)) {
 	            textForList = date + " " + resources.getString(R.string.string_outgoing_operation) + " " + amount;	    	
 	            operationImage.setImageDrawable(resources.getDrawable(R.drawable.ic_list_red));
 	        } else {

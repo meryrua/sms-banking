@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 
 public class MyDBAdapter {
-	private static final int DB_VERSION = 2;
+	private static final int DB_VERSION = 3;
 	private static final String DB_NAME = "smsbanking_base";
 	private static final String TRANSACTION_TABLE_NAME = "transaction_data";
 	private static final String CARD_TABLE_NAME = "card_table";
@@ -24,7 +24,14 @@ public class MyDBAdapter {
 	            TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " +
 	            TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " +
 	            TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " +
-	            TransactionData.BANK_NAME + " TEXT);";
+	            TransactionData.OPERATION_NAME + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
+	
+	private static final String CREATE_TRANSACTION_TABLE_TEMP = "create table " + TRANSACTION_TABLE_NAME +
+    "temp (" + ID + " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " +
+    TransactionData.TRANSACTION_DATE + " long, " + TransactionData.TRANSACTION_PLACE + " TEXT, " +
+    TransactionData.TRANSACTION_VALUE + " REAL, " + TransactionData.TRANSACTION_CURRENCY + " TEXT, " +
+    TransactionData.FUND_VALUE + " REAL, " + TransactionData.FUND_CURRENCY + " TEXT, " +
+    TransactionData.OPERATION_NAME + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
 	
 	private static final String CREATE_CARD_TABLE = "create table " + CARD_TABLE_NAME + " (" + ID + 
 	            " integer primary key autoincrement, " + TransactionData.CARD_NUMBER + " TEXT, " + 
@@ -32,8 +39,9 @@ public class MyDBAdapter {
 	            CARD_ALIAS + " TEXT, " + TransactionData.BANK_NAME + " TEXT);";
 	
 	private static final String[] ALL_TRANSACTION_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
-		TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
-		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY, TransactionData.BANK_NAME};
+	    TransactionData.TRANSACTION_DATE, TransactionData.TRANSACTION_PLACE, TransactionData.TRANSACTION_VALUE,
+		TransactionData.TRANSACTION_CURRENCY, TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY, 
+		TransactionData.OPERATION_NAME, TransactionData.BANK_NAME};
 	
 	private static final String[] ALL_CARDS_NUMBER_COLUMNS_NAME = new String[] {ID, TransactionData.CARD_NUMBER, 
 		TransactionData.FUND_VALUE, TransactionData.FUND_CURRENCY, CARD_ALIAS, TransactionData.BANK_NAME};
@@ -45,11 +53,11 @@ public class MyDBAdapter {
 	
 	public static final String FILTER_VALUE = "filter_value";
 	
-	@SuppressWarnings("unused")
-    private static final String LOG_TAG = "com.meryrua.smsbanking:MyDBAdapter";
+    private static final String LOG_TAG = "MyDBAdapter";
 	
 	public MyDBAdapter(Context cont) {
 		context = cont;
+	    DebugLogging.log(context, (LOG_TAG + " MyDBAdapter "));
 		dbHelper = new DbHelper(context, DB_NAME, null, DB_VERSION);
 		}
 
@@ -118,6 +126,7 @@ public class MyDBAdapter {
 			cv.put(TransactionData.TRANSACTION_CURRENCY, transactionData.getTransactionCurrency());
 			cv.put(TransactionData.FUND_VALUE, Float.valueOf(transactionData.getFundValue()));
 			cv.put(TransactionData.FUND_CURRENCY, transactionData.getFundCurrency());
+			cv.put(TransactionData.OPERATION_NAME, transactionData.getOperation());
 			cv.put(TransactionData.BANK_NAME, transactionData.getBankName());
 			rowIndex = db.insert(TRANSACTION_TABLE_NAME, null, cv);
 		}
@@ -156,6 +165,7 @@ public class MyDBAdapter {
 		transactionData.setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
 		transactionData.setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
 		transactionData.setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
+		transactionData.setOperation(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.OPERATION_NAME)));
 		transactionData.setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
 		
 		return transactionData;
@@ -315,22 +325,67 @@ public class MyDBAdapter {
 	}
 	
 	private class DbHelper extends SQLiteOpenHelper {
+	    
+	    private Context myContext;
 			
 		public DbHelper(Context context, String name, CursorFactory factory, int version) {
 			super(context, name, factory, version);
+			myContext = context;
 		}
 		
 		@Override
 		public void onCreate(SQLiteDatabase sqLiteDatabase) {
+		    DebugLogging.log(myContext, (LOG_TAG + " onCreate "));
 			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
 			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
 		}
 		
 		@Override
 		public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-			sqLiteDatabase.execSQL("drop table " + TRANSACTION_TABLE_NAME + ";");
-			sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
-			sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
+	        DebugLogging.log(myContext, (LOG_TAG + " onUpgrade " + i + " " + i1));
+	        XMLParcerSerializer.removeXMLFile();
+	        sqLiteDatabase.beginTransaction();
+	        try {
+    	        sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE_TEMP);
+    	        sqLiteDatabase.execSQL("insert into " + TRANSACTION_TABLE_NAME + "temp (" + TransactionData.CARD_NUMBER + ", " +
+    	                TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " +
+    	                TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " +
+    	                TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ", " +
+    	                TransactionData.BANK_NAME + ") select " + TransactionData.CARD_NUMBER + ", " +
+                        TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " +
+                        TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " +
+                        TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ", " +
+                        TransactionData.BANK_NAME + " from " + TRANSACTION_TABLE_NAME + ";");
+    	        sqLiteDatabase.execSQL("drop table " + TRANSACTION_TABLE_NAME + ";");
+    	        sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
+    	        sqLiteDatabase.execSQL("insert into " + TRANSACTION_TABLE_NAME + "(" + TransactionData.CARD_NUMBER + ", " +
+                        TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " +
+                        TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " +
+                        TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ", " +
+                        TransactionData.BANK_NAME + ") select " + TransactionData.CARD_NUMBER + ", " +
+                        TransactionData.TRANSACTION_DATE + ", " + TransactionData.TRANSACTION_PLACE + ", " +
+                        TransactionData.TRANSACTION_VALUE + ", " + TransactionData.TRANSACTION_CURRENCY + ", " +
+                        TransactionData.FUND_VALUE + ", " + TransactionData.FUND_CURRENCY + ", " +
+                        TransactionData.BANK_NAME + " from " + TRANSACTION_TABLE_NAME + "temp;");
+    	        sqLiteDatabase.execSQL("update " + TRANSACTION_TABLE_NAME + " set " + TransactionData.OPERATION_NAME + "="
+    	                + TransactionData.TRANSACTION_PLACE + " where (" + TransactionData.TRANSACTION_PLACE + "='" + 
+    	                TransactionData.INCOMING_BANK_OPERATION + "') or (" + TransactionData.TRANSACTION_PLACE + "='" + 
+                        TransactionData.OUTGOING_BANK_OPERATION + "');");
+    	        sqLiteDatabase.execSQL("update " + TRANSACTION_TABLE_NAME + " set " + TransactionData.TRANSACTION_PLACE + 
+    	                "='' where (" + TransactionData.OPERATION_NAME + "='" + TransactionData.INCOMING_BANK_OPERATION +
+    	                "') or (" + TransactionData.OPERATION_NAME + "='" + TransactionData.OUTGOING_BANK_OPERATION +
+    	                "');");
+    	        sqLiteDatabase.execSQL("update " + TRANSACTION_TABLE_NAME + " set " + TransactionData.OPERATION_NAME + "='"
+                        + TransactionData.CARD_OPERATION + "' where (" + TransactionData.OPERATION_NAME + " is null);");
+    	        sqLiteDatabase.execSQL("drop table " + TRANSACTION_TABLE_NAME + "temp;");
+    	        sqLiteDatabase.setTransactionSuccessful();
+	        } catch (SQLiteException ex) {
+	            sqLiteDatabase.execSQL("drop table " + TRANSACTION_TABLE_NAME + ";");
+                sqLiteDatabase.execSQL(CREATE_TRANSACTION_TABLE);
+                sqLiteDatabase.execSQL("drop table " + CARD_TABLE_NAME + ";");
+                sqLiteDatabase.execSQL(CREATE_CARD_TABLE);
+	        }
+	        sqLiteDatabase.endTransaction();
 		}
 	}
 }

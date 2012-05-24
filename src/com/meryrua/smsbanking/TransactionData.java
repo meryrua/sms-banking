@@ -20,12 +20,14 @@ public class TransactionData {
 	public static final String BANK_NAME = "bankName";
 	public static final String TRANSACTION_VALUE = "transactionValue";
 	public static final String FUND_VALUE = "fundValue";
+	public static final String OPERATION_NAME = "operationName";
 	public static final String DEFAULT_BANK_NAME = "Raiffeisen";
 	private String cardNumber;
 	private String transactionDate;
 	private String transactionPlace;
 	private String transactionCurrency;
 	private String fundCurrency;
+	private String operationName;
 	private String bankName;
 	private float transactionValue = 0;
 	private float fundValue = 0;
@@ -43,6 +45,7 @@ public class TransactionData {
 		transactionPlace = null;
 		transactionCurrency = null;
 		fundCurrency = null;
+		operationName = null;
 		bankName = null;
 	}
 	
@@ -54,6 +57,7 @@ public class TransactionData {
 		setTransactionPlace(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_PLACE)));
 		setFundValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.FUND_VALUE)));
 		setTransactionValue(transactionCursor.getFloat(transactionCursor.getColumnIndex(TransactionData.TRANSACTION_VALUE)));
+		setOperation(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.OPERATION_NAME)));
 		setBankName(transactionCursor.getString(transactionCursor.getColumnIndex(TransactionData.BANK_NAME)));
 	}
 	
@@ -65,6 +69,7 @@ public class TransactionData {
        	setFundCurrency(extras.getString(TransactionData.FUND_CURRENCY));
        	setTransactionCurrency(extras.getString(TransactionData.TRANSACTION_CURRENCY));
        	setTransactionDate(extras.getString(TransactionData.TRANSACTION_DATE));
+       	setOperation(extras.getString(TransactionData.OPERATION_NAME));
        	setTransactionPlace(extras.getString(TransactionData.TRANSACTION_PLACE));
 	}
 	
@@ -153,6 +158,17 @@ public class TransactionData {
 		intent.putExtra(TransactionData.TRANSACTION_CURRENCY, getTransactionCurrency());
 		intent.putExtra(TransactionData.TRANSACTION_DATE, getTransactionDate());
 		intent.putExtra(TransactionData.TRANSACTION_PLACE, getTransactionPlace());
+		intent.putExtra(TransactionData.OPERATION_NAME, getOperation());
 	}
+
+    public String getOperation() {
+        return operationName;
+    }
+    
+    public void setOperation(String name) {
+        if (name != null) {
+            operationName = name;
+        }
+    }
 
 }

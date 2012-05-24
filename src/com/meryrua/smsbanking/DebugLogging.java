@@ -18,8 +18,14 @@ public class DebugLogging {
     private static final String FILENAME = "/smsbanking-log";
 
     private static final String LOG_TAG = "com.meryrua.smsbanking";
+    private static boolean allowDebug = false;
+    private static boolean readDebugMode = false;
+    
     public static void log(Context context, String str) {
-        if (isDebuggable(context)) {
+        if (!readDebugMode) {
+            setDebuggable(context);
+        }
+        if (allowDebug) {
             String strFrmt = "dd-MM-yy hh:mm";
             File root = new File(Environment.getExternalStorageDirectory(), "temp");
             if (!root.exists()) {
@@ -45,16 +51,16 @@ public class DebugLogging {
     }
     
 
-    private static boolean isDebuggable(Context context) {
-        boolean isDebugMode;
+    public static void setDebuggable(Context context) {
         try {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             int flags = packageInfo.applicationInfo.flags;
-            isDebugMode = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+            allowDebug = (flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+            readDebugMode = true;
         } catch (NameNotFoundException e) {
-            isDebugMode = false;
+            allowDebug = false;
+            readDebugMode = false;
         }           
-        return isDebugMode;
     }
 
 }

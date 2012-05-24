@@ -46,6 +46,7 @@
              android:textSize="20sp"
         />
     </TableRow>
+    
     <TableRow android:paddingBottom="5dip">
         <TextView
             android:text="@string/operation_balance"
@@ -71,6 +72,22 @@
         />
         <TextView
             android:id="@+id/place"
+            android:textSize="20sp"
+            android:layout_height="wrap_content"
+        />
+    </TableRow>
+        <TableRow android:paddingBottom="5dip"
+    		android:layout_height="wrap_content">
+        <TextView
+        	android:id="@+id/operation_name"
+            android:text="@string/operation_name"
+            android:paddingRight="10dip"
+            android:gravity="right"
+            android:textStyle="bold"
+            android:textSize="20sp"
+        />
+        <TextView
+            android:id="@+id/operation"
             android:textSize="20sp"
             android:layout_height="wrap_content"
         />

@@ -25,8 +25,9 @@
     <string name="operation_amount">Amount:</string>
     <string name="operation_place">Place:</string>
     <string name="operation_name">Operation:</string>
-    <string name="operation_incoming_name">Credit</string>
-    <string name="operation_outgoing_name">Debit</string>
+    <string name="operation_card_name">card operation</string>
+    <string name="operation_incoming_name">credit</string>
+    <string name="operation_outgoing_name">debit</string>
     <string name="operation_balance">Balance:</string> 
     <string name="close">Close</string>   
     <string name="apply">Apply</string> 
