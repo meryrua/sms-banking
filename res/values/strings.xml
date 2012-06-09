@@ -63,8 +63,20 @@
 	<string name="sqlite_ecxeption">SQLite Database Exception. Application will be closed. Remove application\'s data.</string>
 	<string name="cancel">Cancel</string>
 	<string name="create_pattern">Create pattern for SMS</string>
+	<string name="previous_step">Previous</string>
+	<string name="next_step">Next</string>
+	<string name="select_card_number">Select card number</string>
+	<string name="select_date">Select date</string>
+	<string name="select_amount">Select amount</string>
+	<string name="select_amount_currency">Select amount currency</string>
+	<string name="select_fund_balace">Select fund balance</string>
+	<string name="select_fund_currency">Select fund currency</string>
+	<string name="select_place">Select place of operation</string>
+	<string name="select_bank">Select bank name</string>
+	<string name="show_result_regexp">Show result pattern (regexp)</string>
+	<string name="mark_selected">Mark selected</string>
 	
-	<string name="ok_string">OK</string> 
+	<string name="ok_string">OK</string>
 	<string name="using_password">using_password</string>
 	<string name="sms_processing">sms_processing</string>
 	<string name="change_password">change_password</string>

@@ -75,6 +75,7 @@ public class TransactionData {
 	
 	public void setCardNumber(String number) {
 		if (number != null) {
+		    DebugLogging.log("setCardNumber");
 		    cardNumber = new String(number);
 		}
 	}
@@ -85,6 +86,7 @@ public class TransactionData {
 
 	public void setTransactionDate(String date) {
 		if (date != null) {
+	        DebugLogging.log("setTransactionDate");
 		    transactionDate = new String(date);
 		}
 	}
@@ -95,6 +97,7 @@ public class TransactionData {
 
 	public void setTransactionPlace(String place) {
 		if (place != null) {
+	        DebugLogging.log("setTransactionPlace");
 		    transactionPlace = new String(place);
 		}
 	}
@@ -105,6 +108,7 @@ public class TransactionData {
 
 	public void setTransactionCurrency(String currency) {
 		if (currency != null) {
+            DebugLogging.log("setTransactionCurrency");
 		    transactionCurrency = new String(currency);
 		}
 	}
@@ -115,6 +119,7 @@ public class TransactionData {
 
 	public void setFundCurrency(String currency) {
 		if (currency != null) {
+            DebugLogging.log("setFundCurrency");
 		    fundCurrency = new String(currency);
 		}
 	}
@@ -125,6 +130,7 @@ public class TransactionData {
 
 	public void setBankName(String name) {
 		if (name != null) {
+            DebugLogging.log("setBankName");
 		    bankName = new String(name);
 		}
 	}
@@ -134,6 +140,7 @@ public class TransactionData {
 	}
 	
 	public void setTransactionValue(float value) {
+        DebugLogging.log("setTransactionValue");
 		transactionValue = value;
 	}
 	
@@ -142,6 +149,7 @@ public class TransactionData {
 	}
 
 	public void setFundValue(float value) {
+        DebugLogging.log("setFundValue");
 		fundValue = value;
 	}
 	

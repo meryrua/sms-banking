@@ -1,22 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:orientation="vertical"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent">
-    <EditText android:layout_height="100dp"
+    <TextView android:layout_height="wrap_content"
     		android:layout_width="fill_parent" 
-    		android:id="@+id/editText1">
+    		android:textSize="20sp"
+    		android:textColor="#000000"
+    		android:id="@+id/pattern_operation">
+    </TextView>
+    <EditText android:layout_height="180dp"
+    		android:layout_width="fill_parent" 
+    		android:textSize="20sp"
+    		android:id="@+id/sms_text"
+    		android:layout_below="@id/pattern_operation">
     </EditText>
-    <Button android:text="Button" 
+    <TextView android:layout_height="wrap_content"
+    		android:layout_width="fill_parent" 
+    		android:textSize="20sp"
+    		android:id="@+id/current_step_action"
+    		android:layout_below="@id/sms_text">
+    </TextView>
+    <CheckBox android:text="@string/show_result_regexp" 
+    		android:layout_height="wrap_content" 
+    		android:layout_alignParentLeft="true" 
+    		android:layout_below="@id/current_step_action"
+    		android:id="@+id/show_regexp" 
+    		android:layout_width="wrap_content">
+    </CheckBox>
+    <Button android:text="@string/mark_selected" 
     		android:layout_height="wrap_content" 
     		android:layout_width="wrap_content" 
-    		android:id="@+id/button2">
+    		android:id="@+id/select"
+    		android:layout_below="@id/show_regexp">
     </Button>
-    <Button android:text="Button" 
-    		android:id="@+id/button1" 
+    <Button android:text="@string/previous_step" 
+    		android:layout_height="wrap_content" 
+    		android:layout_width="wrap_content" 
+    		android:id="@+id/previous"
+    		android:layout_below="@id/select">
+    </Button>
+    <Button android:text="@string/next_step"
+    		android:id="@+id/next" 
+    		android:layout_toRightOf="@id/previous"
+    		android:layout_below="@id/select"
     		android:layout_width="wrap_content" 
     		android:layout_height="wrap_content">
     </Button>
-    
-</LinearLayout>
+    <Button android:text="@string/save" 
+    		android:layout_height="wrap_content" 
+    		android:layout_width="wrap_content" 
+    		android:layout_alignParentBottom="true"
+    		android:id="@+id/ok">
+    </Button>
+    <Button android:text="@string/cancel" 
+    		android:id="@+id/cancel" 
+    		android:layout_width="wrap_content" 
+    		android:layout_height="wrap_content"
+    		android:layout_alignParentBottom="true"
+    		android:gravity="center_vertical"
+    		android:layout_toRightOf="@+id/ok" 
+    		android:layout_alignBottom="@+id/ok">
+    </Button>
+</RelativeLayout>

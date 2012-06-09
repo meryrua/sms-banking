@@ -402,7 +402,8 @@ public class SMSBankingActivity extends ListActivity {
     	} else {
     		isChecked = true;
     	}
-	        
+	      
+    	DebugLogging.log(getApplicationContext(), (LOG_TAG + " onCreate isChecked " + isChecked));
         try {
             backupDb();
         } catch (Exception e) {}
@@ -449,6 +450,7 @@ public class SMSBankingActivity extends ListActivity {
     }
     
     private void prepareActivity() {
+        DebugLogging.log(context, LOG_TAG + "prepareActivity ");
         //cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_item);
         cardAdapter = new ArrayAdapter<String>(context, android.R.layout.select_dialog_singlechoice);
 		
@@ -471,10 +473,13 @@ public class SMSBankingActivity extends ListActivity {
     }
     
     private void showActivityData() {
+        DebugLogging.log(LOG_TAG + "showActivityData");
 		if(bundle != null) {
+		    DebugLogging.log(context, LOG_TAG + "showActivityData " + viewIntent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT));
 			if (viewIntent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)){
 				transactionData = new TransactionData(bundle);
 				bundle = null;	
+				DebugLogging.log(LOG_TAG + "showActivityData showDialog(DIALOG_SMS_DETAIL)");
 				showDialog(DIALOG_SMS_DETAIL);
 			}
 		}
@@ -483,12 +488,14 @@ public class SMSBankingActivity extends ListActivity {
     @Override
     protected void onNewIntent(Intent intent) {
     	super.onNewIntent(intent);
+    	DebugLogging.log(LOG_TAG + "onNewIntent");
     	if (isChecked) {
 	    	if (intent.getAction().equals(UPDATE_TRANSACTION_LIST_INTENT)){
 	    		showTransactionList();
 	    	} else
 	    	    if(intent.getAction().equals(VIEW_TRANSACTION_DETAIL_INTENT)) {
 	    	        transactionData = new TransactionData(intent.getExtras());
+	    	        DebugLogging.log(LOG_TAG + "onNewIntent showDialog(DIALOG_SMS_DETAIL)");
 	    	        showDialog(DIALOG_SMS_DETAIL);
 	    	    }
     	}
@@ -550,7 +557,7 @@ public class SMSBankingActivity extends ListActivity {
         menu.add(Menu.NONE, IDM_OPERATIONS_FULTER, Menu.NONE, resources.getString(R.string.operation_filter));
         menu.add(Menu.NONE, IDM_DELETE_CARD, Menu.NONE, resources.getString(R.string.delete_card));
     	menu.add(Menu.NONE, IDM_DELETE_DATA, Menu.NONE, resources.getString(R.string.delete_data));
-        //menu.add(Menu.NONE, IDM_MAKE_PATTERN, Menu.NONE, resources.getString(R.string.create_pattern));
+        menu.add(Menu.NONE, IDM_MAKE_PATTERN, Menu.NONE, resources.getString(R.string.create_pattern));
 
 /*    	SubMenu subMenuFilters = menu.addSubMenu(resources.getString(R.string.operation_filter));
     	subMenuFilters.add(Menu.NONE, IDM_OPERATION_FILTER_ALL_OPERATION, Menu.NONE, resources.getString(R.string.all));
@@ -633,7 +640,6 @@ public class SMSBankingActivity extends ListActivity {
     
     @Override
     protected void onResume() {
-        DebugLogging.log(getApplicationContext(), (LOG_TAG + " before super onResume"));
     	super.onResume();
         DebugLogging.log(getApplicationContext(), (LOG_TAG + " onResume"));
         bindService(new Intent(context, DatabaseConnectionService.class), serviceConnection, Context.BIND_AUTO_CREATE);
@@ -667,6 +673,7 @@ public class SMSBankingActivity extends ListActivity {
     
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
+        DebugLogging.log(context, LOG_TAG + "onConfigurationChanged ");
     	if (isChecked) {
     		prepareActivity();
     	} else {
@@ -679,6 +686,7 @@ public class SMSBankingActivity extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		transactionData =  new TransactionData((Cursor)getListAdapter().getItem(position));
 		v.setPressed(true);
+		DebugLogging.log(LOG_TAG + "onListItemClick showDialog(DIALOG_SMS_DETAIL)");
 		showDialog(DIALOG_SMS_DETAIL);
  	}
 	
@@ -1032,6 +1040,7 @@ public class SMSBankingActivity extends ListActivity {
     }
 
     private void passwordCheck() {
+        DebugLogging.log(context, LOG_TAG + "passwordCheck ");
 		if (currentPassword.equals(passwordString)) {
 			isChecked = true;
 			prepareActivity();
@@ -1043,6 +1052,7 @@ public class SMSBankingActivity extends ListActivity {
 	
 	private void prepareSMSDetailDialog(Dialog dialog) {
         TextView cardNumberText = (TextView) dialog.findViewById(R.id.card_number);
+        DebugLogging.log(LOG_TAG + "prepareSMSDetailDialog " + (cardNumberText) + " " + transactionData.getCardNumber());
         cardNumberText.setText(transactionData.getCardNumber());
         
         TextView dateText = (TextView) dialog.findViewById(R.id.date);

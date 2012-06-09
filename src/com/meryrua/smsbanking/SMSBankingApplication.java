@@ -24,6 +24,7 @@ public class SMSBankingApplication extends Application {
 		
 	    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 	    
+	    DebugLogging.log(getApplicationContext(), (LOG_TAG + "exist " + XMLParcerSerializer.isExist()));
 	    if (!XMLParcerSerializer.isExist()) {
 	        SharedPreferences.Editor editor = settings.edit();
 	        editor.putBoolean(FIRST_LOADING, false);
@@ -57,7 +58,7 @@ public class SMSBankingApplication extends Application {
 	    operationPatterns = XMLParcerSerializer.parcePatterns(context);
 	    if (!operationPatterns.containsKey(XMLParcerSerializer.CARD_OPERATION_TAG)) {
 	        operationPatterns.put(XMLParcerSerializer.CARD_OPERATION_TAG, new ArrayList<TransactionPattern>());
-	        operationPatterns.put(XMLParcerSerializer.CARD_OPERATION_TAG, new ArrayList<TransactionPattern>());
+	        //operationPatterns.put(XMLParcerSerializer.CARD_OPERATION_TAG, new ArrayList<TransactionPattern>());
 	        operationPatterns.get(XMLParcerSerializer.CARD_OPERATION_TAG).add(new TransactionPattern(SMSParcer.DEFAULT_TRANSACTION_PATTERN, SMSParcer.DEFAULT_TRANSACTION_PATTERN_GROUP));
 	    }
 	    if (!operationPatterns.containsKey(XMLParcerSerializer.INCOMING_TAG)) {

@@ -62,4 +62,16 @@
 	<string name="sqlite_ecxeption">Ошибка базы данных SQLite. Приложение будет закрыто. Удалите данные приложения.</string>
 	<string name="cancel">Отмена</string>
 	<string name="create_pattern">Создать шаблон SMS</string>
+	<string name="previous_step">Назад</string>
+	<string name="next_step">Дальше</string>
+	<string name="select_card_number">Выделите номер карты</string>
+	<string name="select_date">Выделите дату</string>
+	<string name="select_amount">Выделите сумму операции</string>
+	<string name="select_amount_currency">Выделите валюту операции</string>
+	<string name="select_fund_balace">Выделите остаток на счете</string>
+	<string name="select_fund_currency">Выделите валюту счета</string>
+	<string name="select_place">Выделите место операции</string>
+	<string name="select_bank">Выделите название банка</string>
+	<string name="show_result_regexp">Показать результирующий шаблон (regexp)</string>
+	<string name="mark_selected">Mark selected</string>
 </resources>

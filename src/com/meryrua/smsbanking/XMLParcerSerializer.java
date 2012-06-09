@@ -23,15 +23,18 @@ public class XMLParcerSerializer {
     private static final String PATTERN_STRING_TAG = "string";
     private static final String PATTERN_GROUP_TAG = "group";
     private static final String TRANSACTION_PATTERN = "transaction"; 
+    
     public static final String CARD_OPERATION_TAG = "card";
     public static final String INCOMING_TAG = "incoming";
     public static final String OUTGOING_TAG = "outgoing";
+    
+
     private static final int NULL_INT = 48;
     
     //private static final String LOG_TAG = "com.meryrua.smsbanking:XMLParcerSerializer";
     
     static public void removeXMLFile() {
-        String logFile = "/data/data/com.meryrua.smsbanking/log_file";
+        String logFile = "/data/data/com.meryrua.smsbanking/files/" + FILE_NAME;
         File curLog = new File(logFile);
         if (curLog.exists()) {
             curLog.delete();
@@ -39,7 +42,7 @@ public class XMLParcerSerializer {
     }
     
     static public boolean isExist() {
-        String logFile = "/data/data/com.meryrua.smsbanking/log_file";
+        String logFile = "/data/data/com.meryrua.smsbanking/files/" + FILE_NAME;
         File curLog = new File(logFile);
         if (curLog.exists()) {
             return true;
@@ -287,5 +290,19 @@ public class XMLParcerSerializer {
             e1.printStackTrace();
         }
         return resultMap;
+    }
+    
+    public static boolean addNewPattern(Context context, String operationType, TransactionPattern transactionPattern) {
+        boolean result = false;
+        DebugLogging.log("addNewPattern operationType " + operationType);
+        if (!SMSBankingApplication.operationPatterns.containsKey(operationType)) {
+            SMSBankingApplication.operationPatterns.put(operationType, new ArrayList<TransactionPattern>());
+        }
+        SMSBankingApplication.operationPatterns.get(operationType).add(transactionPattern);
+        if (isExist()) {
+            removeXMLFile();
+        }
+        serializePatterns(SMSBankingApplication.operationPatterns, context);
+        return result;
     }
 }

@@ -26,7 +26,7 @@ public class DebugLogging {
             setDebuggable(context);
         }
         if (allowDebug) {
-            String strFrmt = "dd-MM-yy hh:mm";
+            String strFrmt = "dd-MM-yy kk:mm";
             File root = new File(Environment.getExternalStorageDirectory(), "temp");
             if (!root.exists()) {
                 root.mkdirs();
@@ -46,9 +46,36 @@ public class DebugLogging {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
-            Log.d(LOG_TAG, " : " + str);
+            Log.d(LOG_TAG, " : " + DateFormat.format(strFrmt, new Date()) + " "+ str);
         }
     }
+    
+    public static void log(String str) {
+        if (allowDebug) {
+            String strFrmt = "dd-MM-yy kk:mm";
+            File root = new File(Environment.getExternalStorageDirectory(), "temp");
+            if (!root.exists()) {
+                root.mkdirs();
+            }
+            File gpxfile = new File(root, FILENAME);
+            FileWriter writer;
+            BufferedWriter bWriter;
+            try {
+                writer = new FileWriter(gpxfile, true);
+                bWriter = new BufferedWriter(writer);
+                bWriter.newLine();
+                bWriter.append(DateFormat.format(strFrmt, new Date()) + LOG_TAG + " : " + str);
+                bWriter.flush();
+                bWriter.close();
+                writer.close();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            Log.d(LOG_TAG, " : " + DateFormat.format(strFrmt, new Date()) + str);
+        }
+    }
+
     
 
     public static void setDebuggable(Context context) {

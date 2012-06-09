@@ -14,17 +14,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.CursorAdapter;
 import android.widget.ListView;
 
 public class SMSViewingActivity extends ListActivity {
-	@SuppressWarnings("unused")
     private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
 	private Context context;
 	private Resources resources;
 	    
 	private String messageString;
-	private static final int DIALOG_PATTERN_TYPE = 1;
+	private static final int DIALOG_PATTERN_TYPE = 0;
 	
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -54,9 +52,11 @@ public class SMSViewingActivity extends ListActivity {
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " onListItemClick " + id));
         v.setPressed(true);
-        Cursor cursor = ((CursorAdapter) l.getAdapter()).getCursor();
+        Cursor cursor = (Cursor) l.getAdapter().getItem(position);
         messageString = new String(cursor.getString(cursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD)));
+        DebugLogging.log(getApplicationContext(), (LOG_TAG + " onListItemClick " + messageString));
         showDialog(DIALOG_PATTERN_TYPE);
     }
     
@@ -75,7 +75,7 @@ public class SMSViewingActivity extends ListActivity {
     }
 
     private AlertDialog patternTypeDialogBuilder() {
-        AlertDialog.Builder patternTypeDialogBuilder = new AlertDialog.Builder(context);
+        AlertDialog.Builder patternTypeDialogBuilder = new AlertDialog.Builder(this);
         final ArrayAdapter<String> operationsArray = new ArrayAdapter<String>(context, 
                 android.R.layout.select_dialog_singlechoice, 
                 new String []{resources.getString(R.string.card_operations), 
@@ -91,8 +91,10 @@ public class SMSViewingActivity extends ListActivity {
                 dialog.dismiss();                
             }
         });
-
-        patternTypeDialogBuilder.setAdapter(operationsArray, new DialogInterface.OnClickListener() {
+        
+        patternTypeDialogBuilder.setItems(new String []{resources.getString(R.string.card_operations), 
+                resources.getString(R.string.incoming_operations),
+                resources.getString(R.string.outgoing_operations)}, new DialogInterface.OnClickListener() {
             
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -103,6 +105,18 @@ public class SMSViewingActivity extends ListActivity {
                 startActivity(startEditPattern);
             }
         });
+
+        /*patternTypeDialogBuilder.setAdapter(operationsArray, new DialogInterface.OnClickListener() {
+            
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String selectedItem = operationsArray.getItem(which);
+                Intent startEditPattern = new Intent(context, PatternEditActivity.class);
+                startEditPattern.putExtra(TransactionData.OPERATION_NAME, selectedItem);
+                startEditPattern.putExtra(PatternEditActivity.MESSAGE_STRING, messageString);
+                startActivity(startEditPattern);
+            }
+        });*/
             
         return patternTypeDialogBuilder.create();
 

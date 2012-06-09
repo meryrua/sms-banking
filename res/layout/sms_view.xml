@@ -9,7 +9,7 @@
   
 <TextView 
 	android:id="@+id/choose_text"
- 	android:colorBackground="#dddddd"
+ 	android:colorBackground="#eeeeee"
   	android:layout_width="fill_parent"
   	android:layout_height="wrap_content"
   	android:text="@string/choose_sms"
