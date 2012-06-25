@@ -1,5 +1,7 @@
 package ru.meryrua.smsbanking;
 
+import java.util.ArrayList;
+
 import ru.meryrua.smsbanking.R;
 
 import android.app.AlertDialog;
@@ -20,34 +22,64 @@ public class SMSViewingActivity extends ListActivity {
     private static final String LOG_TAG = "com.meryrua.smsbanking:SMSViewingActivity";
 	private Context context;
 	private Resources resources;
+	
+	private ArrayList<SMSGroup> smsGroup;
 	    
 	private String messageString;
+	private String address;
 	private static final int DIALOG_PATTERN_TYPE = 0;
+	
+	public static final String ADDRESS_FILTER = "address_filter";
+	
+	public static class SMSGroup {
+	    private String address;
+	    private String message; 
+	    
+	    SMSGroup (String address, String message) {
+	        this.address = address;
+	        this.message = message;
+	    }
+	    
+	    String getAddress() {
+	        return address;
+	    }
+	    
+	    String getMessage() {
+	        return message;
+	    }
+	}
 	
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		setContentView(R.layout.sms_view);
-		String sort_by = new String(SMSViewingAdapter.SMS_DATE_FIELD + " DESC");
+		String sortBySQL = new String(SMSViewingAdapter.SMS_DATE_FIELD + " DESC");
 		
 		context = getApplicationContext();
 	    resources = context.getResources();
+	    
+	    Bundle extras = getIntent().getExtras();
+	    address = extras.getString(ADDRESS_FILTER);
+	    String whereSQL = new String(SMSViewingAdapter.SMS_ADDRESS_FIELD + "='" + 
+	            address + "'"); 
 		Uri uriSms = Uri.parse("content://sms/inbox");
-		Cursor inboxSMSCursor = context.getContentResolver().query(
-				uriSms, 
-				new String[] { SMSViewingAdapter.SMS_ID_FIELD,
-						SMSViewingAdapter.SMS_DATE_FIELD,
-						SMSViewingAdapter.SMS_BODY_FIELD}, 
-				null, null, sort_by);
+		Cursor inboxSMSCursor = context.getContentResolver().query(uriSms, 
+				new String[] {SMSViewingAdapter.SMS_ID_FIELD,
+		                    SMSViewingAdapter.SMS_ADDRESS_FIELD, 
+		                    SMSViewingAdapter.SMS_DATE_FIELD,
+		                    SMSViewingAdapter.SMS_BODY_FIELD},
+		        whereSQL, null, sortBySQL);
 		
-		SMSViewingAdapter adapterSMS = new SMSViewingAdapter(context, inboxSMSCursor);
+		if (inboxSMSCursor != null) {
+		    SMSViewingAdapter adapterSMS = new SMSViewingAdapter(context, inboxSMSCursor);
+		      setListAdapter(adapterSMS);
+		}
 		
 		if (inboxSMSCursor.moveToFirst()) {
 			do {
 				//String str = inboxSMSCursor.getString(inboxSMSCursor.getColumnIndex(SMSViewingAdapter.SMS_BODY_FIELD));
 			} while (inboxSMSCursor.moveToNext());
 		}
-		setListAdapter(adapterSMS);
 	}
 
     @Override

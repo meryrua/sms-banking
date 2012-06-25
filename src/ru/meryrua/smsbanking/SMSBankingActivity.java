@@ -592,7 +592,8 @@ public class SMSBankingActivity extends ListActivity {
     	    return true;
        	case IDM_MAKE_PATTERN: {
        		Intent intent = new Intent();
-       		intent.setClass(context, SMSViewingActivity.class);
+       		//intent.setClass(context, SMSViewingActivity.class);
+       		intent.setClass(context, SMSGroupViewerActivity.class);
        		startActivity(intent);
     		return true;
        	}

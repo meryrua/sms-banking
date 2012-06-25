@@ -196,7 +196,7 @@ public class DatabaseConnectionService extends Service {
 	    private boolean loadDataFromSMS() {
 			Uri uriSms = Uri.parse("content://sms/inbox");
 			boolean loadResult = false;
-			String sort_by = SMSViewingAdapter.SMS_DATE_FIELD + " ASC";
+			String sort_by = SMSViewingAdapter.SMS_DATE_FIELD + " DESC";
 			Context context = getApplicationContext();
 			Cursor inboxSMSCursor = context.getContentResolver().query(
 							uriSms, 

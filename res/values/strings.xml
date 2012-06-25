@@ -75,6 +75,7 @@
 	<string name="select_bank">Select bank name</string>
 	<string name="show_result_regexp">Show result pattern (regexp)</string>
 	<string name="mark_selected">Mark selected</string>
+	<string name="new_operation">New operation</string>
 	
 	<string name="ok_string">OK</string>
 	<string name="using_password">using_password</string>

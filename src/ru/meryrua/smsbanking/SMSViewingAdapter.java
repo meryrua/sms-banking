@@ -15,6 +15,7 @@ public class SMSViewingAdapter extends CursorAdapter {
 	public final static String SMS_ID_FIELD = "_id";
 	public final static String SMS_DATE_FIELD = "date";
 	public final static String SMS_BODY_FIELD = "body";
+	public final static String SMS_ADDRESS_FIELD = "address";
 
 	public SMSViewingAdapter(Context context, Cursor c) {
 		super(context, c);
@@ -22,7 +23,7 @@ public class SMSViewingAdapter extends CursorAdapter {
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
-		TextView messageSMS = (TextView) view.findViewById(R.id.sms_list_item);
+		TextView messageSMS = (TextView) view.findViewById(R.id.sms_message);
 		messageSMS.setText(cursor.getString(cursor.getColumnIndex(SMS_BODY_FIELD)));
 	}
 

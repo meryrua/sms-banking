@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
@@ -31,13 +32,15 @@ public class SMSReceiver extends BroadcastReceiver {
 	
 	private TransactionData transactionData;
 	
-	Context myContext;
+	private Context myContext;
+	private Resources resources;
 	
 	@Override
 	  public void onReceive(Context context, Intent intent) {
         DebugLogging.log(context, (LOG_TAG + " onReceive  "));
         
 		 myContext = context;
+		 resources = context.getResources();
 		 if (intent.getAction().equals(SMS_RECEIVED)) {
 		 	Bundle bundle = intent.getExtras();        
 	        SmsMessage[] msgs = null;
@@ -79,7 +82,7 @@ public class SMSReceiver extends BroadcastReceiver {
 						context.startService(startServiceIntent);
 				        DebugLogging.log(context, (LOG_TAG + " startService  "));	
 				        
-						setSMSNotification(myContext, "New sms", transactionData); 		
+						setSMSNotification(myContext, resources.getString(R.string.new_operation), transactionData); 		
 			        }
 		        }		 
 		 }

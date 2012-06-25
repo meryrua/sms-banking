@@ -1,6 +1,7 @@
 package ru.meryrua.smsbanking;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,14 +11,12 @@ import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
@@ -27,7 +26,7 @@ public class PatternEditActivity extends Activity {
     private String messageString;
     private String operationString;
     private String resultRegexp;
-    String tempResult;
+    private String tempResult;
     private int currentStep;
     private Resources resources;
     private boolean showResult = false;
@@ -36,9 +35,10 @@ public class PatternEditActivity extends Activity {
     private Button prevStepButton;
     private Button nextStepButton;
     private TextView messageView;
-    private ArrayList<PatternElement> patternElements = new ArrayList<PatternElement>(TransactionPattern.GROUP_NUMBER);
-    private String[] regexpPattern = {"(\\d+)", "(\\d+/\\d+/\\d+)", "([\\w+\\W+\\s*]+)", "(\\d+,\\d+)", "(\\w+)",
-            "(\\d+,\\d+)", "(\\w+)", "(\\w+)"};
+    
+    private PatternElement[] patternElements = new PatternElement[TransactionPattern.GROUP_NUMBER];
+    private String[] regexpPattern = {"(\\d+)", "(\\d+/\\d+/\\d+)", "([\\w+\\W+\\s*]+)", "(\\d+,\\d+)", "([\\wà-ÿÀ-ß]+)",
+            "(\\d+,\\d+)", "([\\wà-ÿÀ-ß]+)", "(\\w+)"};
     
     private static class PatternElement {
         boolean set;
@@ -53,6 +53,7 @@ public class PatternEditActivity extends Activity {
             endPosition = 0; 
         }
         
+        @SuppressWarnings("unused")
         PatternElement(PatternElement pE) {
             set = pE.set;
             group = pE.group;
@@ -60,26 +61,11 @@ public class PatternEditActivity extends Activity {
             endPosition = pE.endPosition;            
         }
         
-        void clearElement() {
-            set = false;
-            group = -1;
-            startPosition = 0;
-            endPosition = 0;
-        }
-        
         void setElement(int start, int end) {
             set = true;
             startPosition = start;
             endPosition = end;
-        }
-        
-        void copyElement(PatternElement pE) {
-            set = pE.set;
-            group = pE.group;
-            startPosition = pE.startPosition;
-            endPosition = pE.endPosition;
-        }
-        
+        }     
     }
     
     @Override
@@ -113,8 +99,8 @@ public class PatternEditActivity extends Activity {
         operationView.setText(operationString);
         
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            patternElements.add(new PatternElement());
-            patternElements.get(i).group = i;
+            patternElements[i] = new PatternElement();
+            patternElements[i].group = i;
         }
         
         prevStepButton = (Button) findViewById(R.id.previous);
@@ -162,31 +148,36 @@ public class PatternEditActivity extends Activity {
            public void onClick(View arg0) {
                makePattern();
                savePattern();
-           }
-        });
-        
-        Button cancelButton = (Button) findViewById(R.id.cancel);
-        cancelButton.setOnClickListener(new OnClickListener() {
-           @Override
-           public void onClick(View arg0) {
+               //here i will add serialize one pattern
                finish();
            }
         });
+    
+        Button cancelButton = (Button) findViewById(R.id.cancel);
+        if (cancelButton != null) {
+            cancelButton.setOnClickListener(new OnClickListener() {
+               @Override
+               public void onClick(View arg0) {
+                   finish();
+               }
+            });
+        }
         
         CheckBox checkForShowing = (CheckBox) findViewById(R.id.show_regexp);
-        checkForShowing.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
-            @Override
-            public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-                DebugLogging.log(context, "onCheckedChanged " + arg1);
-                showResult = arg1;
-            }
-        });
+        if (checkForShowing != null) {
+            checkForShowing.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+                    DebugLogging.log(context, "onCheckedChanged " + arg1);
+                    showResult = arg1;
+                }
+            });
+        }
     }
     
     private void markSelection(int step) {
         if (messageView.hasSelection()) {
-            patternElements.get(step).setElement(messageView.getSelectionStart(), messageView.getSelectionEnd());
+            patternElements[step].setElement(messageView.getSelectionStart(), messageView.getSelectionEnd());
             DebugLogging.log(context, "start" + messageView.getSelectionStart() + " end " + messageView.getSelectionEnd());
             messageView.setSelected(false);
         }
@@ -235,9 +226,9 @@ public class PatternEditActivity extends Activity {
     private void showReadyPatternElements() {
         final SpannableStringBuilder sb = new SpannableStringBuilder(messageString);
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            if (patternElements.get(i).set) {
-                sb.setSpan(new BackgroundColorSpan(Color.rgb(0, 255, 0)), patternElements.get(i).startPosition, patternElements.get(i).endPosition, Spannable.SPAN_INCLUSIVE_INCLUSIVE); // Set the text color for first 4 characters
-                sb.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), patternElements.get(i).startPosition, patternElements.get(i).endPosition, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+             if (patternElements[i].set) {
+                sb.setSpan(new BackgroundColorSpan(Color.rgb(0, 255, 0)), patternElements[i].startPosition, patternElements[i].endPosition, Spannable.SPAN_INCLUSIVE_INCLUSIVE); // Set the text color for first 4 characters
+                sb.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), patternElements[i].startPosition, patternElements[i].endPosition, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
         }
         messageView.setText(sb);
@@ -253,34 +244,34 @@ public class PatternEditActivity extends Activity {
         int symbolIndex = 0;
         int offset = 1;
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            DebugLogging.log(context, "makePattern  patternElements " + patternElements.get(i).set + " " +
-                    patternElements.get(i).startPosition + " " + patternElements.get(i).endPosition);
+            DebugLogging.log(context, "makePattern  patternElements " + patternElements[i].set + " " +
+                    patternElements[i].startPosition + " " + patternElements[i].endPosition);
         }
         do { 
             symbolIndex = messageString.indexOf("*", symbolIndex);
             if (symbolIndex != -1) {
                 for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-                    if (patternElements.get(i).set) {
-                        if (patternElements.get(i).startPosition >= symbolIndex) {
-                            patternElements.get(i).startPosition = patternElements.get(i).startPosition + offset;
+                     if (patternElements[i].set) {
+                        if (patternElements[i].startPosition >= symbolIndex) {
+                            patternElements[i].startPosition = patternElements[i].startPosition + offset;
                         }
-                        if (patternElements.get(i).endPosition >= symbolIndex) {
-                            patternElements.get(i).endPosition = patternElements.get(i).endPosition + offset;
+                        if (patternElements[i].endPosition >= symbolIndex) {
+                            patternElements[i].endPosition = patternElements[i].endPosition + offset;
                         }
                     }
                 }
             }
         } while (symbolIndex != messageString.lastIndexOf("*", symbolIndex));
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            DebugLogging.log(context, "makePattern  patternElements " + patternElements.get(i).set + " " +
-                    patternElements.get(i).startPosition + " " + patternElements.get(i).endPosition);
+             DebugLogging.log(context, "makePattern  patternElements " + patternElements[i].set + " " +
+                            patternElements[i].startPosition + " " + patternElements[i].endPosition);
         }
         DebugLogging.log(context, "makePattern tempResult " + tempResult);
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            if (patternElements.get(i).set) {
+            if (patternElements[i].set) {
                 DebugLogging.log(context, "makePattern " + regexpPattern[i]);
-                resultRegexp = resultRegexp.replace(tempResult.subSequence(patternElements.get(i).startPosition, 
-                        patternElements.get(i).endPosition), regexpPattern[i]);
+                resultRegexp = resultRegexp.replace(tempResult.subSequence(patternElements[i].startPosition, 
+                        patternElements[i].endPosition), regexpPattern[i]);
             }
         }
         resultRegexp = resultRegexp.replaceAll(" ", "\\\\s*");
@@ -289,45 +280,30 @@ public class PatternEditActivity extends Activity {
     }
     
     private void getGroupMap() {
-        sortMap(0, TransactionPattern.GROUP_NUMBER - 1);
+        Arrays.sort(patternElements, new Comparator<PatternElement>() {
+            @Override
+            public int compare(PatternElement arg0, PatternElement arg1) {
+                return ((arg0.startPosition < arg1.startPosition) ? -1 : ((arg0.startPosition == arg1.startPosition) ? 0 : 1));
+            }
+        });
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            DebugLogging.log(context, "makePattern  patternElements " + patternElements.get(i).set + " " +
-                    patternElements.get(i).startPosition + " " + patternElements.get(i).endPosition);
+            DebugLogging.log(context, "makePattern  patternElements " + patternElements[i].set + " " +
+                    patternElements[i].startPosition + " " + patternElements[i].endPosition);
         }
+        int number = 0;
         for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
-            if (patternElements.get(i).set) {
-                DebugLogging.log(context, "getGroupMap patternElements.get(i).group " + patternElements.get(i).group +
+            if (patternElements[i].set) {
+                number ++;
+                DebugLogging.log(context, "getGroupMap patternElements.get(i).group " + patternElements[i].group +
                         " i " + i);
-                groupMap[patternElements.get(i).group] = i + 1;
+                groupMap[patternElements[i].group] = number;
             } else {
-                groupMap[patternElements.get(i).group] = 0;
+                groupMap[patternElements[i].group] = 0;
             }
         }
-    }
-    
-    private void sortMap(int start, int end) {
-        int med = (patternElements.get(start).startPosition + patternElements.get(end).startPosition)/ 2;
-        int st = start;
-        int en = end;
-        do {
-            while (patternElements.get(st).startPosition < med) st++;
-            while (patternElements.get(en).startPosition > med) en--;
-            if (st <= en) {
-                PatternElement temp = new PatternElement(patternElements.get(st));
-                patternElements.get(st).clearElement();
-                patternElements.get(st).copyElement(patternElements.get(en));
-                patternElements.get(en).clearElement();
-                patternElements.get(en).copyElement(temp);
-                st++;
-                en--;
-            }
-        } while (st <= en);
-        if (start < en) {
-            sortMap(start, en);
-        }
-        if (end > st) {
-            sortMap(st, end);
-        }
+        for (int i = 0; i < TransactionPattern.GROUP_NUMBER; i++) {
+            DebugLogging.log(context, "makePattern  groupMap i " + i + " " + groupMap[i]);
+          }
     }
     
     private boolean savePattern() {

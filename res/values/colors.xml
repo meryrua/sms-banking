@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="list_item_color">#dddddd</color>
-    <color name="selected_list_item_color">#ddaaaa</color>
-    <color name="pressed_item_list_color">#ddaaaa</color>
-    
-</resources>

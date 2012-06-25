@@ -27,7 +27,7 @@ public class SMSParcer {
     public static final String DEFAULT_OUTGOING_PATTERN = "Balans vashey karty\\s*\\*(\\d+)\\s*umenshilsya\\s*(\\d+/\\d+/\\d+)\\s*na:\\s*(\\d+,\\d+)(\\w+).\\s*Dostupny\\s*Ostatok:\\s*(\\d+,\\d+)(\\w+).\\s*(\\w+)";
     public static final int[] DEFAULT_OUTGOING_PATTERN_GROUP = {1, 2, 0, 3, 4, 5, 6, 7};
     
-	//private static final String LOG_TAG = "com.meryrua.smsbanking:SMSParcer";
+	private static final String LOG_TAG = "com.meryrua.smsbanking:SMSParcer";
 	
 	/*private static final String testString = "Karta *1234; Provedena tranzakcija:567,33RUB; Data:23/12/2011; Mesto: any place; Dostupny Ostatok: 342,34RUB. Raiffeisenbank";
 	private static final String testOutgoingString = "Balans vashey karty *1234 umenshilsya 23/12/2011 na:567,33RUR. Dostupny Ostatok: 342,34RUR. Raiffeisenbank";
@@ -48,6 +48,7 @@ public class SMSParcer {
 	public boolean isCardOperation(String patterString) {
 		boolean matchFound = false;
 		
+		DebugLogging.log(LOG_TAG + " isCardOperation " + patterString);
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
@@ -60,6 +61,7 @@ public class SMSParcer {
 	
 	public boolean isIncomingFundOperation(String patterString) {
 		boolean matchFound = false;
+		DebugLogging.log(LOG_TAG + " isIncomingFundOperation " + patterString);
 		
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
@@ -73,7 +75,8 @@ public class SMSParcer {
 
 	public boolean isOutgoingFundOperation(String patterString) {
 		boolean matchFound = false;
-		
+	    
+		DebugLogging.log(LOG_TAG + " isOutgoingFundOperation " + patterString);
 		smsPattern = Pattern.compile(patterString);
 		matcherWithPattern = smsPattern.matcher(smsMessage);
 		
